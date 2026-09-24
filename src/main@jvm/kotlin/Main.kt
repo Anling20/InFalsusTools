@@ -1,6 +1,9 @@
-import cn.anling.inftool.InfToolCommand
+import cn.anling.inftool.command.AhvCommand
+import cn.anling.inftool.command.B50Command
+import cn.anling.inftool.command.DispatcherCommand
+import cn.anling.inftool.command.FloatingWindowCommand
 import com.github.ajalt.clikt.command.main
-import kotlinx.coroutines.runBlocking
+import com.github.ajalt.clikt.core.subcommands
 import java.io.File
 import java.io.PrintStream
 
@@ -11,9 +14,7 @@ private fun redirectOutput() {
     System.setErr(stream)
 }
 
-fun main(args: Array<String>) {
+suspend fun main(args: Array<String>) {
     redirectOutput()
-    runBlocking {
-        InfToolCommand().main(args)
-    }
+    DispatcherCommand().subcommands(B50Command(), FloatingWindowCommand(), AhvCommand()).main(args)
 }

@@ -2,7 +2,6 @@ package cn.anling.inftool
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Surface
@@ -13,10 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
@@ -30,7 +27,7 @@ import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
 
 @Composable
-fun PotentialApp(
+fun FloatingWindow(
     scale: Double,
     username: String,
     potential: Double,

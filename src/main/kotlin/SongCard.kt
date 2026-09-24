@@ -1,7 +1,16 @@
 package cn.anling.inftool
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -16,145 +25,27 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.allDrawableResources
-import cn.anling.infalsustools.generated.resources.banner_story
-import cn.anling.infalsustools.generated.resources.head_story
-import cn.anling.inftool.ClearType.*
-import cn.anling.inftool.Difficult.*
-import cn.anling.inftool.theme.AppTheme
+import cn.anling.inftool.ClearType.DiveCleared
+import cn.anling.inftool.ClearType.DiveFailed
+import cn.anling.inftool.ClearType.FullLink
+import cn.anling.inftool.ClearType.PerfectDive
+import cn.anling.inftool.Difficult.EVO
+import cn.anling.inftool.Difficult.FBD
+import cn.anling.inftool.Difficult.MIN
+import cn.anling.inftool.Difficult.ULT
 import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
-
-@Composable
-fun App(
-    onSizeChanged: (IntSize) -> Unit,
-    username: String,
-    data: List<ProcessedDiveRecord>,
-) {
-    AppTheme {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .fillMaxSize()
-                .horizontalScroll(rememberScrollState())
-                .verticalScroll(rememberScrollState()),
-        ) {
-            val processedB50 = remember(Unit) {
-                data.sortedByDescending {
-                    it.potential
-                }.take(50)
-            }
-
-            val potential = remember(Unit) {
-                val b10ptt = processedB50.take(10).map { it.potential }
-                val b50ptt = processedB50.map { it.potential }
-                (b10ptt.sum() + b50ptt.sum()) / 60.0
-            }
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(24.dp),
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .onSizeChanged(onSizeChanged)
-                    .padding(24.dp),
-            ) {
-                // Head
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Image(
-                        painter = painterResource(Res.drawable.head_story),
-                        contentDescription = "Head image",
-                        modifier = Modifier.size(256.dp),
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = username,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 48.sp,
-                            maxLines = 1,
-                        )
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val formater = remember(Unit) {
-                                DecimalFormat("0.000")
-                            }
-                            Image(
-                                painter = painterResource(Res.drawable.banner_story),
-                                contentDescription = "Banner image",
-                                modifier = Modifier.size(256.dp, 64.dp),
-                            )
-                            Text(
-                                text = formater.format(potential),
-                                color = Color.White.copy(alpha = 0.75f),
-                                fontSize = 24.sp,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
-
-                // Content
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                ) {
-                    repeat(10) { x ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(24.dp),
-                        ) {
-                            repeat(5) { y ->
-                                val index = x * 5 + y
-                                val data = processedB50.getOrNull(index)
-                                // 物量有误, 待修
-                                SongCard(
-                                    clearType = data?.clearType ?: DiveFailed,
-                                    difficult = data?.difficult ?: ULT,
-                                    level = data?.level ?: 0.0,
-                                    name = data?.song?.name ?: "",
-                                    position = index + 1,
-                                    image = data?.song?.id,
-                                    score = data?.score ?: 0,
-                                    potential = data?.potential ?: 0.0,
-                                    exactPlus = null,
-                                    exact = null,
-                                    near = when (data?.clearType) {
-                                        DiveFailed -> null
-                                        DiveCleared -> null
-                                        FullLink -> null
-                                        PerfectDive -> 0
-                                        null -> null
-                                    },
-                                    `break` = when (data?.clearType) {
-                                        DiveFailed -> null
-                                        DiveCleared -> null
-                                        FullLink -> 0
-                                        PerfectDive -> 0
-                                        null -> null
-                                    },
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+import kotlin.text.appendLine
 
 @Composable
 fun SongCard(
