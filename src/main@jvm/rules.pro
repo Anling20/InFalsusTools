@@ -11,6 +11,7 @@
 -dontwarn com.github.ajalt.mordant.terminal.terminalinterface.ffm.**
 -dontwarn com.github.ajalt.mordant.terminal.terminalinterface.nativeimage.**
 -dontwarn com.oracle.svm.**
+-dontwarn java.lang.invoke.MethodHandle
 
 -dontnote org.freedesktop.dbus.**
 -dontnote com.sun.jna.**

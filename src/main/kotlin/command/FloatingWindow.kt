@@ -1,11 +1,8 @@
 package cn.anling.inftool.command
 
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -13,12 +10,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import cn.anling.inftool.FloatingWindow
+import cn.anling.inftool.*
 import cn.anling.inftool.parser.Parser
-import cn.anling.inftool.potential
-import cn.anling.inftool.process
-import cn.anling.inftool.readBytesWhenAvailable
-import cn.anling.inftool.toDiveRecord
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
@@ -28,9 +21,9 @@ import com.github.ajalt.clikt.parameters.types.double
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.nio.file.FileSystems
 import java.nio.file.StandardWatchEventKinds
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
@@ -52,9 +45,11 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     height = (128 * scale).dp,
                 ),
             )
+            var windowVisible by remember { mutableStateOf(isFocusingGame()) }
             Window(
                 onCloseRequest = ::exitApplication,
                 state = windowState,
+                visible = windowVisible,
                 undecorated = true,
                 transparent = true,
                 resizable = false,
@@ -66,61 +61,75 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                 var playPotential by remember { mutableStateOf<Double?>(null) }
 
                 var potential by remember { mutableDoubleStateOf(newData.potential()) }
+                var visible by remember { mutableStateOf(windowVisible) }
 
                 LaunchedEffect(Unit) {
-                    withContext(Dispatchers.IO) {
-                        launch {
-                            val watchService = FileSystems.getDefault().newWatchService()
-                            val pathKey = save.toPath().parent.register(
-                                watchService,
-                                StandardWatchEventKinds.ENTRY_MODIFY,
-                            )
+                    launch(Dispatchers.IO) {
+                        val watchService = FileSystems.getDefault().newWatchService()
+                        val pathKey = save.toPath().parent.register(
+                            watchService,
+                            StandardWatchEventKinds.ENTRY_MODIFY,
+                        )
 
-                            while (true) {
-                                val watchKey = watchService.take()
+                        while (true) {
+                            val watchKey = watchService.take()
 
-                                for (event in watchKey.pollEvents()) {
-                                    val oldData = newData
+                            for (event in watchKey.pollEvents()) {
+                                val oldData = newData
 
-                                    newData = Parser(save.readBytesWhenAvailable()).parse()
-                                        .map { it.toDiveRecord().process() }
-                                    val oldPtt = oldData.potential()
-                                    val newPtt = newData.potential()
-                                    if (newPtt > oldPtt) {
-                                        potential = newPtt
-                                        additionPotential = newPtt - oldPtt
-                                        delay(5.seconds)
-                                        additionPotential = null
-                                    }
-                                }
-
-                                if (!watchKey.reset()) {
-                                    watchKey.cancel()
-                                    watchService.close()
-                                    break
+                                newData = Parser(save.readBytesWhenAvailable()).parse()
+                                    .map { it.toDiveRecord().process() }
+                                val oldPtt = oldData.potential()
+                                val newPtt = newData.potential()
+                                if (newPtt > oldPtt) {
+                                    potential = newPtt
+                                    additionPotential = newPtt - oldPtt
+                                    delay(5.seconds)
+                                    additionPotential = null
                                 }
                             }
 
-                            pathKey.cancel()
+                            if (!watchKey.reset()) {
+                                watchKey.cancel()
+                                watchService.close()
+                                break
+                            }
                         }
 
-                        launch {
-                            while (true) {
+                        pathKey.cancel()
+                    }
+
+                    launch(Dispatchers.IO) {
+                        while (true) {
+                            val newVisible = isFocusingGame()
+                            if (windowVisible != newVisible) {
+                                visible = newVisible
+                                window.isAlwaysOnTop = true
                                 window.toFront()
-                                delay(1.seconds)
+                                delay(300.milliseconds)
+                                windowVisible = newVisible
                             }
+                            delay(200.milliseconds)
                         }
                     }
                 }
 
-                FloatingWindow(
-                    scale = scale,
-                    username = username,
-                    potential = potential,
-                    additionPotential = additionPotential,
-                    playPotential = playPotential,
-                )
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = slideInVertically(tween()) + fadeIn(tween()),
+                    exit = slideOutVertically(tween()) + fadeOut(tween()),
+                ) {
+                    FloatingWindow(
+                        scale = scale,
+                        username = username,
+                        potential = potential,
+                        additionPotential = additionPotential,
+                        playPotential = playPotential,
+                    )
+                }
             }
         }
     }
 }
+
+expect fun isFocusingGame(): Boolean
