@@ -99,3 +99,7 @@ compose.resources {
         directoryProvider = provider { layout.projectDirectory.dir("src/main/composeResources") }
     )
 }
+
+tasks.withType<JavaExec>().configureEach {
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+}
