@@ -29,8 +29,12 @@ object WindowsForeground {
     }
 
     fun getForegroundProcessId(): Long {
+        val hwnd = getForegroundWindow()
+
         Arena.ofConfined().use { arena ->
             val pid = arena.allocate(ValueLayout.JAVA_INT)
+
+            getWindowThreadProcessId.invokeExact(hwnd, pid) as Int
 
             return pid.get(ValueLayout.JAVA_INT, 0).toLong() and 0xFFFF_FFFFL
         }
