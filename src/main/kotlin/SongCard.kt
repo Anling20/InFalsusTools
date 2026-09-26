@@ -2,15 +2,7 @@ package cn.anling.inftool
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,23 +25,17 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.anling.infalsustools.generated.resources.Res
-import cn.anling.infalsustools.generated.resources.allDrawableResources
-import cn.anling.inftool.ClearType.DiveCleared
-import cn.anling.inftool.ClearType.DiveFailed
-import cn.anling.inftool.ClearType.FullLink
-import cn.anling.inftool.ClearType.PerfectDive
-import cn.anling.inftool.Difficult.EVO
-import cn.anling.inftool.Difficult.FBD
-import cn.anling.inftool.Difficult.MIN
-import cn.anling.inftool.Difficult.ULT
+import cn.anling.infalsustools.generated.resources.*
+import cn.anling.inftool.ClearType.*
+import cn.anling.inftool.Difficult.*
+import cn.anling.inftool.Grading.*
 import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
-import kotlin.text.appendLine
 
 @Composable
 fun SongCard(
     clearType: ClearType,
+    grading: Grading?,
     difficult: Difficult,
     level: Double,
     name: String,
@@ -68,6 +54,7 @@ fun SongCard(
             FullLink -> Colors.SongCard.Background.fullLink
             DiveCleared -> Colors.SongCard.Background.diveCleared
             DiveFailed -> Colors.SongCard.Background.diveFailed
+            None -> Colors.SongCard.Background.none
         },
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
@@ -145,7 +132,7 @@ fun SongCard(
                     resource?.let {
                         Image(
                             painter = painterResource(it),
-                            contentDescription = "Image",
+                            contentDescription = "Song Image",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.size(256.dp),
                         )
@@ -155,20 +142,43 @@ fun SongCard(
                             modifier = Modifier.size(256.dp),
                         ) {}
                     }
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .background(Brush.verticalGradient(listOf(Color(0, 0, 0, 0), Color(0, 0, 0, 255)))),
-                    ) {
-                        val formater = remember(Unit) { DecimalFormat("000,000,000") }
-                        Text(
-                            text = formater.format(score),
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            maxLines = 1,
-                        )
+                    if (grading != null) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .background(Brush.verticalGradient(listOf(Color(0, 0, 0, 0), Color(0, 0, 0, 255)))),
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Image(
+                                    painter = painterResource(
+                                        when (grading) {
+                                            EXPlus -> Res.drawable.grade_explus
+                                            EX -> Res.drawable.grade_ex
+                                            AA -> Res.drawable.grade_aa
+                                            A -> Res.drawable.grade_a
+                                            B -> Res.drawable.grade_b
+                                            C -> Res.drawable.grade_c
+                                            D -> Res.drawable.grade_d
+                                        }
+                                    ),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(64.dp, 32.dp),
+                                )
+                                val formater = remember(Unit) { DecimalFormat("000,000,000") }
+                                Text(
+                                    text = formater.format(score),
+                                    color = Color.White,
+                                    fontSize = 24.sp,
+                                    maxLines = 1,
+                                )
+                            }
+                        }
                     }
                 }
                 Column(

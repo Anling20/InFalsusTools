@@ -14,7 +14,7 @@ fun ParseResult.toDiveRecord(): DiveRecord {
         song = songName,
         difficult = Difficult.entries[difficultIndex],
         score = score.toInt(),
-        clearType = ClearType.entries[resultClear - 1],
+        clearType = ClearType.entries[resultClear],
         maxLink = maxLink,
         tap = DiveRecord.Detailed.Count(
             exactPlus = counts.tap.exactPlus,
@@ -57,6 +57,7 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         FullLink -> 0.2
         DiveCleared -> 0.2
         DiveFailed -> 0.0
+        None -> 0.0
     }
 
     val song = Songs.entries.first { it.id == song }

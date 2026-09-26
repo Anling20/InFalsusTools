@@ -38,7 +38,7 @@ fun FloatingWindow(
         DecimalFormat("0.000")
     }
 
-    AppTheme {
+    AppTheme(false) {
         Surface(
             color = Color.Transparent,
             modifier = Modifier

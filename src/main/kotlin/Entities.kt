@@ -5,7 +5,7 @@ enum class Difficult {
 }
 
 enum class ClearType {
-    DiveFailed, DiveCleared, FullLink, PerfectDive,
+    None, DiveFailed, DiveCleared, FullLink, PerfectDive,
 }
 
 enum class Grading {
@@ -20,17 +20,7 @@ data class Song(
     val evolved: Double,
     val ultimate: Double,
     val forbidden: Double,
-) {
-    constructor(
-        id: String,
-        name: String,
-        chapter: String,
-        minimal: Int,
-        evolved: Int,
-        ultimate: Int,
-        forbidden: Int,
-    ) : this(id, name, chapter, minimal.toDouble(), evolved.toDouble(), ultimate.toDouble(), forbidden.toDouble())
-}
+)
 
 data class ProcessedDiveRecord(
     val song: Song,

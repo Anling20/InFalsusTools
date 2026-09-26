@@ -35,6 +35,7 @@ private data class AhvData(
 
 @Composable
 fun Ahv(
+    darkTheme: Boolean,
     onSizeChanged: (IntSize) -> Unit,
     username: String,
     data: List<ProcessedDiveRecord>,
@@ -43,7 +44,7 @@ fun Ahv(
     max: Double?,
     difficulties: List<Difficult>,
 ) {
-    AppTheme {
+    AppTheme(darkTheme) {
         Surface(
             color = MaterialTheme.colorScheme.background,
             modifier = Modifier
@@ -153,13 +154,13 @@ fun Ahv(
                                 thickness = 2.dp,
                                 color = Color.Transparent,
                                 modifier = Modifier
-                                    .width(1000.dp)
+                                    .width(1500.dp)
                                     .background(
                                         brush = Brush.horizontalGradient(
                                             listOf(
-                                                Color(31, 30, 51, 0),
-                                                Color(31, 30, 51, 255),
-                                                Color(31, 30, 51, 0),
+                                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.0F),
+                                                MaterialTheme.colorScheme.onBackground.copy(alpha = 1.0F),
+                                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.0F),
                                             )
                                         ),
                                     ),
@@ -190,7 +191,8 @@ fun Ahv(
                                 }.forEach { (song, difficult, diveRecord) ->
                                     // 物量有误, 待修
                                     SongCard(
-                                        clearType = diveRecord?.clearType ?: DiveFailed,
+                                        clearType = diveRecord?.clearType ?: None,
+                                        grading = diveRecord?.grading,
                                         difficult = difficult,
                                         level = potential,
                                         name = song.name,
@@ -201,18 +203,20 @@ fun Ahv(
                                         exactPlus = null,
                                         exact = null,
                                         near = when (diveRecord?.clearType) {
+                                            None -> null
                                             DiveFailed -> null
                                             DiveCleared -> null
                                             FullLink -> null
                                             PerfectDive -> 0
-                                            else -> 0
+                                            null -> null
                                         },
                                         `break` = when (diveRecord?.clearType) {
+                                            None -> null
                                             DiveFailed -> null
                                             DiveCleared -> null
                                             FullLink -> 0
                                             PerfectDive -> 0
-                                            else -> 0
+                                            null -> null
                                         },
                                     )
                                 }

@@ -27,9 +27,11 @@ class B50Command : SuspendingCliktCommand("b50") {
 
         renderComposeScene(1, 1) {
             B50(
+                darkTheme = false,
                 onSizeChanged = { size ->
                     val img = renderComposeScene(size.width, size.height) {
                         B50(
+                            darkTheme = false,
                             onSizeChanged = {},
                             username = username,
                             data = data,

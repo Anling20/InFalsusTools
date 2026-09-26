@@ -1,13 +1,9 @@
 package cn.anling.inftool.command
 
 import androidx.compose.ui.renderComposeScene
-import cn.anling.inftool.Ahv
-import cn.anling.inftool.Difficult
+import cn.anling.inftool.*
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.parser.Parser
-import cn.anling.inftool.process
-import cn.anling.inftool.readBytesWhenAvailable
-import cn.anling.inftool.toDiveRecord
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
@@ -37,9 +33,11 @@ class AhvCommand : SuspendingCliktCommand("ahv") {
 
         renderComposeScene(1, 1) {
             Ahv(
+                darkTheme = false,
                 onSizeChanged = { size ->
                     val img = renderComposeScene(size.width, size.height) {
                         Ahv(
+                            darkTheme = false,
                             onSizeChanged = {},
                             username = username,
                             data = data,

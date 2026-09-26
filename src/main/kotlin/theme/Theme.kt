@@ -249,7 +249,10 @@ val unspecified_scheme = ColorFamily(
 )
 
 @Composable
-fun AppTheme(content: @Composable () -> Unit) {
+fun AppTheme(
+    darkTheme: Boolean,
+    content: @Composable () -> Unit,
+) {
     val defaultTypography = MaterialTheme.typography
     var typography by remember { mutableStateOf<Typography?>(null) }
 
@@ -275,7 +278,10 @@ fun AppTheme(content: @Composable () -> Unit) {
     }
 
     MaterialTheme(
-        colorScheme = lightScheme,
+        colorScheme = when (darkTheme) {
+            true -> darkScheme
+            else -> lightScheme
+        },
         typography = typography ?: defaultTypography,
         content = content
     )

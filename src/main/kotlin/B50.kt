@@ -28,11 +28,12 @@ import java.text.DecimalFormat
 
 @Composable
 fun B50(
+    darkTheme: Boolean,
     onSizeChanged: (IntSize) -> Unit,
     username: String,
     data: List<ProcessedDiveRecord>,
 ) {
-    AppTheme {
+    AppTheme(darkTheme) {
         Surface(
             color = MaterialTheme.colorScheme.background,
             modifier = Modifier
@@ -103,6 +104,7 @@ fun B50(
                         // 物量有误, 待修
                         SongCard(
                             clearType = diveRecord?.clearType ?: DiveFailed,
+                            grading = diveRecord?.grading,
                             difficult = diveRecord?.difficult ?: ULT,
                             level = diveRecord?.level ?: 0.0,
                             name = diveRecord?.song?.name ?: "",
@@ -113,6 +115,7 @@ fun B50(
                             exactPlus = null,
                             exact = null,
                             near = when (diveRecord?.clearType) {
+                                None -> null
                                 DiveFailed -> null
                                 DiveCleared -> null
                                 FullLink -> null
@@ -120,6 +123,7 @@ fun B50(
                                 null -> null
                             },
                             `break` = when (diveRecord?.clearType) {
+                                None -> null
                                 DiveFailed -> null
                                 DiveCleared -> null
                                 FullLink -> 0

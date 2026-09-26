@@ -1,14 +1,31 @@
 package cn.anling.inftool
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 object Colors {
     object SongCard {
         object Background {
-            val perfectDive = Color(229, 225, 233)
-            val fullLink = Color(196, 192, 255)
-            val diveCleared = Color(227, 223, 255)
-            val diveFailed = Color(255, 218, 214)
+            val perfectDive
+                @Composable
+                get() = MaterialTheme.colorScheme.surfaceContainerHighest
+
+            val fullLink
+                @Composable
+                get() = MaterialTheme.colorScheme.primaryFixedDim
+
+            val diveCleared
+                @Composable
+                get() = MaterialTheme.colorScheme.primaryContainer
+
+            val diveFailed
+                @Composable
+                get() = MaterialTheme.colorScheme.errorContainer
+
+            val none
+                @Composable
+                get() = MaterialTheme.colorScheme.surfaceDim
         }
 
         object Difficult {
