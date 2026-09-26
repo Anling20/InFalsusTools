@@ -3,6 +3,7 @@ package cn.anling.inftool.command
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.obj
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import java.io.File
@@ -14,11 +15,13 @@ import kotlin.use
 data class CommandContext(
     val username: String,
     val save: File,
+    val experimentalLevel: Boolean,
 )
 
 class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
     val username: String by option(help = "显示的用户名").default("Player")
     val save: File? by option(help = ".sav 存档文件的完整路径").file()
+    val experimentalLevel: Boolean by option(help = "使用实验性的精确定数").flag()
 
     override suspend fun run() {
         currentContext.obj = CommandContext(
@@ -35,7 +38,8 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                         .first()
                         .absolutePathString()
                 }.let { File(it) }
-            }
+            },
+            experimentalLevel = experimentalLevel,
         )
     }
 }

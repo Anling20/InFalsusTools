@@ -38,6 +38,7 @@ fun Ahv(
     onSizeChanged: (IntSize) -> Unit,
     username: String,
     data: List<ProcessedDiveRecord>,
+    experimentalLevel: Boolean,
     min: Double?,
     max: Double?,
     difficulties: List<Difficult>,
@@ -82,6 +83,11 @@ fun Ahv(
                     EVO -> ahvData.song.evolved
                     ULT -> ahvData.song.ultimate
                     FBD -> ahvData.song.forbidden
+                }.let {
+                    when (experimentalLevel) {
+                        true -> it
+                        else -> it.toInt().toDouble()
+                    }
                 }
             }.filterKeys {
                 min == null || it >= min
@@ -144,7 +150,7 @@ fun Ahv(
                     groupedData.keys.sortedDescending().forEachIndexed { index, potential ->
                         if (index > 0) {
                             HorizontalDivider(
-                                thickness = 1.dp,
+                                thickness = 2.dp,
                                 color = Color.Transparent,
                                 modifier = Modifier
                                     .width(1000.dp)

@@ -32,8 +32,8 @@ class AhvCommand : SuspendingCliktCommand("ahv") {
     override fun help(context: Context) = "生成铺面达成情况"
 
     override suspend fun run() {
-        val (username, save) = commandContext
-        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process() }
+        val (username, save, experimentalLevel) = commandContext
+        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process(experimentalLevel) }
 
         renderComposeScene(1, 1) {
             Ahv(
@@ -43,6 +43,7 @@ class AhvCommand : SuspendingCliktCommand("ahv") {
                             onSizeChanged = {},
                             username = username,
                             data = data,
+                            experimentalLevel = experimentalLevel,
                             min = min,
                             max = max,
                             difficulties = difficulties,
@@ -55,6 +56,7 @@ class AhvCommand : SuspendingCliktCommand("ahv") {
                 },
                 username = username,
                 data = data,
+                experimentalLevel = experimentalLevel,
                 min = min,
                 max = max,
                 difficulties = difficulties,

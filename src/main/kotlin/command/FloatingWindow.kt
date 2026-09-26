@@ -34,8 +34,8 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
     override fun help(context: Context) = "启动潜力值悬浮窗"
 
     override suspend fun run() {
-        val (username, save) = commandContext
-        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process() }
+        val (username, save, experimentalLevel) = commandContext
+        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process(experimentalLevel) }
 
         application {
             val windowState = rememberWindowState(
@@ -114,7 +114,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                                 val oldData = newData
 
                                 newData = Parser(save.readBytesWhenAvailable()).parse()
-                                    .map { it.toDiveRecord().process() }
+                                    .map { it.toDiveRecord().process(experimentalLevel) }
                                 val oldPtt = oldData.potential()
                                 val newPtt = newData.potential()
 

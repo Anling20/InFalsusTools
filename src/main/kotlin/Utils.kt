@@ -9,55 +9,6 @@ import java.io.File
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
-fun DiveRecord.process(): ProcessedDiveRecord {
-    val additionPotential = when (clearType) {
-        PerfectDive -> 0.2
-        FullLink -> 0.2
-        DiveCleared -> 0.2
-        DiveFailed -> 0.0
-    }
-
-    val song = Songs.entries.first { it.id == song }
-    val level = when (difficult) {
-        MIN -> song.minimal
-        EVO -> song.evolved
-        ULT -> song.ultimate
-        FBD -> song.forbidden
-    }
-
-    val potential = when (score) {
-        in 0..<98000000 -> max(0.0, level + ((score - 95000000) / 3000000.0) + additionPotential)
-        in 98000000..<100000000 -> level + 1 + ((score - 98000000) / 2000000.0) + additionPotential
-        else -> level + 2 + additionPotential
-    }
-
-    val grading = when (score) {
-        in 0..<80000000 -> Grading.D
-        in 80000000..<85000000 -> Grading.C
-        in 85000000..<92000000 -> Grading.B
-        in 92000000..<95000000 -> Grading.A
-        in 95000000..<98000000 -> Grading.AA
-        in 98000000..<99000000 -> Grading.EX
-        else -> Grading.EXPlus
-    }
-
-    return ProcessedDiveRecord(
-        song = song,
-        difficult = difficult,
-        score = score,
-        clearType = clearType,
-        maxLink = maxLink,
-        exactPlus = exactPlus,
-        exact = exact,
-        near = near,
-        `break` = `break`,
-        potential = potential,
-        grading = grading,
-        level = level,
-        raw = this,
-    )
-}
-
 fun ParseResult.toDiveRecord(): DiveRecord {
     return DiveRecord.Detailed(
         song = songName,
@@ -97,6 +48,60 @@ fun ParseResult.toDiveRecord(): DiveRecord {
             nearLate = counts.flick.nearLate,
             `break` = counts.flick.`break`,
         ),
+    )
+}
+
+fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
+    val additionPotential = when (clearType) {
+        PerfectDive -> 0.2
+        FullLink -> 0.2
+        DiveCleared -> 0.2
+        DiveFailed -> 0.0
+    }
+
+    val song = Songs.entries.first { it.id == song }
+    val rawLevel = when (difficult) {
+        MIN -> song.minimal
+        EVO -> song.evolved
+        ULT -> song.ultimate
+        FBD -> song.forbidden
+    }
+
+    val level = when (experimentalLevel) {
+        true -> rawLevel
+        else -> rawLevel.toInt().toDouble()
+    }
+
+    val potential = when (score) {
+        in 0..<98000000 -> max(0.0, level + ((score - 95000000) / 3000000.0) + additionPotential)
+        in 98000000..<100000000 -> level + 1 + ((score - 98000000) / 2000000.0) + additionPotential
+        else -> level + 2 + additionPotential
+    }
+
+    val grading = when (score) {
+        in 0..<80000000 -> Grading.D
+        in 80000000..<85000000 -> Grading.C
+        in 85000000..<92000000 -> Grading.B
+        in 92000000..<95000000 -> Grading.A
+        in 95000000..<98000000 -> Grading.AA
+        in 98000000..<99000000 -> Grading.EX
+        else -> Grading.EXPlus
+    }
+
+    return ProcessedDiveRecord(
+        song = song,
+        difficult = difficult,
+        score = score,
+        clearType = clearType,
+        maxLink = maxLink,
+        exactPlus = exactPlus,
+        exact = exact,
+        near = near,
+        `break` = `break`,
+        potential = potential,
+        grading = grading,
+        level = level,
+        raw = this,
     )
 }
 

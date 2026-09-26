@@ -22,8 +22,8 @@ class B50Command : SuspendingCliktCommand("b50") {
     override fun help(context: Context) = "生成 Best 50 图片"
 
     override suspend fun run() {
-        val (username, save) = commandContext
-        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process() }
+        val (username, save, experimentalLevel) = commandContext
+        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process(experimentalLevel) }
 
         renderComposeScene(1, 1) {
             B50(
