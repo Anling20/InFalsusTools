@@ -2,53 +2,52 @@ package cn.anling.inftool
 
 import cn.anling.inftool.ClearType.*
 import cn.anling.inftool.Difficult.*
-import cn.anling.inftool.parser.ParseResult
+import cn.anling.inftool.parser.ParsedSave
 import cn.anling.inftool.song.Songs
 import kotlinx.coroutines.delay
-import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
-fun ParseResult.toDiveRecord(): DiveRecord {
-    return DiveRecord.Detailed(
-        song = songName,
-        difficult = Difficult.entries[difficultIndex],
-        score = score.toInt(),
-        clearType = ClearType.entries[resultClear],
-        maxLink = maxLink,
-        tap = DiveRecord.Detailed.Count(
-            exactPlus = counts.tap.exactPlus,
-            exactEarly = counts.tap.exactEarly,
-            exactLate = counts.tap.exactLate,
-            nearEarly = counts.tap.nearEarly,
-            nearLate = counts.tap.nearLate,
-            `break` = counts.tap.`break`,
-        ),
-        hold = DiveRecord.Detailed.Count(
-            exactPlus = counts.hold.exactPlus,
-            exactEarly = counts.hold.exactEarly,
-            exactLate = counts.hold.exactLate,
-            nearEarly = counts.hold.nearEarly,
-            nearLate = counts.hold.nearLate,
-            `break` = counts.hold.`break`,
-        ),
-        field = DiveRecord.Detailed.Count(
-            exactPlus = counts.field.exactPlus,
-            exactEarly = counts.field.exactEarly,
-            exactLate = counts.field.exactLate,
-            nearEarly = counts.field.nearEarly,
-            nearLate = counts.field.nearLate,
-            `break` = counts.field.`break`,
-        ),
-        flick = DiveRecord.Detailed.Count(
-            exactPlus = counts.flick.exactPlus,
-            exactEarly = counts.flick.exactEarly,
-            exactLate = counts.flick.exactLate,
-            nearEarly = counts.flick.nearEarly,
-            nearLate = counts.flick.nearLate,
-            `break` = counts.flick.`break`,
-        ),
-    )
+fun ParsedSave.toDiveRecordList(): List<DiveRecord> {
+    return highScores.map { highScoreRecord ->
+        val result = history.findLast { historyRecord ->
+            historyRecord.songId == highScoreRecord.songId &&
+                    historyRecord.difficultyIndex == highScoreRecord.difficultyIndex &&
+                    historyRecord.score == highScoreRecord.score
+        }
+        if (result == null) {
+            println("Play history not found: ${highScoreRecord.baseName}(songId:${highScoreRecord.songId}, difficultyIndex:${highScoreRecord.difficultyIndex}, score:${highScoreRecord.score})")
+        }
+        highScoreRecord to result
+    }.map { (highScoreRecord, historyRecord) ->
+        DiveRecord(
+            song = highScoreRecord.baseName,
+            difficult = Difficult.entries[highScoreRecord.difficultyIndex],
+            score = highScoreRecord.score,
+            clearType = ClearType.entries[highScoreRecord.resultClear],
+            maxLink = historyRecord?.maxCombo,
+            exactPlus = historyRecord?.counts?.run {
+                tap.shiny + hold.shiny + skyArea.shiny + flick.shiny
+            },
+            exactEarly = historyRecord?.counts?.run {
+                tap.perfectEarly + hold.perfectEarly + skyArea.perfectEarly + flick.perfectEarly
+            },
+            exactLate = historyRecord?.counts?.run {
+                tap.perfectLate + hold.perfectLate + skyArea.perfectLate + flick.perfectLate
+            },
+            nearEarly = historyRecord?.counts?.run {
+                tap.nearEarly + hold.nearEarly + skyArea.nearEarly + flick.nearEarly
+            },
+            nearLate = historyRecord?.counts?.run {
+                tap.nearLate + hold.nearLate + skyArea.nearLate + flick.nearLate
+            },
+            `break` = historyRecord?.counts?.run {
+                tap.miss + hold.miss + skyArea.miss + flick.miss
+            },
+        )
+    }
 }
 
 fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
@@ -96,8 +95,10 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         clearType = clearType,
         maxLink = maxLink,
         exactPlus = exactPlus,
-        exact = exact,
-        near = near,
+        exactEarly = exactEarly,
+        exactLate = exactLate,
+        nearEarly = nearEarly,
+        nearLate = nearLate,
         `break` = `break`,
         potential = potential,
         grading = grading,
@@ -115,10 +116,10 @@ fun List<ProcessedDiveRecord>.potential(): Double {
     return (b10ptt.sum() + b50ptt.sum()) / 60.0
 }
 
-suspend fun File.readBytesWhenAvailable(): ByteArray {
+suspend fun Path.readBytesWhenAvailable(): ByteArray {
     while (true) {
         runCatching {
-            return readBytes()
+            return Files.readAllBytes(this)
         }
         delay(50.milliseconds)
     }

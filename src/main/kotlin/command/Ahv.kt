@@ -3,7 +3,7 @@ package cn.anling.inftool.command
 import androidx.compose.ui.renderComposeScene
 import cn.anling.inftool.*
 import cn.anling.inftool.Difficult.*
-import cn.anling.inftool.parser.Parser
+import cn.anling.inftool.parser.SaveFileParser
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
@@ -29,7 +29,7 @@ class AhvCommand : SuspendingCliktCommand("ahv") {
 
     override suspend fun run() {
         val (username, save, experimentalLevel) = commandContext
-        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process(experimentalLevel) }
+        val data = SaveFileParser.parse(save.toPath()).toDiveRecordList().map { it.process(experimentalLevel) }
 
         renderComposeScene(1, 1) {
             Ahv(

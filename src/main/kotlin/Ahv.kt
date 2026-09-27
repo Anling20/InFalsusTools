@@ -189,35 +189,20 @@ fun Ahv(
                                 groupedData[potential]!!.sortedByDescending {
                                     it.diveRecord?.potential ?: 0.0
                                 }.forEach { (song, difficult, diveRecord) ->
-                                    // 物量有误, 待修
                                     SongCard(
                                         clearType = diveRecord?.clearType ?: None,
                                         grading = diveRecord?.grading,
                                         difficult = difficult,
                                         level = potential,
                                         name = song.name,
-                                        position = index + 1,
+                                        position = null,
                                         image = song.id,
                                         score = diveRecord?.score ?: 0,
                                         potential = diveRecord?.potential ?: 0.0,
-                                        exactPlus = null,
-                                        exact = null,
-                                        near = when (diveRecord?.clearType) {
-                                            None -> null
-                                            DiveFailed -> null
-                                            DiveCleared -> null
-                                            FullLink -> null
-                                            PerfectDive -> 0
-                                            null -> null
-                                        },
-                                        `break` = when (diveRecord?.clearType) {
-                                            None -> null
-                                            DiveFailed -> null
-                                            DiveCleared -> null
-                                            FullLink -> 0
-                                            PerfectDive -> 0
-                                            null -> null
-                                        },
+                                        exactPlus = diveRecord?.exactPlus,
+                                        exact = diveRecord?.exactEarly?.plus(diveRecord.exactLate ?: 0),
+                                        near = diveRecord?.nearEarly?.plus(diveRecord.nearLate ?: 0),
+                                        `break` = diveRecord?.`break`,
                                     )
                                 }
                             }

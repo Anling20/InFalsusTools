@@ -39,7 +39,7 @@ object Songs {
     val memoire = Song("memoire", "Mémoire", "Intermission", 4.0, 7.0, 11.5, 13.3)
     val minerva = Song("minerva", "Minerva", "Act II", 2.0, 5.0, 9.0, 11.5)
     val mirinae = Song("mirinae", "MIRINAE", "In Falsus", 2.0, 6.0, 9.0, 12.1)
-    val moondiver = Song("moondiver", "M / O / O / N / D / I / V / E / R", "Act II", 2.0, 5.0, 9.0, 11.5)
+    val moondiver = Song("moondiver", "M / O / O / N / D / I / V / E / R", "Act II", 2.0, 5.0, 9.0, 11.7)
     val moonsliders = Song("moonsliders", "Moonsliders", "Act IV", 3.0, 6.0, 10.5, 13.3)
     val mydeadlysins = Song("mydeadlysins", "My Deadly Sins", "Act III", 2.0, 6.0, 9.0, 12.3)
     val neonvision = Song("neonvision", "NEONViSION", "Intermission", 3.0, 6.0, 9.0, 11.8)

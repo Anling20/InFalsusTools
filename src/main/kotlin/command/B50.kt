@@ -2,10 +2,9 @@ package cn.anling.inftool.command
 
 import androidx.compose.ui.renderComposeScene
 import cn.anling.inftool.B50
-import cn.anling.inftool.parser.Parser
+import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.process
-import cn.anling.inftool.readBytesWhenAvailable
-import cn.anling.inftool.toDiveRecord
+import cn.anling.inftool.toDiveRecordList
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
@@ -23,7 +22,7 @@ class B50Command : SuspendingCliktCommand("b50") {
 
     override suspend fun run() {
         val (username, save, experimentalLevel) = commandContext
-        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process(experimentalLevel) }
+        val data = SaveFileParser.parse(save.toPath()).toDiveRecordList().map { it.process(experimentalLevel) }
 
         renderComposeScene(1, 1) {
             B50(

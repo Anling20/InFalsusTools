@@ -39,9 +39,9 @@ fun SongCard(
     difficult: Difficult,
     level: Double,
     name: String,
-    position: Int,
+    position: Int?,
     image: String?,
-    score: Int,
+    score: Long,
     potential: Double,
     exactPlus: Int?,
     exact: Int?,
@@ -98,15 +98,17 @@ fun SongCard(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1F),
                 )
-                Spacer(
-                    modifier = Modifier.width(32.dp),
-                )
-                Text(
-                    text = "#$position",
-                    fontSize = 24.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                )
+                if (position != null) {
+                    Spacer(
+                        modifier = Modifier.width(32.dp),
+                    )
+                    Text(
+                        text = "#$position",
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                    )
+                }
             }
 
             // Content

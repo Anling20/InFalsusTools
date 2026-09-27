@@ -11,7 +11,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import cn.anling.inftool.*
-import cn.anling.inftool.parser.Parser
+import cn.anling.inftool.parser.SaveFileParser
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
@@ -22,6 +22,7 @@ import com.github.ajalt.clikt.parameters.types.int
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -35,7 +36,6 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
 
     override suspend fun run() {
         val (username, save, experimentalLevel) = commandContext
-        val data = Parser(save.readBytesWhenAvailable()).parse().map { it.toDiveRecord().process(experimentalLevel) }
 
         application {
             val windowState = rememberWindowState(
@@ -56,11 +56,20 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                 focusable = false,
                 alwaysOnTop = true,
             ) {
-                var newData by remember { mutableStateOf(data) }
+                var parsedData by remember {
+                    runBlocking {
+                        mutableStateOf(SaveFileParser.parse(save.toPath()))
+                    }
+                }
+                var data by remember {
+                    runBlocking {
+                        mutableStateOf(parsedData.toDiveRecordList().map { it.process(experimentalLevel) })
+                    }
+                }
                 var additionPotential by remember { mutableStateOf<Double?>(null) }
                 var playPotential by remember { mutableStateOf<Double?>(null) }
 
-                var potential by remember { mutableDoubleStateOf(newData.potential()) }
+                var potential by remember { mutableDoubleStateOf(data.potential()) }
                 var playingGame by remember { mutableStateOf(false) }
                 var focusingGame by remember { mutableStateOf(windowVisible) }
                 var visible by remember { mutableStateOf(windowVisible) }
@@ -104,6 +113,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                             },
                             onGameExited = {
                                 playingGame = false
+
                                 if (!visible && focusingGame) {
                                     windowVisible = true
                                     visible = true
@@ -111,18 +121,22 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                                     window.toFront()
                                 }
 
-                                val oldData = newData
+                                val oldParsedData = parsedData
+                                val oldData = data
 
-                                newData = Parser(save.readBytesWhenAvailable()).parse()
-                                    .map { it.toDiveRecord().process(experimentalLevel) }
-                                val oldPtt = oldData.potential()
-                                val newPtt = newData.potential()
+                                parsedData = SaveFileParser.parse(save.toPath())
+                                data = parsedData.toDiveRecordList().map { it.process(experimentalLevel) }
 
-                                potential = newPtt
-                                additionPotential = newPtt - oldPtt
+                                if (parsedData.history != oldParsedData.history) {
+                                    val oldPtt = oldData.potential()
+                                    val newPtt = data.potential()
 
-                                delay(timeout.seconds)
-                                additionPotential = null
+                                    potential = newPtt
+                                    additionPotential = newPtt - oldPtt
+
+                                    delay(timeout.seconds)
+                                    additionPotential = null
+                                }
                             }
                         ).start()
                     }
