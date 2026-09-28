@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import java.lang.foreign.*
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.streams.asSequence
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -11,7 +12,7 @@ class GameSceneMonitor(
     private val scope: CoroutineScope,
     private val onGameStarted: suspend () -> Unit,
     private val onGameExited: suspend () -> Unit,
-    private val pollInterval: Duration = 2.seconds,
+    private val pollInterval: Duration,
 ) : AutoCloseable {
 
     companion object {
@@ -120,7 +121,7 @@ class GameSceneMonitor(
                 previousGameScene = currentGameScene
 
             } catch (e: Exception) {
-                println("[GameSceneMonitor] Monitor error: ${e.stackTraceToString()}")
+                println("[GameSceneMonitor] Monitor error: ${e::class.simpleName}: ${e.message}")
 
                 processMemory?.close()
                 processMemory = null
@@ -132,23 +133,14 @@ class GameSceneMonitor(
     }
 
     private fun findGameProcess(): ProcessMemory? {
-        val process =
-            ProcessHandle
-                .allProcesses()
-                .filter { handle ->
-                    val command = handle.info()
-                        .command()
-                        .orElse("")
+        val process = ProcessHandle.allProcesses().asSequence().firstNotNullOfOrNull { handle ->
+            val command = handle.info().command().orElse(null)
 
-                    command.endsWith(
-                        "InFalsus.exe",
-                        ignoreCase = true,
-                    )
-                }
-                .findFirst()
-                .orElse(null)
-
-        if (process == null) {
+            when (command?.endsWith("InFalsus.exe", ignoreCase = true)) {
+                true -> handle
+                else -> null
+            }
+        } ?: run {
             println("[GameSceneMonitor] InFalsus.exe not found")
             return null
         }
@@ -165,17 +157,16 @@ class GameSceneMonitor(
             val base = memory.findModuleBase("GameAssembly.dll")
 
             if (base == 0L) {
+                println("[GameSceneMonitor] GameAssembly.dll not ready")
                 memory.close()
-
-                println("[GameSceneMonitor] GameAssembly.dll NOT FOUND")
-
                 null
             } else {
                 memory.gameAssemblyBase = base
+                println("[GameSceneMonitor] GameAssembly.dll ready: 0x${base.toString(16)}")
                 memory
             }
         } catch (e: Exception) {
-            println("[GameSceneMonitor] Failed to open process: ${e.stackTraceToString()}")
+            println("[GameSceneMonitor] Failed to open process: ${e::class.simpleName}: ${e.message}")
             null
         }
     }
@@ -382,16 +373,12 @@ class GameSceneMonitor(
                 .orElse(false) ?: false
         }
 
-        fun readPointer(address: Long): Long {
-            if (address == 0L) return 0L
+        private fun readPointerOrNull(address: Long): Long? {
+            if (address == 0L) {
+                return null
+            }
 
             val buffer = arena.allocate(ValueLayout.JAVA_LONG)
-
-            buffer.set(
-                ValueLayout.JAVA_LONG,
-                0L,
-                -1L
-            )
 
             val bytesRead = arena.allocate(ValueLayout.JAVA_LONG)
 
@@ -407,20 +394,14 @@ class GameSceneMonitor(
             val actualBytes =
                 bytesRead.get(ValueLayout.JAVA_LONG, 0L)
 
-            val value = buffer.get(ValueLayout.JAVA_LONG, 0L)
-
-            if (success == 0) {
-                val errorCode = getLastError.invoke() as Int
-
-                error(
-                    "ReadProcessMemory failed: " +
-                            "address=0x${address.toString(16)}, " +
-                            "bytesRead=$actualBytes, " +
-                            "error=0x${errorCode.toUInt().toString(16)}"
-                )
+            if (success == 0 || actualBytes != 8L) {
+                return null
             }
 
-            return value
+            return buffer.get(
+                ValueLayout.JAVA_LONG,
+                0L,
+            )
         }
 
         fun readBytes(address: Long, size: Int): ByteArray {
@@ -460,25 +441,27 @@ class GameSceneMonitor(
             val classAddress =
                 gameAssemblyBase + GAME_SCENE_CLASS_RVA
 
-            val gameSceneClass =
-                readPointer(classAddress)
+            val gameSceneClass = readPointerOrNull(classAddress)
+                ?: return 0L
 
-            if (gameSceneClass == 0L) {
+            // IL2CPP 初始化完成之前，这个位置可能暂时不是有效指针。
+            // Windows x64 正常的模块/堆地址通常远高于 4GB。
+            if (gameSceneClass < 0x1_0000_0000L) {
                 return 0L
             }
 
             val staticFields =
-                readPointer(
+                readPointerOrNull(
                     gameSceneClass + STATIC_FIELDS_OFFSET
-                )
+                ) ?: return 0L
 
-            if (staticFields == 0L) {
+            if (staticFields < 0x1_0000_0000L) {
                 return 0L
             }
 
-            return readPointer(
+            return readPointerOrNull(
                 staticFields + GAME_SCENE_INSTANCE_OFFSET
-            )
+            ) ?: 0L
         }
 
         private fun dumpRipLoads(

@@ -13,8 +13,8 @@ enum class Grading {
 }
 
 data class Song(
-    val id: String,
     val name: String,
+    val title: String,
     val chapter: String,
     val minimal: Double,
     val evolved: Double,

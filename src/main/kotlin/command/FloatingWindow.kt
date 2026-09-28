@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -31,6 +32,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
     val timeout: Int by option(help = "设置结算信息显示时长(seconds)").int().default(7)
 
     private val commandContext by requireObject<CommandContext>()
+    private val pollInterval: Duration = 500.milliseconds
 
     override fun help(context: Context) = "启动潜力值悬浮窗"
 
@@ -67,11 +69,11 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     }
                 }
                 var additionPotential by remember { mutableStateOf<Double?>(null) }
-                var playPotential by remember { mutableStateOf<Double?>(null) }
 
                 var potential by remember { mutableDoubleStateOf(data.potential()) }
                 var playingGame by remember { mutableStateOf(false) }
                 var focusingGame by remember { mutableStateOf(windowVisible) }
+                var cursorCovered by remember { mutableStateOf(false) }
                 var visible by remember { mutableStateOf(windowVisible) }
 
                 LaunchedEffect(Unit) {
@@ -79,7 +81,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     launch(Dispatchers.IO) {
                         while (true) {
                             focusingGame = isFocusingGame()
-                            val newVisible = focusingGame && !playingGame
+                            val newVisible = focusingGame && !playingGame && !cursorCovered
                             if (visible != newVisible) {
                                 val oldVisible = visible
                                 if (!oldVisible) {
@@ -93,7 +95,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                                     windowVisible = false
                                 }
                             }
-                            delay(200.milliseconds)
+                            delay(pollInterval)
                         }
                     }
 
@@ -113,8 +115,8 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                             },
                             onGameExited = {
                                 playingGame = false
-
-                                if (!visible && focusingGame) {
+                                val newVisible = focusingGame && !cursorCovered
+                                if (visible != newVisible) {
                                     windowVisible = true
                                     visible = true
                                     window.isAlwaysOnTop = true
@@ -137,8 +139,36 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                                     delay(timeout.seconds)
                                     additionPotential = null
                                 }
-                            }
+                            },
+                            pollInterval = pollInterval,
                         ).start()
+                    }
+
+                    // Mouse overlay detect
+                    launch(Dispatchers.IO) {
+                        while (true) {
+                            val (cursorPositionX, cursorPositionY) = getCursorPosition()
+                            val (windowPositionX, windowPositionY) = Pair(window.x, window.y)
+                            val (windowSizeWidth, windowSizeHeight) = Pair(window.size.width, window.size.height)
+                            val cursorCoveredX = cursorPositionX in windowPositionX..(windowPositionX + windowSizeWidth)
+                            val cursorCoveredY = cursorPositionY in windowPositionY..(windowPositionY + windowSizeHeight)
+                            cursorCovered = cursorCoveredX && cursorCoveredY
+                            val newVisible = focusingGame && !playingGame && !cursorCovered
+                            if (visible != newVisible) {
+                                val oldVisible = visible
+                                if (!oldVisible) {
+                                    windowVisible = true
+                                }
+                                visible = newVisible
+                                window.isAlwaysOnTop = true
+                                window.toFront()
+                                if (oldVisible) {
+                                    delay(300.milliseconds)
+                                    windowVisible = false
+                                }
+                            }
+                            delay(pollInterval)
+                        }
                     }
                 }
 
@@ -152,7 +182,6 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                         username = username,
                         potential = potential,
                         additionPotential = additionPotential,
-                        playPotential = playPotential,
                     )
                 }
             }
@@ -161,3 +190,4 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
 }
 
 expect fun isFocusingGame(): Boolean
+expect fun getCursorPosition(): Pair<Int, Int>

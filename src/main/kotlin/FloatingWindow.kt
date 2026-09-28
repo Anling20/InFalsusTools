@@ -17,7 +17,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
-import cn.anling.infalsustools.generated.resources.banner_story
 import cn.anling.infalsustools.generated.resources.floating_window_background
 import cn.anling.infalsustools.generated.resources.head_story
 import cn.anling.inftool.theme.AppTheme
@@ -32,7 +31,6 @@ fun FloatingWindow(
     username: String,
     potential: Double,
     additionPotential: Double?,
-    playPotential: Double?,
 ) {
     val formater = remember(Unit) {
         DecimalFormat("0.000")
@@ -49,8 +47,7 @@ fun FloatingWindow(
                 Image(
                     painter = painterResource(Res.drawable.floating_window_background),
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(768.dp, 128.dp),
+                    modifier = Modifier.size(768.dp, 128.dp),
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -108,47 +105,6 @@ fun FloatingWindow(
                                     color = Color(83, 225, 230),
                                     fontSize = 24.sp,
                                     maxLines = 1,
-                                    style = LocalTextStyle.current.copy(fontFamily = exo2)
-                                )
-                            }
-                        }
-                    }
-                }
-                AnimatedContent(
-                    targetState = playPotential,
-                    modifier = Modifier.align(Alignment.TopCenter),
-                ) {
-                    if (it != null) {
-                        Box(
-                            modifier = Modifier.padding(top = 90.dp),
-                        ) {
-                            Image(
-                                painter = painterResource(Res.drawable.banner_story),
-                                contentDescription = null,
-                                modifier = Modifier.size(256.dp, 64.dp),
-                            )
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .padding(top = 8.dp),
-                            ) {
-                                Text(
-                                    text = "单曲潜力值",
-                                    color = Color.White,
-                                    fontSize = 20.sp,
-                                    maxLines = 1,
-                                    lineHeight = 24.sp,
-                                    style = LocalTextStyle.current.copy(fontFamily = notosans)
-                                )
-                                Text(
-                                    text = formater.format(it),
-                                    color = Color.White.copy(alpha = 0.75F),
-                                    fontSize = 14.sp,
-                                    maxLines = 1,
-                                    lineHeight = 16.sp,
                                     style = LocalTextStyle.current.copy(fontFamily = exo2)
                                 )
                             }
