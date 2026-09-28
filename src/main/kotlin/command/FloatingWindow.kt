@@ -77,6 +77,20 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                 var visible by remember { mutableStateOf(windowVisible) }
 
                 LaunchedEffect(Unit) {
+                    // Window position change
+                    launch(Dispatchers.IO) {
+                        while (true) {
+                            if (focusingGame) {
+                                val (position, size) = getFocusingGameTranslation() ?: continue
+                                val (x, y) = position
+                                val (width) = size
+                                val centeredX = x + (width / 2) - (window.size.width / 2)
+                                windowState.position = WindowPosition(centeredX.dp, y.dp)
+                            }
+                            delay(pollInterval)
+                        }
+                    }
+
                     // Focus detect
                     launch(Dispatchers.IO) {
                         while (true) {
@@ -191,3 +205,4 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
 
 expect fun isFocusingGame(): Boolean
 expect fun getCursorPosition(): Pair<Int, Int>
+expect fun getFocusingGameTranslation(): WindowTranslation?

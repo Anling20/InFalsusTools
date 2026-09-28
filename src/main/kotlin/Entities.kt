@@ -53,3 +53,8 @@ data class DiveRecord(
     val nearLate: Int?,
     val `break`: Int?,
 )
+
+data class WindowTranslation(
+    val position: Pair<Int, Int>,
+    val size: Pair<Int, Int>,
+)
