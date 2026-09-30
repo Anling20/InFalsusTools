@@ -85,6 +85,11 @@ val songIdMap = mapOf(
     75 to "tutorialevoshort",
     76 to "tutorialmin",
     82 to "kuukaku",
+    84 to "monitoring",
+    86 to "roki",
+    87 to "lostonesweeping",
+    88 to "nonbreathoblige",
+    89 to "kakushicommand",
 )
 
 fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScoreRecord ->
@@ -103,24 +108,42 @@ fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScore
         difficult = Difficult.entries[highScoreRecord.difficultyIndex],
         score = highScoreRecord.score,
         clearType = ClearType.entries[highScoreRecord.resultClear],
-        maxLink = historyRecord?.maxCombo,
-        exactPlus = historyRecord?.counts?.run {
-            tap.shiny + hold.shiny + skyArea.shiny + flick.shiny
-        },
-        exactEarly = historyRecord?.counts?.run {
-            tap.perfectEarly + hold.perfectEarly + skyArea.perfectEarly + flick.perfectEarly
-        },
-        exactLate = historyRecord?.counts?.run {
-            tap.perfectLate + hold.perfectLate + skyArea.perfectLate + flick.perfectLate
-        },
-        nearEarly = historyRecord?.counts?.run {
-            tap.nearEarly + hold.nearEarly + skyArea.nearEarly + flick.nearEarly
-        },
-        nearLate = historyRecord?.counts?.run {
-            tap.nearLate + hold.nearLate + skyArea.nearLate + flick.nearLate
-        },
-        `break` = historyRecord?.counts?.run {
-            tap.miss + hold.miss + skyArea.miss + flick.miss
+        count = historyRecord?.run {
+            CountContainer(
+                maxLink = maxCombo,
+                tap = JudgementCount(
+                    exactPlus = counts.tap.shiny,
+                    exactEarly = counts.tap.perfectEarly,
+                    exactLate = counts.tap.perfectLate,
+                    nearEarly = counts.tap.nearEarly,
+                    nearLate = counts.tap.nearLate,
+                    `break` = counts.tap.miss,
+                ),
+                hold = JudgementCount(
+                    exactPlus = counts.hold.shiny,
+                    exactEarly = counts.hold.perfectEarly,
+                    exactLate = counts.hold.perfectLate,
+                    nearEarly = counts.hold.nearEarly,
+                    nearLate = counts.hold.nearLate,
+                    `break` = counts.hold.miss,
+                ),
+                field = JudgementCount(
+                    exactPlus = counts.skyArea.shiny,
+                    exactEarly = counts.skyArea.perfectEarly,
+                    exactLate = counts.skyArea.perfectLate,
+                    nearEarly = counts.skyArea.nearEarly,
+                    nearLate = counts.skyArea.nearLate,
+                    `break` = counts.skyArea.miss,
+                ),
+                flick = JudgementCount(
+                    exactPlus = counts.flick.shiny,
+                    exactEarly = counts.flick.perfectEarly,
+                    exactLate = counts.flick.perfectLate,
+                    nearEarly = counts.flick.nearEarly,
+                    nearLate = counts.flick.nearLate,
+                    `break` = counts.flick.miss,
+                ),
+            )
         },
     )
 }
@@ -130,35 +153,44 @@ fun ParsedRecord.toDiveRecord(): DiveRecord = DiveRecord(
     difficult = Difficult.entries[difficultyIndex],
     score = score,
     clearType = ClearType.entries[resultClear],
-    maxLink = maxCombo,
-    exactPlus = counts.run {
-        tap.shiny + hold.shiny + skyArea.shiny + flick.shiny
-    },
-    exactEarly = counts.run {
-        tap.perfectEarly + hold.perfectEarly + skyArea.perfectEarly + flick.perfectEarly
-    },
-    exactLate = counts.run {
-        tap.perfectLate + hold.perfectLate + skyArea.perfectLate + flick.perfectLate
-    },
-    nearEarly = counts.run {
-        tap.nearEarly + hold.nearEarly + skyArea.nearEarly + flick.nearEarly
-    },
-    nearLate = counts.run {
-        tap.nearLate + hold.nearLate + skyArea.nearLate + flick.nearLate
-    },
-    `break` = counts.run {
-        tap.miss + hold.miss + skyArea.miss + flick.miss
-    },
+    count = CountContainer(
+        maxLink = maxCombo,
+        tap = JudgementCount(
+            exactPlus = counts.tap.shiny,
+            exactEarly = counts.tap.perfectEarly,
+            exactLate = counts.tap.perfectLate,
+            nearEarly = counts.tap.nearEarly,
+            nearLate = counts.tap.nearLate,
+            `break` = counts.tap.miss,
+        ),
+        hold = JudgementCount(
+            exactPlus = counts.hold.shiny,
+            exactEarly = counts.hold.perfectEarly,
+            exactLate = counts.hold.perfectLate,
+            nearEarly = counts.hold.nearEarly,
+            nearLate = counts.hold.nearLate,
+            `break` = counts.hold.miss,
+        ),
+        field = JudgementCount(
+            exactPlus = counts.skyArea.shiny,
+            exactEarly = counts.skyArea.perfectEarly,
+            exactLate = counts.skyArea.perfectLate,
+            nearEarly = counts.skyArea.nearEarly,
+            nearLate = counts.skyArea.nearLate,
+            `break` = counts.skyArea.miss,
+        ),
+        flick = JudgementCount(
+            exactPlus = counts.flick.shiny,
+            exactEarly = counts.flick.perfectEarly,
+            exactLate = counts.flick.perfectLate,
+            nearEarly = counts.flick.nearEarly,
+            nearLate = counts.flick.nearLate,
+            `break` = counts.flick.miss,
+        ),
+    ),
 )
 
 fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
-    val additionPotential = when (clearType) {
-        PerfectDive -> 0.2
-        FullLink -> 0.2
-        DiveCleared -> 0.2
-        DiveFailed -> 0.0
-        None -> 0.0
-    }
 
     val song = Songs.entries.first { it.name == song }
     val rawLevel = when (difficult) {
@@ -171,6 +203,17 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
     val level = when (experimentalLevel) {
         true -> rawLevel
         else -> rawLevel.toInt().toDouble()
+    }
+
+    val additionPotential = when {
+        count != null && (count.exact + count.near + count.`break`) == 0 -> 0.2
+        else -> when (clearType) {
+            PerfectDive -> 0.2
+            FullLink -> 0.2
+            DiveCleared -> 0.2
+            DiveFailed -> 0.0
+            None -> 0.0
+        }
     }
 
     val potential = when (score) {
@@ -194,13 +237,7 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         difficult = difficult,
         score = score,
         clearType = clearType,
-        maxLink = maxLink,
-        exactPlus = exactPlus,
-        exactEarly = exactEarly,
-        exactLate = exactLate,
-        nearEarly = nearEarly,
-        nearLate = nearLate,
-        `break` = `break`,
+        count = count,
         potential = potential,
         grading = grading,
         level = level,

@@ -185,20 +185,6 @@ object RecordParser {
          */
         val secondsSinceEpochUtc = v4I64(0x5B)
 
-        val exactPlus = linkedMapOf(
-            "tap" to counts.tap.shiny,
-            "hold" to counts.hold.shiny,
-            "skyArea" to counts.skyArea.shiny,
-            "flick" to counts.flick.shiny,
-        )
-
-        val judgementTotal = linkedMapOf(
-            "tap" to counts.tap.total(),
-            "hold" to counts.hold.total(),
-            "skyArea" to counts.skyArea.total(),
-            "flick" to counts.flick.total(),
-        )
-
         return ParsedRecord(
             songId = songId,
             baseName = baseName,
@@ -211,8 +197,6 @@ object RecordParser {
             paceValue = paceValue,
             secondsSinceEpochUtc = secondsSinceEpochUtc,
             counts = counts,
-            exactPlus = exactPlus,
-            judgementTotal = judgementTotal,
             payloadHex = payload.joinToString("") { "%02x".format(it.toInt() and 0xFF) },
         )
     }

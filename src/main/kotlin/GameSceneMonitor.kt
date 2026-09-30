@@ -28,7 +28,7 @@ class GameSceneMonitor(
          * GameScene static_fields + 0x00
          *     -> _xn
          */
-        private const val GAME_SCENE_CLASS_RVA = 0x319E300L
+        private const val GAME_SCENE_CLASS_RVA = 0x31A67E8L
         private const val STATIC_FIELDS_OFFSET = 0xB8L
         private const val GAME_SCENE_INSTANCE_OFFSET = 0x00L
 

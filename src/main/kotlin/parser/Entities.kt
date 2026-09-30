@@ -21,8 +21,6 @@ data class ParsedRecord(
     val secondsSinceEpochUtc: Long,
 
     val counts: ParsedCounts,
-    val exactPlus: Map<String, Int>,
-    val judgementTotal: Map<String, Int>,
 
     val payloadHex: String,
 )
@@ -43,17 +41,7 @@ data class ParsedJudgementTypeCount(
     val perfectLate: Int,
     val shiny: Int,
     val unused: Int,
-) {
-    fun total(): Int =
-        none +
-                miss +
-                nearEarly +
-                nearLate +
-                perfectEarly +
-                perfectLate +
-                shiny +
-                unused
-}
+)
 
 data class RecordLocation(
     val name: String,

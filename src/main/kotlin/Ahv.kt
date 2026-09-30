@@ -199,10 +199,10 @@ fun Ahv(
                                         image = song.name,
                                         score = diveRecord?.score ?: 0,
                                         potential = diveRecord?.potential ?: 0.0,
-                                        exactPlus = diveRecord?.exactPlus,
-                                        exact = diveRecord?.exactEarly?.plus(diveRecord.exactLate ?: 0),
-                                        near = diveRecord?.nearEarly?.plus(diveRecord.nearLate ?: 0),
-                                        `break` = diveRecord?.`break`,
+                                        exactPlus = diveRecord?.count?.exactPlus,
+                                        exact = diveRecord?.count?.exact,
+                                        near = diveRecord?.count?.near,
+                                        `break` = diveRecord?.count?.`break`,
                                     )
                                 }
                             }
