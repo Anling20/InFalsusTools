@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.streams.asSequence
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 class GameSceneMonitor(
     private val scope: CoroutineScope,
@@ -19,7 +18,7 @@ class GameSceneMonitor(
         /*
          * GameAssembly.dll:
          *
-         * GameAssemblyBase + 0x319E300
+         * GameAssemblyBase + 0x31A67E8L
          *     -> GameScene Il2CppClass*
          *
          * GameScene Il2CppClass + 0xB8
@@ -35,32 +34,7 @@ class GameSceneMonitor(
         private const val PROCESS_QUERY_INFORMATION = 0x0400
         private const val PROCESS_VM_READ = 0x0010
 
-        private const val PROCESS_ACCESS =
-            PROCESS_QUERY_INFORMATION or PROCESS_VM_READ
-
-        private const val TH32CS_SNAPMODULE = 0x00000008
-        private const val TH32CS_SNAPMODULE32 = 0x00000010
-
-        /*
-         * MODULEENTRY32W 在 x64 下的布局：
-         *
-         * DWORD   dwSize             0x00
-         * DWORD   th32ModuleID      0x04
-         * DWORD   th32ProcessID     0x08
-         * DWORD   GlblcntUsage      0x0C
-         * DWORD   ProccntUsage      0x10
-         * BYTE*   modBaseAddr       0x18
-         * DWORD   modBaseSize       0x20
-         * HMODULE hModule           0x28
-         * WCHAR   szModule[256]     0x30
-         * WCHAR   szExePath[260]    0x230
-         *
-         * sizeof = 0x438 = 1080
-         */
-        private const val MODULE_ENTRY_SIZE = 1080L
-        private const val MODULE_BASE_ADDRESS_OFFSET = 0x18L
-        private const val MODULE_NAME_OFFSET = 0x30L
-        private const val MODULE_NAME_CHARS = 256
+        private const val PROCESS_ACCESS = PROCESS_QUERY_INFORMATION or PROCESS_VM_READ
     }
 
     private val running = AtomicBoolean(false)
@@ -98,7 +72,7 @@ class GameSceneMonitor(
 
                     if (processMemory == null) {
                         previousGameScene = 0L
-                        delay(pollInterval)
+                        delay(pollInterval * 10)
                         continue
                     }
                 }
@@ -136,18 +110,18 @@ class GameSceneMonitor(
         val process = ProcessHandle.allProcesses().asSequence().firstNotNullOfOrNull { handle ->
             val command = handle.info().command().orElse(null)
 
-            when (command?.endsWith("InFalsus.exe", ignoreCase = true)) {
+            when (command?.endsWith("infalsus.exe", ignoreCase = true)) {
                 true -> handle
                 else -> null
             }
         } ?: run {
-            println("[GameSceneMonitor] InFalsus.exe not found")
+            println("[GameSceneMonitor] infalsus.exe not found")
             return null
         }
 
         val pid = process.pid().toInt()
 
-        println("[GameSceneMonitor] Found InFalsus.exe PID=$pid")
+        println("[GameSceneMonitor] Found infalsus.exe PID=$pid")
 
         return try {
             val memory = ProcessMemory.open(pid)
@@ -188,42 +162,19 @@ class GameSceneMonitor(
         private val arena: Arena,
         private val processHandle: MemorySegment,
         private val pid: Int,
-        private val openProcess: java.lang.invoke.MethodHandle,
         private val readProcessMemory: java.lang.invoke.MethodHandle,
         private val closeHandle: java.lang.invoke.MethodHandle,
-        private val createToolhelp32Snapshot: java.lang.invoke.MethodHandle,
-        private val module32First: java.lang.invoke.MethodHandle,
-        private val module32Next: java.lang.invoke.MethodHandle,
     ) : AutoCloseable {
         var gameAssemblyBase: Long = 0L
 
-        private val psapi =
-            SymbolLookup.libraryLookup(
-                "psapi.dll",
-                symbolArena,
-            )
-
-        private val kernel32 =
-            SymbolLookup.libraryLookup("kernel32.dll", symbolArena)
-
-        private val getLastError =
-            linker.downcallHandle(
-                kernel32.find("GetLastError").orElseThrow(),
-                FunctionDescriptor.of(ValueLayout.JAVA_INT),
-            )
+        private val psapi = SymbolLookup.libraryLookup("psapi.dll", symbolArena)
 
         companion object {
-            private val linker =
-                Linker.nativeLinker()
+            private val linker = Linker.nativeLinker()
 
-            private val symbolArena =
-                Arena.ofShared()
+            private val symbolArena = Arena.ofShared()
 
-            private val kernel32 =
-                SymbolLookup.libraryLookup(
-                    "kernel32.dll",
-                    symbolArena,
-                )
+            private val kernel32 = SymbolLookup.libraryLookup("kernel32.dll", symbolArena)
 
             private val OPEN_PROCESS =
                 FunctionDescriptor.of(
@@ -246,27 +197,6 @@ class GameSceneMonitor(
             private val CLOSE_HANDLE =
                 FunctionDescriptor.of(
                     ValueLayout.JAVA_INT,
-                    ValueLayout.ADDRESS,
-                )
-
-            private val CREATE_TOOLHELP32_SNAPSHOT =
-                FunctionDescriptor.of(
-                    ValueLayout.ADDRESS,
-                    ValueLayout.JAVA_INT,
-                    ValueLayout.JAVA_INT,
-                )
-
-            private val MODULE32_FIRST =
-                FunctionDescriptor.of(
-                    ValueLayout.JAVA_INT,
-                    ValueLayout.ADDRESS,
-                    ValueLayout.ADDRESS,
-                )
-
-            private val MODULE32_NEXT =
-                FunctionDescriptor.of(
-                    ValueLayout.JAVA_INT,
-                    ValueLayout.ADDRESS,
                     ValueLayout.ADDRESS,
                 )
 
@@ -313,28 +243,6 @@ class GameSceneMonitor(
                         CLOSE_HANDLE,
                     )
 
-                val createSnapshot =
-                    linker.downcallHandle(
-                        kernel32.find(
-                            "CreateToolhelp32Snapshot"
-                        ).orElseThrow(),
-                        CREATE_TOOLHELP32_SNAPSHOT,
-                    )
-
-                val module32First =
-                    linker.downcallHandle(
-                        kernel32.find("Module32FirstW")
-                            .orElseThrow(),
-                        MODULE32_FIRST,
-                    )
-
-                val module32Next =
-                    linker.downcallHandle(
-                        kernel32.find("Module32NextW")
-                            .orElseThrow(),
-                        MODULE32_NEXT,
-                    )
-
                 val handle =
                     openProcess.invoke(
                         PROCESS_ACCESS,
@@ -356,12 +264,8 @@ class GameSceneMonitor(
                     arena = arena,
                     processHandle = handle,
                     pid = pid,
-                    openProcess = openProcess,
                     readProcessMemory = readProcessMemory,
                     closeHandle = closeHandle,
-                    createToolhelp32Snapshot = createSnapshot,
-                    module32First = module32First,
-                    module32Next = module32Next,
                 )
             }
         }
@@ -404,39 +308,6 @@ class GameSceneMonitor(
             )
         }
 
-        fun readBytes(address: Long, size: Int): ByteArray {
-            val buffer = arena.allocate(size.toLong())
-            val bytesRead = arena.allocate(ValueLayout.JAVA_LONG)
-
-            val success =
-                readProcessMemory.invoke(
-                    processHandle,
-                    MemorySegment.ofAddress(address),
-                    buffer,
-                    size.toLong(),
-                    bytesRead,
-                ) as Int
-
-            val actualBytes =
-                bytesRead.get(ValueLayout.JAVA_LONG, 0L)
-
-            if (success == 0 || actualBytes != size.toLong()) {
-                error(
-                    "ReadProcessMemory failed: " +
-                            "address=0x${address.toString(16)}, " +
-                            "requested=$size, " +
-                            "bytesRead=$actualBytes"
-                )
-            }
-
-            return ByteArray(size) { index ->
-                buffer.get(
-                    ValueLayout.JAVA_BYTE,
-                    index.toLong()
-                )
-            }
-        }
-
         fun readGameSceneInstance(): Long {
             val classAddress =
                 gameAssemblyBase + GAME_SCENE_CLASS_RVA
@@ -462,34 +333,6 @@ class GameSceneMonitor(
             return readPointerOrNull(
                 staticFields + GAME_SCENE_INSTANCE_OFFSET
             ) ?: 0L
-        }
-
-        private fun dumpRipLoads(
-            address: Long,
-            code: ByteArray,
-        ) {
-            for (i in 0..code.size - 7) {
-                if (
-                    code[i].toInt() and 0xFF == 0x48 &&
-                    code[i + 1].toInt() and 0xFF == 0x8B &&
-                    code[i + 2].toInt() and 0xFF == 0x05
-                ) {
-                    val disp =
-                        (code[i + 3].toInt() and 0xFF) or
-                                ((code[i + 4].toInt() and 0xFF) shl 8) or
-                                ((code[i + 5].toInt() and 0xFF) shl 16) or
-                                ((code[i + 6].toInt() and 0xFF) shl 24)
-
-                    val instructionAddress = address + i
-                    val target = instructionAddress + 7 + disp.toLong()
-
-                    println(
-                        "[GameSceneMonitor] RIP load: " +
-                                "instruction=0x${instructionAddress.toString(16)}, " +
-                                "target=0x${target.toString(16)}"
-                    )
-                }
-            }
         }
 
         fun findModuleBase(moduleName: String): Long {
@@ -529,12 +372,7 @@ class GameSceneMonitor(
                 error("EnumProcessModulesEx failed")
             }
 
-            val count =
-                bytesNeeded.get(
-                    ValueLayout.JAVA_INT,
-                    0,
-                ).toInt() /
-                        ValueLayout.ADDRESS.byteSize().toInt()
+            val count = bytesNeeded.get(ValueLayout.JAVA_INT, 0) / ValueLayout.ADDRESS.byteSize().toInt()
 
             for (i in 0 until count) {
                 val module =
@@ -580,49 +418,6 @@ class GameSceneMonitor(
             }
 
             return 0L
-        }
-
-        private fun readUtf16String(
-            segment: MemorySegment,
-            offset: Long,
-            maxChars: Int,
-        ): String {
-            val bytes =
-                segment
-                    .asSlice(
-                        offset,
-                        maxChars * 2L,
-                    )
-                    .toArray(
-                        ValueLayout.JAVA_BYTE
-                    )
-
-            val zero =
-                bytes.indexOfFirst {
-                    it.toInt() == 0 &&
-                            // UTF-16LE 的字符结尾需要两个 0。
-                            true
-                }
-
-            val length =
-                if (zero >= 0) {
-                    zero
-                } else {
-                    bytes.size
-                }
-
-            /*
-             * 保证 UTF-16 字符不会被截成半个。
-             */
-            val evenLength =
-                length and 1.inv()
-
-            return String(
-                bytes,
-                0,
-                evenLength,
-                StandardCharsets.UTF_16LE,
-            )
         }
 
         override fun close() {

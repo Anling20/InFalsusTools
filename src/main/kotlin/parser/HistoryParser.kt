@@ -52,6 +52,7 @@ object HistoryParser {
         val n = data.size
 
         var offset = 0
+        val candidates = ArrayList<Pair<Int, Int>>()
 
         while (offset + HISTORY_RECORD <= n) {
 
@@ -169,10 +170,10 @@ object HistoryParser {
                  * Python:
                  *
                  * if best:
-                 *     return best[1], HISTORY_SLOTS
+                 *     candidates.append((cnt, start))
                  */
-                if (bestStart >= 0) {
-                    return bestStart to HISTORY_SLOTS
+                if (bestStart >= 0 && bestCount > 0) {
+                    candidates += bestCount to bestStart
                 }
             }
 
@@ -184,7 +185,14 @@ object HistoryParser {
             offset = p
         }
 
-        return null
+        if (candidates.isEmpty()) {
+            return null
+        }
+
+        // Python: max(candidates) -> choose the candidate with the most valid records.
+        val (_, bestStart) = candidates.maxBy { it.first }
+
+        return bestStart to HISTORY_SLOTS
     }
 
     private fun emptySlot(

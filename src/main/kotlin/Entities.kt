@@ -13,6 +13,7 @@ enum class Grading {
 }
 
 data class Song(
+    val id: Int,
     val name: String,
     val title: String,
     val minimal: Double,
@@ -34,7 +35,8 @@ data class ProcessedDiveRecord(
 )
 
 data class DiveRecord(
-    val song: String,
+    val id: Int,
+    val name: String,
     val difficult: Difficult,
     val score: Long,
     val clearType: ClearType,

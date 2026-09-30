@@ -143,11 +143,12 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                                 parsedData = SaveFileParser.parse(save.toPath())
                                 data = parsedData.toDiveRecordList().map { it.process(experimentalLevel) }
 
-                                if (parsedData.history != oldParsedData.history) {
-                                    val oldPtt = oldData.potential()
-                                    val newPtt = data.potential()
+                                val oldPtt = oldData.potential()
+                                val newPtt = data.potential()
+                                potential = newPtt
+                                val deltaPtt = newPtt - oldPtt
 
-                                    potential = newPtt
+                                if (parsedData.history != oldParsedData.history || deltaPtt > 0.0) {
                                     additionPotential = newPtt - oldPtt
 
                                     delay(timeout.seconds)
