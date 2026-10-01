@@ -27,7 +27,7 @@ import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
 
 @Composable
-fun B50(
+fun B30(
     darkTheme: Boolean,
     onSizeChanged: (IntSize) -> Unit,
     username: String,
@@ -41,9 +41,9 @@ fun B50(
                 .horizontalScroll(rememberScrollState())
                 .verticalScroll(rememberScrollState()),
         ) {
-            val b50 = data.sortedByDescending {
+            val sortedData = data.sortedByDescending {
                 it.potential
-            }.take(50)
+            }
             val potential = remember(Unit) { data.potential() }
 
             Column(
@@ -99,8 +99,8 @@ fun B50(
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                     maxItemsInEachRow = 5,
                 ) {
-                    repeat(50) { index ->
-                        val diveRecord = b50.getOrNull(index)
+                    repeat(30) { index ->
+                        val diveRecord = sortedData.getOrNull(index)
                         // 物量有误, 待修
                         SongCard(
                             clearType = diveRecord?.clearType ?: DiveFailed,

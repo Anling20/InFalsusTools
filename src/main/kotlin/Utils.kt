@@ -1,6 +1,5 @@
 package cn.anling.inftool
 
-import cn.anling.inftool.ClearType.*
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.parser.ParsedSave
@@ -8,7 +7,7 @@ import cn.anling.inftool.song.Songs
 import kotlinx.coroutines.delay
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.math.max
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 
 fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScoreRecord ->
@@ -134,21 +133,11 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         }
     }
 
-    val additionPotential = when {
-        count != null && (count.exact + count.near + count.`break`) == 0 -> 0.2
-        else -> when (clearType) {
-            PerfectDive -> 0.2
-            FullLink -> 0.2
-            DiveCleared -> 0.2
-            DiveFailed -> 0.0
-            None -> 0.0
-        }
-    }
-
     val potential = when (score) {
-        in 0..<98000000 -> max(0.0, level + ((score - 95000000) / 3000000.0) + additionPotential)
-        in 98000000..<100000000 -> level + 1 + ((score - 98000000) / 2000000.0) + additionPotential
-        else -> level + 2 + additionPotential
+        in 0..<95000000 -> level * (score / 95000000.0).pow(10)
+        in 95000000..<98000000 -> level + ((score - 95000000) / 3000000.0)
+        in 98000000..<100000000 -> level + 1 + ((score - 98000000) / 2000000.0)
+        else -> level + 2
     }
 
     val grading = when (score) {
@@ -175,12 +164,12 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
 }
 
 fun List<ProcessedDiveRecord>.potential(): Double {
-    val b50 = sortedByDescending {
+    val b30 = sortedByDescending {
         it.potential
-    }.take(50)
-    val b10ptt = b50.take(10).map { it.potential }
-    val b50ptt = b50.map { it.potential }
-    return (b10ptt.sum() + b50ptt.sum()) / 60.0
+    }.take(30)
+    val b10ptt = b30.take(10).map { it.potential }
+    val b30ptt = b30.map { it.potential }
+    return (b10ptt.sum() + b30ptt.sum()) / 40.0
 }
 
 suspend fun Path.readBytesWhenAvailable(): ByteArray {
