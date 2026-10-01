@@ -47,7 +47,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     height = (128 * scale).dp,
                 ),
             )
-            var windowVisible by remember { mutableStateOf(isFocusingGame()) }
+            var windowVisible by remember { mutableStateOf(false) }
             Window(
                 onCloseRequest = ::exitApplication,
                 state = windowState,
@@ -72,20 +72,22 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
 
                 var potential by remember { mutableDoubleStateOf(data.potential()) }
                 var playingGame by remember { mutableStateOf(false) }
-                var focusingGame by remember { mutableStateOf(windowVisible) }
+                var focusingGame by remember { mutableStateOf(false) }
                 var cursorCovered by remember { mutableStateOf(false) }
-                var visible by remember { mutableStateOf(windowVisible) }
+                var visible by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
                     // Window position change
                     launch(Dispatchers.IO) {
                         while (true) {
-                            if (focusingGame) {
+                            if (visible) {
+                                val transform = window.graphicsConfiguration.defaultTransform
                                 val (position, size) = getFocusingGameTranslation() ?: continue
-                                val (x, y) = position
-                                val (width) = size
+                                val x = (position.first / transform.scaleX).toInt()
+                                val y = (position.second / transform.scaleY).toInt()
+                                val width = (size.first / transform.scaleX).toInt()
                                 val centeredX = x + (width / 2) - (window.size.width / 2)
-                                windowState.position = WindowPosition(centeredX.dp, y.dp)
+                                window.setLocation(centeredX, y)
                             }
                             delay(pollInterval)
                         }
@@ -162,11 +164,11 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     // Mouse overlay detect
                     launch(Dispatchers.IO) {
                         while (true) {
-                            val (cursorPositionX, cursorPositionY) = getCursorPosition()
-                            val (windowPositionX, windowPositionY) = Pair(window.x, window.y)
+                            val (cursorPosX, cursorPosY) = getCursorPosition()
+                            val (windowPosX, windowPosY) = Pair(window.x, window.y)
                             val (windowSizeWidth, windowSizeHeight) = Pair(window.size.width, window.size.height)
-                            val cursorCoveredX = cursorPositionX in windowPositionX..(windowPositionX + windowSizeWidth)
-                            val cursorCoveredY = cursorPositionY in windowPositionY..(windowPositionY + windowSizeHeight)
+                            val cursorCoveredX = cursorPosX in windowPosX..(windowPosX + windowSizeWidth)
+                            val cursorCoveredY = cursorPosY in windowPosY..(windowPosY + windowSizeHeight)
                             cursorCovered = cursorCoveredX && cursorCoveredY
                             val newVisible = focusingGame && !playingGame && !cursorCovered
                             if (visible != newVisible) {
