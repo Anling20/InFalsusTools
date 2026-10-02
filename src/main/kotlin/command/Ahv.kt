@@ -26,7 +26,7 @@ import java.io.File
 class AhvCommand : SuspendingCliktCommand("ahv") {
     val copyToClipboard: Boolean by option(help = "复制图片到剪贴板").flag()
     val out: File? by option("-o", "--out", help = "输出图片路径").file()
-    val quality: Int by option(help = "图片质量").int().default(50)
+    val quality: Int by option(help = "图片质量").int().default(100)
     val min: Double? by option(help = "限制最小定数").double()
     val max: Double? by option(help = "限制最大定数").double()
     val difficulties: List<Difficult> by option("--difficult", help = "限制难度(MIN/EVO/ULT/FBD)")

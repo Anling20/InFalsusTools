@@ -21,7 +21,7 @@ import java.io.File
 class B50Command : SuspendingCliktCommand("b30") {
     val copyToClipboard: Boolean by option(help = "复制图片到剪贴板").flag()
     val out: File? by option("-o", "--out", help = "输出图片路径").file()
-    val quality: Int by option(help = "图片质量").int().default(50)
+    val quality: Int by option(help = "图片质量").int().default(100)
 
     private val commandContext by requireObject<CommandContext>()
 

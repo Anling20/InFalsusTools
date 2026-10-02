@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -15,13 +16,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,21 +77,22 @@ fun SongCard(
                 val formater = remember(Unit) {
                     DecimalFormat("[0.0]")
                 }
+                val color = when (difficult) {
+                    ULT -> Colors.SongCard.Difficult.ult
+                    MIN -> Colors.SongCard.Difficult.min
+                    EVO -> Colors.SongCard.Difficult.evo
+                    FBD -> Colors.SongCard.Difficult.fbd
+                }
                 Text(
                     text = formater.format(level),
-                    color = when (difficult) {
-                        ULT -> Colors.SongCard.Difficult.ult
-                        MIN -> Colors.SongCard.Difficult.min
-                        EVO -> Colors.SongCard.Difficult.evo
-                        FBD -> Colors.SongCard.Difficult.fbd
-                    },
+                    color = color,
                     fontSize = 24.sp,
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = name,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = color,
                     fontSize = 24.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -194,26 +194,93 @@ fun SongCard(
                         maxLines = 1,
                     )
 
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(color = Colors.SongCard.Judgement.exactPlus)) {
-                                append("E:${exactPlus ?: '?'}")
+                    Column {
+                        Row {
+                            Box {
+                                Text(
+                                    text = "E:${exactPlus ?: '?'}",
+                                    style = LocalTextStyle.current.copy(
+                                        color = Colors.SongCard.Judgement.ExactPlus.outline,
+                                        drawStyle = Stroke(1.0F),
+                                    ),
+                                    fontSize = 20.sp,
+                                    lineHeight = 26.sp,
+                                    maxLines = 1,
+                                )
+
+                                Text(
+                                    text = "E:${exactPlus ?: '?'}",
+                                    style = LocalTextStyle.current.copy(Colors.SongCard.Judgement.ExactPlus.text),
+                                    fontSize = 20.sp,
+                                    lineHeight = 26.sp,
+                                    maxLines = 1,
+                                )
                             }
-                            withStyle(SpanStyle(color = Colors.SongCard.Judgement.exact)) {
-                                append("(-${exact ?: '?'})")
+
+                            Box {
+                                Text(
+                                    text = "(-${exact ?: '?'})",
+                                    style = LocalTextStyle.current.copy(
+                                        color = Colors.SongCard.Judgement.Exact.outline,
+                                        drawStyle = Stroke(1.0F),
+                                    ),
+                                    fontSize = 20.sp,
+                                    lineHeight = 26.sp,
+                                    maxLines = 1,
+                                )
+
+                                Text(
+                                    text = "(-${exact ?: '?'})",
+                                    style = LocalTextStyle.current.copy(Colors.SongCard.Judgement.Exact.text),
+                                    fontSize = 20.sp,
+                                    lineHeight = 26.sp,
+                                    maxLines = 1,
+                                )
                             }
-                            appendLine()
-                            withStyle(SpanStyle(color = Colors.SongCard.Judgement.near)) {
-                                appendLine("N:${near ?: '?'}")
-                            }
-                            withStyle(SpanStyle(color = Colors.SongCard.Judgement.`break`)) {
-                                appendLine("B:${`break` ?: '?'}")
-                            }
-                        },
-                        fontSize = 20.sp,
-                        lineHeight = 26.sp,
-                        maxLines = 3,
-                    )
+                        }
+
+                        Box {
+                            Text(
+                                text = "N:${near ?: '?'}",
+                                style = LocalTextStyle.current.copy(
+                                    color = Colors.SongCard.Judgement.Near.outline,
+                                    drawStyle = Stroke(1.0F),
+                                ),
+                                fontSize = 20.sp,
+                                lineHeight = 26.sp,
+                                maxLines = 1,
+                            )
+
+                            Text(
+                                text = "N:${near ?: '?'}",
+                                style = LocalTextStyle.current.copy(Colors.SongCard.Judgement.Near.text),
+                                fontSize = 20.sp,
+                                lineHeight = 26.sp,
+                                maxLines = 1,
+                            )
+                        }
+
+                        Box {
+                            Text(
+                                text = "B:${`break` ?: '?'}",
+                                style = LocalTextStyle.current.copy(
+                                    color = Colors.SongCard.Judgement.Break.outline,
+                                    drawStyle = Stroke(1.0F),
+                                ),
+                                fontSize = 20.sp,
+                                lineHeight = 26.sp,
+                                maxLines = 1,
+                            )
+
+                            Text(
+                                text = "B:${`break` ?: '?'}",
+                                style = LocalTextStyle.current.copy(Colors.SongCard.Judgement.Break.text),
+                                fontSize = 20.sp,
+                                lineHeight = 26.sp,
+                                maxLines = 1,
+                            )
+                        }
+                    }
                 }
             }
         }
