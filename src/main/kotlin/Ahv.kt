@@ -20,10 +20,10 @@ import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.banner_story
 import cn.anling.infalsustools.generated.resources.head_story
-import cn.anling.inftool.ClearType.*
+import cn.anling.inftool.ClearType.None
+import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.song.Songs
 import cn.anling.inftool.theme.AppTheme
-import cn.anling.inftool.Difficult.*
 import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
 

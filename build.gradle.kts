@@ -103,3 +103,17 @@ compose.resources {
 tasks.withType<JavaExec>().configureEach {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
 }
+
+tasks.register<Copy>("copyExtraResources") {
+    description = "Copy extra resources"
+
+    from("extraResources")
+
+    into(layout.buildDirectory.dir("compose/binaries/main-release/app/In Falsus Tools"))
+}
+
+afterEvaluate {
+    tasks.named("packageReleaseAppImage") {
+        finalizedBy("copyExtraResources")
+    }
+}

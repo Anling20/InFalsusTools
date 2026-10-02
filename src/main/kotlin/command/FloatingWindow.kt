@@ -17,7 +17,7 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.types.double
+import com.github.ajalt.clikt.parameters.types.float
 import com.github.ajalt.clikt.parameters.types.int
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -28,7 +28,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
-    val scale: Double by option(help = "悬浮窗缩放").double().default(1.0)
+    val scale: Float by option(help = "悬浮窗缩放").float().default(1.0F)
     val timeout: Int by option(help = "设置结算信息显示时长(seconds)").int().default(7)
 
     private val commandContext by requireObject<CommandContext>()

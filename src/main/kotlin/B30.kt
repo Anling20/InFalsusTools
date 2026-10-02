@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.banner_story
 import cn.anling.infalsustools.generated.resources.head_story
-import cn.anling.inftool.ClearType.*
+import cn.anling.inftool.ClearType.DiveFailed
 import cn.anling.inftool.Difficult.ULT
 import cn.anling.inftool.theme.AppTheme
 import org.jetbrains.compose.resources.painterResource

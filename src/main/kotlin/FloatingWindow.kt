@@ -27,7 +27,7 @@ import java.text.DecimalFormat
 
 @Composable
 fun FloatingWindow(
-    scale: Double,
+    scale: Float,
     username: String,
     potential: Double,
     additionPotential: Double?,
@@ -41,7 +41,7 @@ fun FloatingWindow(
             color = Color.Transparent,
             modifier = Modifier
                 .wrapContentSize(unbounded = true)
-                .scale(scale.toFloat()),
+                .scale(scale),
         ) {
             Box {
                 Image(
