@@ -26,7 +26,7 @@ fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScore
         name = highScoreRecord.baseName,
         difficult = Difficult.entries[highScoreRecord.difficultyIndex],
         score = highScoreRecord.score,
-        clearType = ClearType.entries[highScoreRecord.resultClear],
+        clearType = ClearType.entries[historyRecord?.resultClear ?: highScoreRecord.resultClear],
         count = historyRecord?.run {
             CountContainer(
                 maxLink = maxCombo,
@@ -137,7 +137,7 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         in 0..<95000000 -> level * (score / 95000000.0).pow(10)
         in 95000000..<98000000 -> level + ((score - 95000000) / 3000000.0)
         in 98000000..<100000000 -> level + 1 + ((score - 98000000) / 2000000.0)
-        else -> level + 2
+        else -> level + 2.1
     }
 
     val grading = when (score) {
