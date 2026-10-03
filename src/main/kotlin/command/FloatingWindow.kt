@@ -65,7 +65,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                         mutableStateOf(parsedData.toDiveRecordList().map { it.process(experimentalLevel) })
                     }
                 }
-                var additionPotential by remember { mutableStateOf<Double?>(null) }
+                var playResult by remember { mutableStateOf<PlayResult?>(null) }
 
                 var potential by remember { mutableDoubleStateOf(data.potential()) }
                 var playingGame by remember { mutableStateOf(false) }
@@ -148,13 +148,18 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                                 val deltaPtt = newPtt - oldPtt
 
                                 if (parsedData.history != oldParsedData.history || deltaPtt > 0.0) {
-                                    additionPotential = newPtt - oldPtt
+                                    val recent = parsedData.history.last().toDiveRecord().process(experimentalLevel)
+                                    playResult = PlayResult(
+                                        level = recent.level,
+                                        potential = recent.potential,
+                                        additionPotential = newPtt - oldPtt
+                                    )
                                 }
                             },
                             onResultsStarted = {},
                             onResultsExited = {
-                                if (additionPotential != null) {
-                                    additionPotential = null
+                                if (playResult != null) {
+                                    playResult = null
                                 }
                             },
                             pollInterval = pollInterval,
@@ -198,7 +203,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                         scale = scale,
                         username = username,
                         potential = potential,
-                        additionPotential = additionPotential,
+                        playResult = playResult,
                     )
                 }
             }
