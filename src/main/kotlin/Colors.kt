@@ -1,39 +1,65 @@
 package cn.anling.inftool
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 object Colors {
     object SongCard {
         object Background {
-            val perfectDive
-                @Composable
-                get() = MaterialTheme.colorScheme.primaryContainer
+            val perfectDive = Brush.horizontalGradient(
+                0.00F to Color(214, 176, 239),
+                1.00F to Color(255, 255, 255),
+            )
 
-            val fullLink
-                @Composable
-                get() = MaterialTheme.colorScheme.tertiaryContainer
+            val fullLink = Brush.horizontalGradient(
+                0.00F to Color(173, 150, 247),
+                1.00F to Color(255, 255, 255),
+            )
 
-            val diveCleared
-                @Composable
-                get() = MaterialTheme.colorScheme.surfaceContainerHighest
+            val diveCleared = Brush.horizontalGradient(
+                0.00F to Color(123, 245, 255),
+                1.00F to Color(255, 255, 255),
+            )
 
-            val diveFailed
-                @Composable
-                get() = MaterialTheme.colorScheme.surfaceContainerHighest
+            val diveFailed = Brush.horizontalGradient(
+                0.00F to Color(255, 105, 81),
+                1.00F to Color(255, 255, 255),
+            )
 
-            val none
-                @Composable
-                get() = MaterialTheme.colorScheme.surfaceContainerHighest
+            val none = Brush.horizontalGradient(
+                0.00F to Color(70, 83, 80),
+                1.00F to Color(255, 255, 255),
+            )
         }
 
         object Difficult {
-            val min = Color(30, 147, 227)
-            val evo = Color(42, 150, 137)
-            val ult = Color(138, 43, 226)
-            val fbd = Color(231, 24, 11)
+            val minimal = Brush.verticalGradient(
+                listOf(
+                    Color(0, 111, 160),
+                    Color(8, 174, 255),
+                )
+            )
+
+            val evolved = Brush.verticalGradient(
+                listOf(
+                    Color(3, 182, 204),
+                    Color(8, 230, 255),
+                )
+            )
+
+            val ultimate = Brush.verticalGradient(
+                listOf(
+                    Color(90, 12, 131),
+                    Color(206, 162, 255),
+                )
+            )
+
+            val forbidden = Brush.verticalGradient(
+                listOf(
+                    Color(181, 20, 57),
+                    Color(222, 48, 107),
+                )
+            )
         }
 
         object Judgement {
@@ -47,7 +73,6 @@ object Colors {
                 )
 
                 val outline = Color(184, 92, 175).copy(alpha = 0.75F)
-                val shadow = Color(212, 122, 200).copy(alpha = 0.7F)
             }
 
             object Exact {
@@ -60,7 +85,6 @@ object Colors {
                 )
 
                 val outline = Color(176, 51, 197).copy(alpha = 0.75F)
-                val shadow = Color(193, 61, 223).copy(alpha = 0.7F)
             }
 
             object Near {
@@ -73,7 +97,6 @@ object Colors {
                 )
 
                 val outline = Color(59, 145, 168).copy(alpha = 0.75F)
-                val shadow = Color(69, 175, 203).copy(alpha = 0.7F)
             }
 
             object Break {
@@ -86,7 +109,6 @@ object Colors {
                 )
 
                 val outline = Color(200, 50, 60).copy(alpha = 0.75F)
-                val shadow = Color(216, 61, 71).copy(alpha = 0.7F)
             }
         }
     }

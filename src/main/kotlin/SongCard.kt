@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -48,14 +47,7 @@ fun SongCard(
     `break`: Int?,
 ) {
     Surface(
-        color = when (clearType) {
-            PerfectDive -> Colors.SongCard.Background.perfectDive
-            FullLink -> Colors.SongCard.Background.fullLink
-            DiveCleared -> Colors.SongCard.Background.diveCleared
-            DiveFailed -> Colors.SongCard.Background.diveFailed
-            None -> Colors.SongCard.Background.none
-        },
-        shape = RoundedCornerShape(24.dp),
+        color = Color.Transparent,
         modifier = Modifier
             .size(432.dp, 308.dp)
             .dropShadow(
@@ -66,6 +58,15 @@ fun SongCard(
                     offset = DpOffset(1.dp, 1.dp),
                     alpha = 0.5F,
                 )
+            ).clip(RoundedCornerShape(24.dp))
+            .background(
+                brush = when (clearType) {
+                    PerfectDive -> Colors.SongCard.Background.perfectDive
+                    FullLink -> Colors.SongCard.Background.fullLink
+                    DiveCleared -> Colors.SongCard.Background.diveCleared
+                    DiveFailed -> Colors.SongCard.Background.diveFailed
+                    None -> Colors.SongCard.Background.none
+                }
             ),
     ) {
         Column(
@@ -75,24 +76,25 @@ fun SongCard(
             // Head
             Row {
                 val formater = remember(Unit) {
-                    DecimalFormat("[0.0]")
-                }
-                val color = when (difficult) {
-                    ULT -> Colors.SongCard.Difficult.ult
-                    MIN -> Colors.SongCard.Difficult.min
-                    EVO -> Colors.SongCard.Difficult.evo
-                    FBD -> Colors.SongCard.Difficult.fbd
+                    DecimalFormat("0.0")
                 }
                 Text(
-                    text = formater.format(level),
-                    color = color,
-                    fontSize = 24.sp,
-                    maxLines = 1,
-                    textAlign = TextAlign.Center,
-                )
-                Text(
-                    text = name,
-                    color = color,
+                    text = buildString {
+                        append('[')
+                        append(difficult.name)
+                        append(' ')
+                        append(formater.format(level))
+                        append(']')
+                        append(name)
+                    },
+                    style = LocalTextStyle.current.copy(
+                        brush = when (difficult) {
+                            MIN -> Colors.SongCard.Difficult.minimal
+                            EVO -> Colors.SongCard.Difficult.evolved
+                            ULT -> Colors.SongCard.Difficult.ultimate
+                            FBD -> Colors.SongCard.Difficult.forbidden
+                        }
+                    ),
                     fontSize = 24.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

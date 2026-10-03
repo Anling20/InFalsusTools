@@ -11,6 +11,8 @@ class GameSceneMonitor(
     private val scope: CoroutineScope,
     private val onGameStarted: suspend () -> Unit,
     private val onGameExited: suspend () -> Unit,
+    private val onResultsStarted: suspend () -> Unit,
+    private val onResultsExited: suspend () -> Unit,
     private val pollInterval: Duration,
 ) : AutoCloseable {
 
@@ -35,6 +37,20 @@ class GameSceneMonitor(
         private const val PROCESS_VM_READ = 0x0010
 
         private const val PROCESS_ACCESS = PROCESS_QUERY_INFORMATION or PROCESS_VM_READ
+
+        private const val RESULTS_SCENE_CLASS_RVA = 0x3178D38L
+        private const val RESULTS_SCENE_MANAGER_CLASS_RVA = 0x31BA360L
+
+        private const val MANAGER_STATIC_FIELDS_OFFSET = 0xB8L
+        private const val MANAGER_INSTANCE_OFFSET = 0x10L
+
+        private const val MANAGER_ARRAY_1_OFFSET = 0x30L
+        private const val MANAGER_ARRAY_2_OFFSET = 0x38L
+
+        private const val ARRAY_COUNT_OFFSET = 0x18L
+        private const val ARRAY_DATA_OFFSET = 0x20L
+
+        private const val NODE_INSTANCE_OFFSET = 0x18L
     }
 
     private val running = AtomicBoolean(false)
@@ -52,6 +68,7 @@ class GameSceneMonitor(
      * 这个瞬间就是 GameScene.OnEnable 写入 _xn 的结果。
      */
     private var previousGameScene = 0L
+    private var previousResultsScene = 0L
 
     fun start() {
         if (!running.compareAndSet(false, true)) {
@@ -78,6 +95,24 @@ class GameSceneMonitor(
                 }
 
                 val currentGameScene = processMemory!!.readGameSceneInstance()
+
+                val currentResultsScene = processMemory!!.readResultsSceneInstance()
+                val previousResults = previousResultsScene
+
+                when {
+                    previousResults == 0L && currentResultsScene != 0L -> {
+                        println("[GameSceneMonitor] ResultsScene entered")
+                        onResultsStarted()
+                    }
+
+                    previousResults != 0L && currentResultsScene == 0L -> {
+                        println("[GameSceneMonitor] ResultsScene exited")
+                        onResultsExited()
+                    }
+                }
+
+                previousResultsScene = currentResultsScene
+
                 val previous = previousGameScene
 
                 when {
@@ -308,6 +343,36 @@ class GameSceneMonitor(
             )
         }
 
+        private fun readInt(address: Long): Int {
+            if (address == 0L) {
+                return 0
+            }
+
+            val buffer = arena.allocate(ValueLayout.JAVA_INT)
+            val bytesRead = arena.allocate(ValueLayout.JAVA_LONG)
+
+            val success =
+                readProcessMemory.invoke(
+                    processHandle,
+                    MemorySegment.ofAddress(address),
+                    buffer,
+                    4L,
+                    bytesRead,
+                ) as Int
+
+            val actualBytes =
+                bytesRead.get(ValueLayout.JAVA_LONG, 0L)
+
+            if (success == 0 || actualBytes != 4L) {
+                return 0
+            }
+
+            return buffer.get(
+                ValueLayout.JAVA_INT,
+                0L,
+            )
+        }
+
         fun readGameSceneInstance(): Long {
             val classAddress =
                 gameAssemblyBase + GAME_SCENE_CLASS_RVA
@@ -333,6 +398,100 @@ class GameSceneMonitor(
             return readPointerOrNull(
                 staticFields + GAME_SCENE_INSTANCE_OFFSET
             ) ?: 0L
+        }
+
+        fun readResultsSceneInstance(): Long {
+            // ResultsScene Il2CppClass*
+            val resultsSceneClass =
+                readPointerOrNull(
+                    gameAssemblyBase + RESULTS_SCENE_CLASS_RVA
+                ) ?: return 0L
+
+            if (resultsSceneClass < 0x1_0000_0000L) {
+                return 0L
+            }
+
+            // Manager Il2CppClass*
+            val managerClass =
+                readPointerOrNull(
+                    gameAssemblyBase + RESULTS_SCENE_MANAGER_CLASS_RVA
+                ) ?: return 0L
+
+            if (managerClass < 0x1_0000_0000L) {
+                return 0L
+            }
+
+            // Manager static_fields
+            val managerStatics =
+                readPointerOrNull(
+                    managerClass + MANAGER_STATIC_FIELDS_OFFSET
+                ) ?: return 0L
+
+            if (managerStatics < 0x1_0000_0000L) {
+                return 0L
+            }
+
+            // manager instance
+            val manager =
+                readPointerOrNull(
+                    managerStatics + MANAGER_INSTANCE_OFFSET
+                ) ?: return 0L
+
+            if (manager < 0x1_0000_0000L) {
+                return 0L
+            }
+
+            // 两个注册表
+            for (arrayOffset in longArrayOf(
+                MANAGER_ARRAY_1_OFFSET,
+                MANAGER_ARRAY_2_OFFSET,
+            )) {
+                val array =
+                    readPointerOrNull(
+                        manager + arrayOffset
+                    ) ?: continue
+
+                if (array < 0x1_0000_0000L) {
+                    continue
+                }
+
+                val count =
+                    readInt(
+                        array + ARRAY_COUNT_OFFSET
+                    )
+
+                if (count !in 1..10000) {
+                    continue
+                }
+
+                for (i in 0 until count) {
+                    val node =
+                        readPointerOrNull(
+                            array +
+                                    ARRAY_DATA_OFFSET +
+                                    i * 8L
+                        ) ?: continue
+
+                    val instance =
+                        readPointerOrNull(
+                            node + NODE_INSTANCE_OFFSET
+                        ) ?: continue
+
+                    if (instance < 0x1_0000_0000L) {
+                        continue
+                    }
+
+                    val klass =
+                        readPointerOrNull(instance)
+                            ?: continue
+
+                    if (klass == resultsSceneClass) {
+                        return instance
+                    }
+                }
+            }
+
+            return 0L
         }
 
         fun findModuleBase(moduleName: String): Long {

@@ -18,18 +18,15 @@ import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.float
-import com.github.ajalt.clikt.parameters.types.int
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
     val scale: Float by option(help = "悬浮窗缩放").float().default(1.0F)
-    val timeout: Int by option(help = "设置结算信息显示时长(seconds)").int().default(7)
 
     private val commandContext by requireObject<CommandContext>()
     private val pollInterval: Duration = 500.milliseconds
@@ -152,8 +149,11 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
 
                                 if (parsedData.history != oldParsedData.history || deltaPtt > 0.0) {
                                     additionPotential = newPtt - oldPtt
-
-                                    delay(timeout.seconds)
+                                }
+                            },
+                            onResultsStarted = {},
+                            onResultsExited = {
+                                if (additionPotential != null) {
                                     additionPotential = null
                                 }
                             },

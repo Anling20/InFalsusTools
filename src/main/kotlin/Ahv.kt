@@ -146,7 +146,7 @@ fun Ahv(
                 // Content
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(64.dp),
+                    verticalArrangement = Arrangement.spacedBy(32.dp),
                 ) {
                     groupedData.keys.sortedDescending().forEachIndexed { index, potential ->
                         if (index > 0) {
@@ -157,11 +157,10 @@ fun Ahv(
                                     .width(1500.dp)
                                     .background(
                                         brush = Brush.horizontalGradient(
-                                            listOf(
-                                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.0F),
-                                                MaterialTheme.colorScheme.onBackground.copy(alpha = 1.0F),
-                                                MaterialTheme.colorScheme.onBackground.copy(alpha = 0.0F),
-                                            )
+                                            0.00F to MaterialTheme.colorScheme.outline.copy(alpha = 0.0F),
+                                            0.25F to MaterialTheme.colorScheme.outline.copy(alpha = 1.0F),
+                                            0.75F to MaterialTheme.colorScheme.outline.copy(alpha = 1.0F),
+                                            1.00F to MaterialTheme.colorScheme.outline.copy(alpha = 0.0F),
                                         ),
                                     ),
                             )
