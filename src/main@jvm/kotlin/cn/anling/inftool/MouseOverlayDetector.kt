@@ -1,3 +1,5 @@
+package cn.anling.inftool
+
 import java.lang.foreign.Arena
 import java.lang.foreign.FunctionDescriptor
 import java.lang.foreign.Linker
@@ -6,10 +8,7 @@ import java.lang.foreign.ValueLayout
 import java.lang.invoke.MethodHandle
 
 object MouseOverlayDetector {
-    private val user32 = SymbolLookup.libraryLookup(
-        "user32.dll",
-        Arena.global()
-    )
+    private val user32 = SymbolLookup.libraryLookup("user32.dll", Arena.global())
 
     private val getCursorPos: MethodHandle = run {
         val address = user32.find("GetCursorPos").orElseThrow()
@@ -23,13 +22,14 @@ object MouseOverlayDetector {
         )
     }
 
-    fun getCursorPosition(): Pair<Int, Int> {
+    fun getCursorPosition(): Pair<Int, Int>? {
         Arena.ofConfined().use { arena ->
             val point = arena.allocate(8)
 
-            val result = getCursorPos.invoke(point)
-
-            check((result as Int) != 0)
+            val result = getCursorPos.invoke(point) as Int
+            if (result == 0) {
+                return null
+            }
 
             return Pair(
                 point.get(ValueLayout.JAVA_INT, 0),

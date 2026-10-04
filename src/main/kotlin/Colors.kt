@@ -6,27 +6,27 @@ import androidx.compose.ui.graphics.Color
 object Colors {
     object SongCard {
         object Background {
-            val perfectDive = Brush.horizontalGradient(
-                0.00F to Color(214, 176, 239),
+            val perfectDive = Brush.linearGradient(
+                0.00F to Color(237, 187, 255),
                 1.00F to Color(255, 255, 255),
             )
 
-            val fullLink = Brush.horizontalGradient(
+            val fullLink = Brush.linearGradient(
                 0.00F to Color(173, 150, 247),
                 1.00F to Color(255, 255, 255),
             )
 
-            val diveCleared = Brush.horizontalGradient(
+            val diveCleared = Brush.linearGradient(
                 0.00F to Color(123, 245, 255),
                 1.00F to Color(255, 255, 255),
             )
 
-            val diveFailed = Brush.horizontalGradient(
+            val diveFailed = Brush.linearGradient(
                 0.00F to Color(255, 105, 81),
                 1.00F to Color(255, 255, 255),
             )
 
-            val none = Brush.horizontalGradient(
+            val none = Brush.linearGradient(
                 0.00F to Color(70, 83, 80),
                 1.00F to Color(255, 255, 255),
             )

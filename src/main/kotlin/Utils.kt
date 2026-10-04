@@ -7,6 +7,7 @@ import cn.anling.inftool.song.Songs
 import kotlinx.coroutines.delay
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -179,4 +180,9 @@ suspend fun Path.readBytesWhenAvailable(): ByteArray {
         }
         delay(50.milliseconds)
     }
+}
+
+fun Double.floor(decimalPlaces: Int): Double {
+    val n = 10.0.pow(decimalPlaces)
+    return floor(this * n) / n
 }

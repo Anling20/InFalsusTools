@@ -1,3 +1,5 @@
+package cn.anling.inftool
+
 import java.lang.foreign.Arena
 import java.lang.foreign.FunctionDescriptor
 import java.lang.foreign.Linker

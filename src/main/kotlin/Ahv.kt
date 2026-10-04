@@ -52,7 +52,7 @@ fun Ahv(
                 .horizontalScroll(rememberScrollState())
                 .verticalScroll(rememberScrollState()),
         ) {
-            val potential = remember(Unit) { data.potential() }
+            val potential = remember(Unit) { data.potential().floor(3) }
             val groupedData = Songs.entries.flatMap { song ->
                 listOf(
                     AhvData(

@@ -67,7 +67,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                 }
                 var playResult by remember { mutableStateOf<PlayResult?>(null) }
 
-                var potential by remember { mutableDoubleStateOf(data.potential()) }
+                var potential by remember { mutableDoubleStateOf(data.potential().floor(3)) }
                 var playingGame by remember { mutableStateOf(false) }
                 var focusingGame by remember { mutableStateOf(false) }
                 var cursorCovered by remember { mutableStateOf(false) }
@@ -144,16 +144,17 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
 
                                 val oldPtt = oldData.potential()
                                 val newPtt = data.potential()
-                                potential = newPtt
-                                val deltaPtt = newPtt - oldPtt
+                                potential = newPtt.floor(3)
+                                val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
 
                                 if (parsedData.history != oldParsedData.history || deltaPtt > 0.0) {
                                     val recent = parsedData.history.last().toDiveRecord().process(experimentalLevel)
                                     playResult = PlayResult(
                                         level = recent.level,
                                         potential = recent.potential,
-                                        additionPotential = newPtt - oldPtt
+                                        additionPotential = deltaPtt
                                     )
+                                    println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
                                 }
                             },
                             onResultsStarted = {},
@@ -169,11 +170,11 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     // Mouse overlay detect
                     launch(Dispatchers.IO) {
                         while (true) {
-                            val (cursorPosX, cursorPosY) = getCursorPosition()
+                            val cursorPos = getCursorPosition()
                             val (windowPosX, windowPosY) = Pair(window.x, window.y)
                             val (windowSizeWidth, windowSizeHeight) = Pair(window.size.width, window.size.height)
-                            val cursorCoveredX = cursorPosX in windowPosX..(windowPosX + windowSizeWidth)
-                            val cursorCoveredY = cursorPosY in windowPosY..(windowPosY + windowSizeHeight)
+                            val cursorCoveredX = cursorPos?.first in windowPosX..(windowPosX + windowSizeWidth)
+                            val cursorCoveredY = cursorPos?.second in windowPosY..(windowPosY + windowSizeHeight)
                             cursorCovered = cursorCoveredX && cursorCoveredY
                             val newVisible = focusingGame && !playingGame && !cursorCovered
                             if (visible != newVisible) {
@@ -212,5 +213,5 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
 }
 
 expect fun isFocusingGame(): Boolean
-expect fun getCursorPosition(): Pair<Int, Int>
+expect fun getCursorPosition(): Pair<Int, Int>?
 expect fun getFocusingGameTranslation(): WindowTranslation?

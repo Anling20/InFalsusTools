@@ -44,7 +44,7 @@ fun B30(
             val sortedData = data.sortedByDescending {
                 it.potential
             }
-            val potential = remember(Unit) { data.potential() }
+            val potential = remember(Unit) { data.potential().floor(3) }
 
             Column(
                 verticalArrangement = Arrangement.spacedBy(24.dp),
