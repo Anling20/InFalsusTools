@@ -17,19 +17,7 @@ class GameSceneMonitor(
 ) : AutoCloseable {
 
     companion object {
-        /*
-         * GameAssembly.dll:
-         *
-         * GameAssemblyBase + 0x31A67E8L
-         *     -> GameScene Il2CppClass*
-         *
-         * GameScene Il2CppClass + 0xB8
-         *     -> static_fields
-         *
-         * GameScene static_fields + 0x00
-         *     -> _xn
-         */
-        private const val GAME_SCENE_CLASS_RVA = 0x31A67E8L
+        private const val GAME_SCENE_CLASS_RVA = 0x31A87B8L
         private const val STATIC_FIELDS_OFFSET = 0xB8L
         private const val GAME_SCENE_INSTANCE_OFFSET = 0x00L
 
@@ -38,8 +26,8 @@ class GameSceneMonitor(
 
         private const val PROCESS_ACCESS = PROCESS_QUERY_INFORMATION or PROCESS_VM_READ
 
-        private const val RESULTS_SCENE_CLASS_RVA = 0x3178D38L
-        private const val RESULTS_SCENE_MANAGER_CLASS_RVA = 0x31BA360L
+        private const val RESULTS_SCENE_CLASS_RVA = 0x317AD10L
+        private const val RESULTS_SCENE_MANAGER_CLASS_RVA = 0x31BC340L
 
         private const val MANAGER_STATIC_FIELDS_OFFSET = 0xB8L
         private const val MANAGER_INSTANCE_OFFSET = 0x10L

@@ -56,6 +56,8 @@ kotlin {
 
             implementation("com.github.ajalt.clikt:clikt:5.1.0")
             implementation("com.github.ajalt.clikt:clikt-markdown:5.1.0")
+            implementation("dev.chrisbanes.haze:haze-blur:2.0.1")
+            implementation("dev.chrisbanes.haze:haze-blur-material3:2.0.1")
         }
 
         jvmMain.dependencies {
