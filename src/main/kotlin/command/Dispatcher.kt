@@ -7,8 +7,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import cn.anling.inftool.page.Home
 import cn.anling.inftool.model.HomeModel
+import cn.anling.inftool.page.Home
 import cn.anling.inftool.setting.createPlatformSettings
 import cn.anling.inftool.window.potentialWindow
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
@@ -87,7 +87,6 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                         state = windowState,
                         undecorated = true,
                         transparent = true,
-                        resizable = false,
                     ) {
                         Home(
                             onMinimum = { windowState.isMinimized = true },

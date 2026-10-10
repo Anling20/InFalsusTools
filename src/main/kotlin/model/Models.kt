@@ -34,7 +34,7 @@ class Best30ImageModel(settings: Settings) {
 class AchievementsImageModel(settings: Settings) {
     var quality by settings.int("AchievementsImage.quality", 100).toComposeStated()
     var minLevelLimit by settings.double("AchievementsImage.minLevelLimit", 1.0).toComposeStated()
-    var maxLevelLimit by settings.double("AchievementsImage.maxLevelLimit", 1.0).toComposeStated()
+    var maxLevelLimit by settings.double("AchievementsImage.maxLevelLimit", 15.0).toComposeStated()
     var minDifficultSelect by settings.boolean("AchievementsImage.minDifficultSelect", true).toComposeStated()
     var evoDifficultSelect by settings.boolean("AchievementsImage.evoDifficultSelect", true).toComposeStated()
     var ultDifficultSelect by settings.boolean("AchievementsImage.ultDifficultSelect", true).toComposeStated()
