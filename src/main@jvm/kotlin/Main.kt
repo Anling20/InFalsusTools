@@ -4,6 +4,7 @@ import cn.anling.inftool.command.DispatcherCommand
 import cn.anling.inftool.command.FloatingWindowCommand
 import com.github.ajalt.clikt.command.main
 import com.github.ajalt.clikt.core.subcommands
+import io.github.vinceglb.filekit.FileKit
 import java.io.File
 import java.io.PrintStream
 
@@ -16,5 +17,6 @@ private fun redirectOutput() {
 
 suspend fun main(args: Array<String>) {
     redirectOutput()
+    FileKit.init("cn.anling.inftool")
     DispatcherCommand().subcommands(B50Command(), FloatingWindowCommand(), AhvCommand()).main(args)
 }
