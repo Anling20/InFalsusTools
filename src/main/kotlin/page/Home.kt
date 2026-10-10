@@ -1,17 +1,10 @@
 package cn.anling.inftool.page
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -22,11 +15,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.renderComposeScene
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.*
+import cn.anling.inftool.*
+import cn.anling.inftool.model.HomeModel
+import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.theme.AppTheme
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
@@ -35,15 +35,24 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.material3.Material3
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.dialogs.openFileSaver
+import io.github.vinceglb.filekit.write
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.skia.EncodedImageFormat
+import kotlin.io.path.Path
 
 @Composable
+context(model: HomeModel)
 fun Home(
     onMinimum: () -> Unit,
     onQuit: () -> Unit,
     windowDraggableArea: @Composable (@Composable () -> Unit) -> Unit,
 ) {
-    var destination by remember { mutableStateOf<HomeDestination>(HomeDestination.Home) }
     AppTheme(false) {
         Surface(
             shape = RoundedCornerShape(24.dp),
@@ -52,6 +61,7 @@ fun Home(
         ) {
             Box {
                 val hazeState = rememberHazeState()
+                val waitingHazeState = rememberHazeState()
                 Image(
                     painter = painterResource(Res.drawable.home_background),
                     contentDescription = null,
@@ -59,9 +69,14 @@ fun Home(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .hazeSource(hazeState),
+                        .hazeSource(hazeState)
+                        .hazeSource(waitingHazeState),
                 )
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeSource(waitingHazeState),
+                ) {
                     windowDraggableArea {
                         TopBar(
                             hazeState = hazeState,
@@ -71,9 +86,47 @@ fun Home(
                     }
                     ContentContainer(
                         hazeState = hazeState,
-                        destination = destination,
-                        onChangeDestination = { destination = it }
+                        destination = model.destination,
+                        onChangeDestination = { model.destination = it },
                     )
+                }
+                AnimatedVisibility(
+                    visible = model.waiting,
+                    enter = fadeIn() + slideInVertically { it },
+                    exit = fadeOut() + slideOutVertically { it },
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .hazeBlur(
+                                input = HazeInput.Sources(waitingHazeState),
+                                style = HazeBlurStyle.Material3 {
+                                    blurRadius(8.dp)
+                                }
+                            )
+                            .background(Color.Black.copy(alpha = 0.32F)),
+                    ) {
+                        Icon(
+                            painter = painterResource(Res.drawable.loading),
+                            contentDescription = "Loading",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(64.dp)
+                                .rotate(
+                                    degrees = rememberInfiniteTransition().animateFloat(
+                                        initialValue = 0F,
+                                        targetValue = 360F,
+                                        animationSpec = infiniteRepeatable(
+                                            animation = tween(
+                                                durationMillis = 1000,
+                                                easing = LinearEasing,
+                                            ),
+                                        ),
+                                    ).value,
+                                ),
+                        )
+                    }
                 }
             }
         }
@@ -144,7 +197,8 @@ private fun TopBar(
 }
 
 @Composable
-private fun ContentContainer(
+context(_: HomeModel)
+fun ContentContainer(
     hazeState: HazeState,
     destination: HomeDestination,
     onChangeDestination: (HomeDestination) -> Unit,
@@ -163,7 +217,6 @@ private fun ContentContainer(
         )
         Content(
             hazeState = hazeState,
-            destination = destination,
         )
     }
 }
@@ -204,210 +257,19 @@ private fun SideBarSelect(
 }
 
 @Composable
-private fun HomeSideBarContent(
-    hazeState: HazeState,
-    destination: HomeDestination,
-    onChangeDestination: (HomeDestination) -> Unit,
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clip(RoundedCornerShape(24.dp))
-            .hazeBlur(
-                input = HazeInput.Sources(hazeState),
-                style = HazeBlurStyle.Material3 {
-                    blurRadius(8.dp)
-                }
-            )
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
-            .padding(horizontal = 16.dp, vertical = 24.dp),
-    ) {
-        Icon(
-            painter = painterResource(Res.drawable.home),
-            contentDescription = null,
-            tint = animateColorAsState(
-                when (destination == HomeDestination.Home) {
-                    true -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.onSurface
-                }
-            ).value,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { onChangeDestination(HomeDestination.Home) },
-        )
-        Icon(
-            painter = painterResource(Res.drawable.module),
-            contentDescription = null,
-            tint = animateColorAsState(
-                when (destination is HomeDestination.Module) {
-                    true -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.onSurface
-                }
-            ).value,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { onChangeDestination(HomeDestination.Module(ModuleDestination.PotentialWindow)) },
-        )
-        Icon(
-            painter = painterResource(Res.drawable.setting),
-            contentDescription = null,
-            tint = animateColorAsState(
-                when (destination == HomeDestination.Setting) {
-                    true -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.onSurface
-                }
-            ).value,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { onChangeDestination(HomeDestination.Setting) },
-        )
-        Icon(
-            painter = painterResource(Res.drawable.more),
-            contentDescription = null,
-            tint = animateColorAsState(
-                when (destination == HomeDestination.More) {
-                    true -> MaterialTheme.colorScheme.primary
-                    else -> MaterialTheme.colorScheme.onSurface
-                }
-            ).value,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { onChangeDestination(HomeDestination.More) },
-        )
-    }
-}
+context(model: HomeModel)
+private fun Content(hazeState: HazeState) {
+    val scope = remember { CoroutineScope(Dispatchers.IO) }
+    suspend fun getData() = SaveFileParser.parse(Path(model.settingModel.saveFile))
+        .toDiveRecordList()
+        .map { it.process(model.settingModel.useExperimentalLevel) }
 
-@Composable
-private fun ModuleSideBarContent(
-    hazeState: HazeState,
-    onBack: () -> Unit,
-    destination: ModuleDestination,
-    onChangeDestination: (ModuleDestination) -> Unit,
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = Modifier
-            .clip(RoundedCornerShape(24.dp))
-            .hazeBlur(
-                input = HazeInput.Sources(hazeState),
-                style = HazeBlurStyle.Material3 {
-                    blurRadius(8.dp)
-                }
-            )
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
-            .padding(16.dp),
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .clickable(onClick = onBack),
-        ) {
-            Icon(
-                painter = painterResource(Res.drawable.back),
-                contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(24.dp),
-            )
-            Text(
-                text = "Back",
-                color = MaterialTheme.colorScheme.outline,
-                fontSize = 14.sp,
-            )
-        }
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            val potentialWindowSource = remember { MutableInteractionSource() }
-            val best30ImageSource = remember { MutableInteractionSource() }
-            val achievementsImageSource = remember { MutableInteractionSource() }
-            val playHistoriesSource = remember { MutableInteractionSource() }
-            Text(
-                text = "Potential window",
-                color = animateColorAsState(
-                    when (destination == ModuleDestination.PotentialWindow || potentialWindowSource.collectIsHoveredAsState().value) {
-                        true -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
-                ).value,
-                fontSize = 14.sp,
-                lineHeight = 18.sp,
-                modifier = Modifier.clickable(
-                    interactionSource = potentialWindowSource,
-                    indication = null,
-                    onClick = { onChangeDestination(ModuleDestination.PotentialWindow) },
-                ),
-            )
-            Text(
-                text = "Best30 image",
-                color = animateColorAsState(
-                    when (destination == ModuleDestination.Best30Image || best30ImageSource.collectIsHoveredAsState().value) {
-                        true -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
-                ).value,
-                fontSize = 14.sp,
-                lineHeight = 18.sp,
-                modifier = Modifier.clickable(
-                    interactionSource = best30ImageSource,
-                    indication = null,
-                    onClick = { onChangeDestination(ModuleDestination.Best30Image) },
-                ),
-            )
-            Text(
-                text = "Achievements image",
-                color = animateColorAsState(
-                    when (destination == ModuleDestination.AchievementsImage || achievementsImageSource.collectIsHoveredAsState().value) {
-                        true -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
-                ).value,
-                fontSize = 14.sp,
-                lineHeight = 18.sp,
-                modifier = Modifier.clickable(
-                    interactionSource = achievementsImageSource,
-                    indication = null,
-                    onClick = { onChangeDestination(ModuleDestination.AchievementsImage) },
-                ),
-            )
-            Text(
-                text = "Play histories",
-                color = animateColorAsState(
-                    when (destination == ModuleDestination.PlayHistories || playHistoriesSource.collectIsHoveredAsState().value) {
-                        true -> MaterialTheme.colorScheme.primary
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
-                ).value,
-                fontSize = 14.sp,
-                lineHeight = 18.sp,
-                modifier = Modifier.clickable(
-                    interactionSource = playHistoriesSource,
-                    indication = null,
-                    onClick = { onChangeDestination(ModuleDestination.PlayHistories) },
-                ),
-            )
-        }
-    }
-}
-
-@Composable
-private fun Content(
-    hazeState: HazeState,
-    destination: HomeDestination,
-) {
     AnimatedVisibility(
-        visible = destination != HomeDestination.Home,
+        visible = model.destination != HomeDestination.Home,
         enter = fadeIn() + slideInVertically { it },
         exit = fadeOut() + slideOutVertically { it },
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(24.dp))
@@ -420,7 +282,218 @@ private fun Content(
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.15F))
                 .padding(24.dp),
         ) {
+            AnimatedContent(model.destination) { destination ->
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    when (destination) {
+                        HomeDestination.Home -> Unit
+                        is HomeDestination.Module -> when (destination.child) {
+                            ModuleDestination.PotentialWindow -> context(model.potentialWindowModel) {
+                                ModulePotentialWindowContent(
+                                    started = model.startedPotentialWindow,
+                                    onSwitchStarted = { model.startedPotentialWindow = !model.startedPotentialWindow },
+                                )
+                            }
 
+                            ModuleDestination.Best30Image -> context(model.best30ImageModel) {
+                                ModuleBest30ImageContent(
+                                    onGenerateToFile = {
+                                        scope.launch {
+                                            val file = FileKit.openFileSaver(
+                                                suggestedName = "B30",
+                                                defaultExtension = ".jpg",
+                                                allowedExtensions = setOf(".jpg", ".jpeg"),
+                                            )
+                                            if (file != null) {
+                                                model.waiting = true
+                                                val data = getData()
+                                                renderComposeScene(1, 1) {
+                                                    B30(
+                                                        darkTheme = false,
+                                                        onSizeChanged = { size ->
+                                                            val img = renderComposeScene(size.width, size.height) {
+                                                                B30(
+                                                                    darkTheme = false,
+                                                                    onSizeChanged = {},
+                                                                    username = model.settingModel.username,
+                                                                    data = data,
+                                                                )
+                                                            }
+                                                            scope.launch {
+                                                                img.encodeToData(
+                                                                    format = EncodedImageFormat.JPEG,
+                                                                    quality = model.best30ImageModel.quality,
+                                                                )?.let { data ->
+                                                                    file.write(data.bytes)
+                                                                    println("B30 generated to " + file.absolutePath())
+                                                                }
+                                                            }
+                                                        },
+                                                        username = model.settingModel.username,
+                                                        data = data,
+                                                    )
+                                                }
+                                                model.waiting = false
+                                            }
+                                        }
+                                    },
+                                    onGenerateToClipboard = {
+                                        scope.launch {
+                                            model.waiting = true
+                                            val data = getData()
+                                            renderComposeScene(1, 1) {
+                                                B30(
+                                                    darkTheme = false,
+                                                    onSizeChanged = { size ->
+                                                        val img = renderComposeScene(size.width, size.height) {
+                                                            B30(
+                                                                darkTheme = false,
+                                                                onSizeChanged = {},
+                                                                username = model.settingModel.username,
+                                                                data = data,
+                                                            )
+                                                        }
+                                                        copyImageToClipboard(img.toComposeImageBitmap())
+                                                        println("B30 generated to clipboard")
+                                                    },
+                                                    username = model.settingModel.username,
+                                                    data = data,
+                                                )
+                                            }
+                                            model.waiting = false
+                                        }
+                                    },
+                                )
+                            }
+
+                            ModuleDestination.AchievementsImage -> context(model.achievementsImageModel) {
+                                ModuleAchievementsImageContent(
+                                    onGenerateToFile = {
+                                        scope.launch {
+                                            val file = FileKit.openFileSaver(
+                                                suggestedName = "AHV",
+                                                defaultExtension = ".jpg",
+                                                allowedExtensions = setOf(".jpg", ".jpeg"),
+                                            )
+                                            if (file != null) {
+                                                model.waiting = true
+                                                val data = getData()
+                                                val difficulties = buildList {
+                                                    if (model.achievementsImageModel.minDifficultSelect) {
+                                                        add(Difficult.MIN)
+                                                    }
+                                                    if (model.achievementsImageModel.evoDifficultSelect) {
+                                                        add(Difficult.EVO)
+                                                    }
+                                                    if (model.achievementsImageModel.ultDifficultSelect) {
+                                                        add(Difficult.ULT)
+                                                    }
+                                                    if (model.achievementsImageModel.fbdDifficultSelect) {
+                                                        add(Difficult.FBD)
+                                                    }
+                                                }
+                                                renderComposeScene(1, 1) {
+                                                    Ahv(
+                                                        darkTheme = false,
+                                                        onSizeChanged = { size ->
+                                                            val img = renderComposeScene(size.width, size.height) {
+                                                                Ahv(
+                                                                    darkTheme = false,
+                                                                    onSizeChanged = {},
+                                                                    username = model.settingModel.username,
+                                                                    data = data,
+                                                                    experimentalLevel = model.settingModel.useExperimentalLevel,
+                                                                    min = model.achievementsImageModel.minLevelLimit,
+                                                                    max = model.achievementsImageModel.maxLevelLimit,
+                                                                    difficulties = difficulties,
+                                                                )
+                                                            }
+                                                            scope.launch {
+                                                                img.encodeToData(
+                                                                    format = EncodedImageFormat.JPEG,
+                                                                    quality = model.achievementsImageModel.quality,
+                                                                )?.let { data ->
+                                                                    file.write(data.bytes)
+                                                                    println("Ahv generated to " + file.absolutePath())
+                                                                }
+                                                            }
+                                                        },
+                                                        username = model.settingModel.username,
+                                                        data = data,
+                                                        experimentalLevel = model.settingModel.useExperimentalLevel,
+                                                        min = model.achievementsImageModel.minLevelLimit,
+                                                        max = model.achievementsImageModel.maxLevelLimit,
+                                                        difficulties = difficulties,
+                                                    )
+                                                }
+                                                model.waiting = false
+                                            }
+                                        }
+                                    },
+                                    onGenerateToClipboard = {
+                                        scope.launch {
+                                            model.waiting = true
+                                            val data = getData()
+                                            val difficulties = buildList {
+                                                if (model.achievementsImageModel.minDifficultSelect) {
+                                                    add(Difficult.MIN)
+                                                }
+                                                if (model.achievementsImageModel.evoDifficultSelect) {
+                                                    add(Difficult.EVO)
+                                                }
+                                                if (model.achievementsImageModel.ultDifficultSelect) {
+                                                    add(Difficult.ULT)
+                                                }
+                                                if (model.achievementsImageModel.fbdDifficultSelect) {
+                                                    add(Difficult.FBD)
+                                                }
+                                            }
+                                            renderComposeScene(1, 1) {
+                                                Ahv(
+                                                    darkTheme = false,
+                                                    onSizeChanged = { size ->
+                                                        val img = renderComposeScene(size.width, size.height) {
+                                                            Ahv(
+                                                                darkTheme = false,
+                                                                onSizeChanged = {},
+                                                                username = model.settingModel.username,
+                                                                data = data,
+                                                                experimentalLevel = model.settingModel.useExperimentalLevel,
+                                                                min = model.achievementsImageModel.minLevelLimit,
+                                                                max = model.achievementsImageModel.maxLevelLimit,
+                                                                difficulties = difficulties,
+                                                            )
+                                                        }
+                                                        copyImageToClipboard(img.toComposeImageBitmap())
+                                                        println("Ahv generated to clipboard")
+                                                    },
+                                                    username = model.settingModel.username,
+                                                    data = data,
+                                                    experimentalLevel = model.settingModel.useExperimentalLevel,
+                                                    min = model.achievementsImageModel.minLevelLimit,
+                                                    max = model.achievementsImageModel.maxLevelLimit,
+                                                    difficulties = difficulties,
+                                                )
+                                            }
+                                            model.waiting = false
+                                        }
+                                    },
+                                )
+                            }
+
+                            ModuleDestination.PlayHistories -> Unit
+                        }
+
+                        HomeDestination.Setting -> context(model.settingModel) {
+                            SettingContent()
+                        }
+
+                        HomeDestination.More -> Unit
+                    }
+                }
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     kotlin("multiplatform") version "2.4.20"
@@ -19,32 +20,29 @@ kotlin {
 
     jvm()
 
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
     sourceSets {
         commonMain {
-            kotlin.setSrcDirs(
+            kotlin.srcDir("src/main/kotlin")
+            resources.setSrcDirs(listOf("src/main/resources"))
+            generatedKotlin.setSrcDirs(
                 listOf(
-                    "src/main/kotlin",
                     "build/generated/compose/resourceGenerator/kotlin/commonResClass",
                     "build/generated/compose/resourceGenerator/kotlin/commonMainResourceCollectors",
                     "build/generated/compose/resourceGenerator/kotlin/commonMainResourceAccessors",
                 )
             )
-            resources.setSrcDirs(listOf("src/main/resources"))
         }
 
         jvmMain {
-            kotlin.setSrcDirs(
-                listOf(
-                    "src/main@jvm/kotlin",
-                    "build/generated/compose/resourceGenerator/kotlin/jvmMainResourceCollectors",
-                )
-            )
+            kotlin.srcDir("src/main@jvm/kotlin")
             resources.setSrcDirs(
                 listOf(
                     "src/main@jvm/resources",
                     "build/generated/compose/resourceGenerator/assembledResources/jvmMain",
                 )
             )
+            generatedKotlin.srcDir("build/generated/compose/resourceGenerator/kotlin/jvmMainResourceCollectors")
         }
 
         commonMain.dependencies {
@@ -58,6 +56,9 @@ kotlin {
             implementation("com.github.ajalt.clikt:clikt-markdown:5.1.0")
             implementation("dev.chrisbanes.haze:haze-blur:2.0.1")
             implementation("dev.chrisbanes.haze:haze-blur-material3:2.0.1")
+            implementation("com.russhwolf:multiplatform-settings:1.3.0")
+            implementation("io.github.vinceglb:filekit-core:0.16.0")
+            implementation("io.github.vinceglb:filekit-dialogs-compose:0.16.0")
         }
 
         jvmMain.dependencies {

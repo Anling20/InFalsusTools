@@ -1,4 +1,4 @@
-package cn.anling.inftool.page
+package cn.anling.inftool
 
 sealed class HomeDestination {
     data object Home : HomeDestination()
