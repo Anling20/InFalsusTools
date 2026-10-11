@@ -7,8 +7,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import cn.anling.inftool.*
+import cn.anling.inftool.localization.LocalizationContext
+import cn.anling.inftool.localization.defaultLocalizationContainers
 import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.page.Home
+import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.setting.createPlatformSettings
 import cn.anling.inftool.window.potentialWindow
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
@@ -17,6 +21,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -75,7 +80,13 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                         },
                     )
                 }
-                context(model) {
+                val localizationContext = remember(Unit) {
+                    LocalizationContext(
+                        language = model.settingModel.language,
+                        containers = defaultLocalizationContainers,
+                    )
+                }
+                context(model, localizationContext) {
                     val windowState = rememberWindowState(
                         size = DpSize(
                             width = 1280.dp,
@@ -99,10 +110,68 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                         potentialWindow(
                             onCloseRequest = { model.startedPotentialWindow = false },
                             username = model.settingModel.username,
-                            saveFile = File(model.settingModel.saveFile),
+                            saveFile = model.settingModel.saveFile,
                             useExperimentalLevel = model.settingModel.useExperimentalLevel,
                             scale = model.potentialWindowModel.scale,
                         )
+                    }
+
+                    if (model.displayingB30Preview) {
+                        Window(
+                            onCloseRequest = { model.displayingB30Preview = false },
+                            state = rememberWindowState(),
+                            title = "Best30 Preview",
+                        ) {
+                            val data = runBlocking {
+                                SaveFileParser.parse(model.settingModel.saveFile)
+                                    .toDiveRecordList()
+                                    .map { it.process(model.settingModel.useExperimentalLevel) }
+                            }
+                            B30(
+                                darkTheme = false,
+                                onSizeChanged = {},
+                                username = model.settingModel.username,
+                                data = data,
+                            )
+                        }
+                    }
+
+                    if (model.displayingAchievementsPreview) {
+                        Window(
+                            onCloseRequest = { model.displayingB30Preview = false },
+                            state = rememberWindowState(),
+                            title = "Achievements Preview",
+                        ) {
+                            val data = runBlocking {
+                                SaveFileParser.parse(model.settingModel.saveFile)
+                                    .toDiveRecordList()
+                                    .map { it.process(model.settingModel.useExperimentalLevel) }
+                            }
+                            val difficulties = buildList {
+                                if (model.achievementsImageModel.minDifficultSelect) {
+                                    add(Difficult.MIN)
+                                }
+                                if (model.achievementsImageModel.evoDifficultSelect) {
+                                    add(Difficult.EVO)
+                                }
+                                if (model.achievementsImageModel.ultDifficultSelect) {
+                                    add(Difficult.ULT)
+                                }
+                                if (model.achievementsImageModel.fbdDifficultSelect) {
+                                    add(Difficult.FBD)
+                                }
+                            }
+                            Ahv(
+                                darkTheme = false,
+                                onSizeChanged = {},
+                                username = model.settingModel.username,
+                                data = data,
+                                experimentalLevel = model.settingModel.useExperimentalLevel,
+                                min = model.achievementsImageModel.minLevelLimit,
+                                max = model.achievementsImageModel.maxLevelLimit,
+                                difficulties = difficulties,
+                            )
+                        }
                     }
                 }
             }

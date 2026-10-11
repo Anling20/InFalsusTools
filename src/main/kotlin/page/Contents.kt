@@ -3,6 +3,8 @@ package cn.anling.inftool.page
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.InputTransformation
@@ -18,16 +20,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.folder_open
-import cn.anling.inftool.Language
 import cn.anling.inftool.PotentialAlgorithm
+import cn.anling.inftool.localization.Language
+import cn.anling.inftool.localization.LocalizationContext
+import cn.anling.inftool.localization.currentLanguage
+import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.AchievementsImageModel
 import cn.anling.inftool.model.Best30ImageModel
 import cn.anling.inftool.model.PotentialWindowModel
 import cn.anling.inftool.model.SettingModel
+import cn.anling.inftool.parser.ImageGenerationType
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.openFilePicker
+import io.github.vinceglb.filekit.parent
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-context(model: PotentialWindowModel)
+context(model: PotentialWindowModel, _: LocalizationContext)
 fun ColumnScope.ModulePotentialWindowContent(
     started: Boolean,
     onSwitchStarted: () -> Unit,
@@ -41,7 +54,7 @@ fun ColumnScope.ModulePotentialWindowContent(
         val state = rememberTextFieldState(model.scale.toString())
         TextField(
             state = state,
-            label = { Text("Scale") },
+            label = { Text(i18n("module.potential_window.scale")) },
             inputTransformation = InputTransformation {
                 toString().toFloatOrNull()?.let {
                     when (it > 0) {
@@ -78,8 +91,8 @@ fun ColumnScope.ModulePotentialWindowContent(
             AnimatedContent(started) {
                 Text(
                     text = when (started) {
-                        true -> "Stop"
-                        else -> "Start"
+                        true -> i18n("module.potential_window.stop")
+                        else -> i18n("module.potential_window.start")
                     },
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 24.sp,
@@ -91,10 +104,10 @@ fun ColumnScope.ModulePotentialWindowContent(
 }
 
 @Composable
-context(model: Best30ImageModel)
+context(model: Best30ImageModel, _: LocalizationContext)
 fun ColumnScope.ModuleBest30ImageContent(
-    onGenerateToFile: () -> Unit,
-    onGenerateToClipboard: () -> Unit,
+    onOpenPreview: () -> Unit,
+    onGenerate: (ImageGenerationType) -> Unit,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -105,7 +118,7 @@ fun ColumnScope.ModuleBest30ImageContent(
         val state = rememberTextFieldState(model.quality.toString())
         TextField(
             state = state,
-            label = { Text("Quality") },
+            label = { Text(i18n("module.best30_image.quality")) },
             inputTransformation = InputTransformation {
                 toString().toIntOrNull()?.let {
                     if (it !in 1..100) {
@@ -136,10 +149,10 @@ fun ColumnScope.ModuleBest30ImageContent(
                 .size(340.dp, 64.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
-                .clickable(onClick = onGenerateToFile),
+                .clickable(onClick = onOpenPreview),
         ) {
             Text(
-                text = "Generate to file",
+                text = i18n("module.best30_image.preview"),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
@@ -151,10 +164,25 @@ fun ColumnScope.ModuleBest30ImageContent(
                 .size(340.dp, 64.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
-                .clickable(onClick = onGenerateToClipboard),
+                .clickable { onGenerate(ImageGenerationType.File) },
         ) {
             Text(
-                text = "Generate to clipboard",
+                text = i18n("module.best30_image.generate_to_file"),
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 24.sp,
+                maxLines = 1,
+            )
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(340.dp, 64.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
+                .clickable { onGenerate(ImageGenerationType.Clipboard) },
+        ) {
+            Text(
+                text = i18n("module.best30_image.generate_to_clipboard"),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
@@ -164,10 +192,10 @@ fun ColumnScope.ModuleBest30ImageContent(
 }
 
 @Composable
-context(model: AchievementsImageModel)
+context(model: AchievementsImageModel, _: LocalizationContext)
 fun ColumnScope.ModuleAchievementsImageContent(
-    onGenerateToFile: () -> Unit,
-    onGenerateToClipboard: () -> Unit,
+    onOpenPreview: () -> Unit,
+    onGenerate: (ImageGenerationType) -> Unit,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -180,7 +208,7 @@ fun ColumnScope.ModuleAchievementsImageContent(
         val maxState = rememberTextFieldState(model.maxLevelLimit.toString())
         TextField(
             state = qualityState,
-            label = { Text("Quality") },
+            label = { Text(i18n("module.achievements_image.quality")) },
             inputTransformation = InputTransformation {
                 toString().toIntOrNull()?.let {
                     if (it !in 1..100) {
@@ -201,7 +229,7 @@ fun ColumnScope.ModuleAchievementsImageContent(
         )
         TextField(
             state = minState,
-            label = { Text("Minimal level limit") },
+            label = { Text(i18n("module.achievements_image.minimal_level_limit")) },
             inputTransformation = InputTransformation {
                 toString().toDoubleOrNull()?.let {
                     if (it !in 1.0..model.maxLevelLimit) {
@@ -222,7 +250,7 @@ fun ColumnScope.ModuleAchievementsImageContent(
         )
         TextField(
             state = maxState,
-            label = { Text("Maximum level limit") },
+            label = { Text(i18n("module.achievements_image.maximum_level_limit")) },
             inputTransformation = InputTransformation {
                 toString().toDoubleOrNull()?.let {
                     if (it !in model.minLevelLimit..15.0) {
@@ -246,7 +274,7 @@ fun ColumnScope.ModuleAchievementsImageContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Difficulties limit",
+                text = i18n("module.achievements_image.difficulties_limit"),
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Row(
@@ -314,10 +342,10 @@ fun ColumnScope.ModuleAchievementsImageContent(
                 .size(340.dp, 64.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
-                .clickable(onClick = onGenerateToFile),
+                .clickable(onClick = onOpenPreview),
         ) {
             Text(
-                text = "Generate to file",
+                text = i18n("module.achievements_image.preview"),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
@@ -329,10 +357,25 @@ fun ColumnScope.ModuleAchievementsImageContent(
                 .size(340.dp, 64.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
-                .clickable(onClick = onGenerateToClipboard),
+                .clickable { onGenerate(ImageGenerationType.File) },
         ) {
             Text(
-                text = "Generate to clipboard",
+                text = i18n("module.achievements_image.generate_to_file"),
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 24.sp,
+                maxLines = 1,
+            )
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(340.dp, 64.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6F))
+                .clickable { onGenerate(ImageGenerationType.Clipboard) },
+        ) {
+            Text(
+                text = i18n("module.achievements_image.generate_to_clipboard"),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
@@ -343,7 +386,7 @@ fun ColumnScope.ModuleAchievementsImageContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-context(model: SettingModel)
+context(model: SettingModel, _: LocalizationContext)
 fun SettingContent() {
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -352,7 +395,7 @@ fun SettingContent() {
         val state = rememberTextFieldState(model.username)
         TextField(
             state = state,
-            label = { Text("Username") },
+            label = { Text(i18n("setting.username")) },
             lineLimits = TextFieldLineLimits.SingleLine,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
@@ -365,10 +408,10 @@ fun SettingContent() {
             },
         )
         TextField(
-            value = model.saveFile,
+            value = model.saveFile.absolutePath(),
             onValueChange = {},
             readOnly = true,
-            label = { Text("Save file") },
+            label = { Text(i18n("setting.save_file_path")) },
             trailingIcon = {
                 Icon(
                     painter = painterResource(Res.drawable.folder_open),
@@ -377,23 +420,34 @@ fun SettingContent() {
                 )
             },
             singleLine = true,
+            interactionSource = remember {
+                MutableInteractionSource()
+            }.also { interactionSource ->
+                LaunchedEffect(interactionSource) {
+                    interactionSource.interactions.collect {
+                        if (it is PressInteraction.Release) {
+                            val file = FileKit.openFilePicker(
+                                type = FileKitType.File("sav"),
+                                mode = FileKitMode.Single,
+                                directory = PlatformFile(model.saveFile.parent()!!.absolutePath()),
+                            )
+                            if (file != null) {
+                                model.saveFile = file
+                            }
+                        }
+                    }
+                }
+            },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            modifier = Modifier.clickable(
-                interactionSource = null,
-                indication = null,
-                onClick = {
-
-                },
             ),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Use experimental level",
+                text = i18n("setting.use_experimental_level"),
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Checkbox(
@@ -408,10 +462,10 @@ fun SettingContent() {
                 onExpandedChange = { expanded = it },
             ) {
                 TextField(
-                    value = model.potentialAlgorithm.displayText,
+                    value = i18n(model.potentialAlgorithm.i18nKey),
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Potential algorithm") },
+                    label = { Text(i18n("setting.potential_algorithm")) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
@@ -427,7 +481,7 @@ fun SettingContent() {
                 ) {
                     PotentialAlgorithm.entries.forEach { item ->
                         DropdownMenuItem(
-                            text = { Text(item.displayText) },
+                            text = { Text(i18n(item.i18nKey)) },
                             onClick = {
                                 expanded = false
                                 model.potentialAlgorithm = item
@@ -447,7 +501,7 @@ fun SettingContent() {
                     value = model.language.displayText,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Language") },
+                    label = { Text(i18n("setting.language")) },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
@@ -467,6 +521,7 @@ fun SettingContent() {
                             onClick = {
                                 expanded = false
                                 model.language = item
+                                currentLanguage = item
                             },
                         )
                     }

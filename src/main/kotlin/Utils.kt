@@ -4,9 +4,9 @@ import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.parser.ParsedSave
 import cn.anling.inftool.song.Songs
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.delay
-import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
@@ -173,10 +173,10 @@ fun List<ProcessedDiveRecord>.potential(): Double {
     return (b10ptt.sum() + b30ptt.sum()) / 40.0
 }
 
-suspend fun Path.readBytesWhenAvailable(): ByteArray {
+suspend fun PlatformFile.readBytesWhenAvailable(): ByteArray {
     while (true) {
         runCatching {
-            return Files.readAllBytes(this)
+            return readBytes()
         }
         delay(50.milliseconds)
     }

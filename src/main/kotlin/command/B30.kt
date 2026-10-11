@@ -15,6 +15,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
+import io.github.vinceglb.filekit.PlatformFile
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
 
@@ -29,7 +30,7 @@ class B50Command : SuspendingCliktCommand("b30") {
 
     override suspend fun run() {
         val (username, save, experimentalLevel) = commandContext
-        val data = SaveFileParser.parse(save.toPath()).toDiveRecordList().map { it.process(experimentalLevel) }
+        val data = SaveFileParser.parse(PlatformFile(save)).toDiveRecordList().map { it.process(experimentalLevel) }
 
         renderComposeScene(1, 1) {
             B30(

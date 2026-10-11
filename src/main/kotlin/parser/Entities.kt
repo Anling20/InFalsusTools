@@ -47,3 +47,7 @@ data class RecordLocation(
     val name: String,
     val payloadOffset: Int,
 )
+
+enum class ImageGenerationType {
+    File, Clipboard,
+}

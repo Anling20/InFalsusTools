@@ -13,20 +13,24 @@ import cn.anling.inftool.*
 import cn.anling.inftool.command.getCursorPosition
 import cn.anling.inftool.command.getFocusingGameTranslation
 import cn.anling.inftool.command.isFocusingGame
+import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.parser.SaveFileParser
+import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
+private const val animationTime = 50
+
 @Composable
+context(_: LocalizationContext)
 fun potentialWindow(
     onCloseRequest: () -> Unit,
     username: String,
-    saveFile: File,
+    saveFile: PlatformFile,
     useExperimentalLevel: Boolean,
     scale: Float,
     pollInterval: Duration = 500.milliseconds,
@@ -51,7 +55,7 @@ fun potentialWindow(
     ) {
         var parsedData by remember {
             runBlocking {
-                mutableStateOf(SaveFileParser.parse(saveFile.toPath()))
+                mutableStateOf(SaveFileParser.parse(saveFile))
             }
         }
         var data by remember {
@@ -98,7 +102,7 @@ fun potentialWindow(
                         window.isAlwaysOnTop = true
                         window.toFront()
                         if (oldVisible) {
-                            delay(300.milliseconds)
+                            delay(animationTime.milliseconds)
                             windowVisible = false
                         }
                     }
@@ -116,7 +120,7 @@ fun potentialWindow(
                             visible = false
                             window.isAlwaysOnTop = true
                             window.toFront()
-                            delay(300.milliseconds)
+                            delay(animationTime.milliseconds)
                             windowVisible = false
                         }
                     },
@@ -133,7 +137,7 @@ fun potentialWindow(
                         val oldParsedData = parsedData
                         val oldData = data
 
-                        parsedData = SaveFileParser.parse(saveFile.toPath())
+                        parsedData = SaveFileParser.parse(saveFile)
                         data = parsedData.toDiveRecordList().map { it.process(useExperimentalLevel) }
 
                         val oldPtt = oldData.potential()
@@ -180,19 +184,19 @@ fun potentialWindow(
                         window.isAlwaysOnTop = true
                         window.toFront()
                         if (oldVisible) {
-                            delay(300.milliseconds)
+                            delay(animationTime.milliseconds)
                             windowVisible = false
                         }
                     }
-                    delay(pollInterval)
+                    delay(100.milliseconds)
                 }
             }
         }
 
         AnimatedVisibility(
             visible = visible,
-            enter = slideInVertically(tween()) + fadeIn(tween()),
-            exit = slideOutVertically(tween()) + fadeOut(tween()),
+            enter = slideInVertically(tween(animationTime)) + fadeIn(tween(animationTime)),
+            exit = slideOutVertically(tween(animationTime)) + fadeOut(tween(animationTime)),
         ) {
             FloatingWindow(
                 scale = scale,

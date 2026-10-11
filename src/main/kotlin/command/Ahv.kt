@@ -20,6 +20,7 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.double
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
+import io.github.vinceglb.filekit.PlatformFile
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
 
@@ -39,7 +40,7 @@ class AhvCommand : SuspendingCliktCommand("ahv") {
 
     override suspend fun run() {
         val (username, save, experimentalLevel) = commandContext
-        val data = SaveFileParser.parse(save.toPath()).toDiveRecordList().map { it.process(experimentalLevel) }
+        val data = SaveFileParser.parse(PlatformFile(save)).toDiveRecordList().map { it.process(experimentalLevel) }
 
         renderComposeScene(1, 1) {
             Ahv(

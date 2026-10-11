@@ -4,10 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cn.anling.inftool.HomeDestination
-import cn.anling.inftool.Language
 import cn.anling.inftool.PotentialAlgorithm
+import cn.anling.inftool.localization.Language
 import cn.anling.inftool.setting.toComposeStated
 import com.russhwolf.settings.*
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.absolutePath
 
 class HomeModel(
     settings: Settings,
@@ -16,6 +18,8 @@ class HomeModel(
     var destination by mutableStateOf<HomeDestination>(HomeDestination.Home)
     var startedPotentialWindow by mutableStateOf(false)
     var waiting by mutableStateOf(false)
+    var displayingB30Preview by mutableStateOf(false)
+    var displayingAchievementsPreview by mutableStateOf(false)
 
     val potentialWindowModel: PotentialWindowModel = PotentialWindowModel(settings)
     val best30ImageModel: Best30ImageModel = Best30ImageModel(settings)
@@ -46,7 +50,12 @@ class SettingModel(
     initialSaveFile: String,
 ) {
     var username by settings.string("Setting.username", "Player").toComposeStated()
-    var saveFile by settings.string("Setting.saveFile", initialSaveFile).toComposeStated()
+    private var saveFilePath by settings.string("Setting.saveFile", initialSaveFile).toComposeStated()
+    var saveFile
+        get() = PlatformFile(saveFilePath)
+        set(value) {
+            saveFilePath = value.absolutePath()
+        }
 
     var useExperimentalLevel by settings.boolean("Setting.useExperimentalLevel", false).toComposeStated()
     private var potentialAlgorithmIndex by settings.int("Setting.potentialAlgorithm", 0).toComposeStated()
@@ -56,7 +65,7 @@ class SettingModel(
             potentialAlgorithmIndex = value.ordinal
         }
 
-    private var languageIndex by settings.int("Setting.language", 0).toComposeStated()
+    private var languageIndex by settings.int("Setting.language", 1).toComposeStated()
     var language
         get() = Language.entries[languageIndex]
         set(value) {

@@ -6,12 +6,17 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.isCtrlPressed
+import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
@@ -33,6 +38,7 @@ private data class AhvData(
     val diveRecord: ProcessedDiveRecord?,
 )
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Ahv(
     darkTheme: Boolean,
@@ -45,170 +51,212 @@ fun Ahv(
     difficulties: List<Difficult>,
 ) {
     AppTheme(darkTheme) {
-        Surface(
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .fillMaxSize()
-                .horizontalScroll(rememberScrollState())
-                .verticalScroll(rememberScrollState()),
-        ) {
-            val potential = remember(Unit) { data.potential().floor(3) }
-            val groupedData = Songs.entries.flatMap { song ->
-                listOf(
-                    AhvData(
-                        song = song,
-                        difficult = MIN,
-                        diveRecord = data.find { it.song == song && it.difficult == MIN }
-                    ),
-                    AhvData(
-                        song = song,
-                        difficult = EVO,
-                        diveRecord = data.find { it.song == song && it.difficult == EVO }
-                    ),
-                    AhvData(
-                        song = song,
-                        difficult = ULT,
-                        diveRecord = data.find { it.song == song && it.difficult == ULT }
-                    ),
-                    AhvData(
-                        song = song,
-                        difficult = FBD,
-                        diveRecord = data.find { it.song == song && it.difficult == FBD }
-                    ),
-                )
-            }.filter {
-                difficulties.isEmpty() || it.difficult in difficulties
-            }.groupBy { ahvData ->
-                when (ahvData.difficult) {
-                    MIN -> ahvData.song.minimal
-                    EVO -> ahvData.song.evolved
-                    ULT -> ahvData.song.ultimate
-                    FBD -> ahvData.song.forbidden
-                }.let {
-                    when (experimentalLevel) {
-                        true -> it
-                        else -> it.toInt().toDouble()
-                    }
-                }
-            }.filterKeys {
-                min == null || it >= min
-            }.filterKeys {
-                max == null || it <= max
-            }
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+        var scale by remember { mutableFloatStateOf(1.0F) }
+        val horizontalScrollState = rememberScrollState()
+        val verticalScrollState = rememberScrollState()
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
                 modifier = Modifier
-                    .wrapContentWidth()
-                    .onSizeChanged(onSizeChanged)
-                    .padding(24.dp),
-            ) {
-                // Head
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Image(
-                        painter = painterResource(Res.drawable.head_story),
-                        contentDescription = "Head image",
-                        modifier = Modifier.size(256.dp),
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = username,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontSize = 48.sp,
-                            maxLines = 1,
-                        )
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val formater = remember(Unit) {
-                                DecimalFormat("0.000")
+                    .fillMaxSize()
+                    .horizontalScroll(horizontalScrollState)
+                    .verticalScroll(verticalScrollState)
+                    .onPointerEvent(PointerEventType.Scroll) { event ->
+                        if (event.keyboardModifiers.isCtrlPressed) {
+                            val delta = event.changes.firstOrNull()?.scrollDelta?.y ?: 0F
+                            when {
+                                delta > 0 -> scale = (scale - 0.1f).coerceAtLeast(0.25f)
+                                delta < 0 -> scale = (scale + 0.1f).coerceAtMost(4.00f)
                             }
-                            Image(
-                                painter = painterResource(Res.drawable.banner_story),
-                                contentDescription = "Banner image",
-                                modifier = Modifier.size(256.dp, 64.dp),
-                            )
-                            Text(
-                                text = formater.format(potential),
-                                color = Color.White.copy(alpha = 0.75f),
-                                fontSize = 24.sp,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-                }
 
-                // Content
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(32.dp),
+                            event.changes.forEach { it.consume() }
+                        }
+                    },
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.background,
+                    modifier = Modifier.layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        layout(
+                            width = (placeable.width * scale).toInt(),
+                            height = (placeable.height * scale).toInt(),
+                        ) {
+                            placeable.placeWithLayer(0, 0) {
+                                scaleX = scale
+                                scaleY = scale
+                                transformOrigin = TransformOrigin(0.0F, 0.0F)
+                            }
+                        }
+                    },
                 ) {
-                    groupedData.keys.sortedDescending().forEachIndexed { index, potential ->
-                        if (index > 0) {
-                            HorizontalDivider(
-                                thickness = 2.dp,
-                                color = Color.Transparent,
-                                modifier = Modifier
-                                    .width(1500.dp)
-                                    .background(
-                                        brush = Brush.horizontalGradient(
-                                            0.00F to MaterialTheme.colorScheme.outline.copy(alpha = 0.0F),
-                                            0.25F to MaterialTheme.colorScheme.outline.copy(alpha = 1.0F),
-                                            0.75F to MaterialTheme.colorScheme.outline.copy(alpha = 1.0F),
-                                            1.00F to MaterialTheme.colorScheme.outline.copy(alpha = 0.0F),
-                                        ),
-                                    ),
-                            )
+                    val potential = remember(Unit) { data.potential().floor(3) }
+                    val groupedData = Songs.entries.flatMap { song ->
+                        listOf(
+                            AhvData(
+                                song = song,
+                                difficult = MIN,
+                                diveRecord = data.find { it.song == song && it.difficult == MIN }
+                            ),
+                            AhvData(
+                                song = song,
+                                difficult = EVO,
+                                diveRecord = data.find { it.song == song && it.difficult == EVO }
+                            ),
+                            AhvData(
+                                song = song,
+                                difficult = ULT,
+                                diveRecord = data.find { it.song == song && it.difficult == ULT }
+                            ),
+                            AhvData(
+                                song = song,
+                                difficult = FBD,
+                                diveRecord = data.find { it.song == song && it.difficult == FBD }
+                            ),
+                        )
+                    }.filter {
+                        difficulties.isEmpty() || it.difficult in difficulties
+                    }.groupBy { ahvData ->
+                        when (ahvData.difficult) {
+                            MIN -> ahvData.song.minimal
+                            EVO -> ahvData.song.evolved
+                            ULT -> ahvData.song.ultimate
+                            FBD -> ahvData.song.forbidden
+                        }.let {
+                            when (experimentalLevel) {
+                                true -> it
+                                else -> it.toInt().toDouble()
+                            }
                         }
+                    }.filterKeys {
+                        min == null || it >= min
+                    }.filterKeys {
+                        max == null || it <= max
+                    }
 
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .onSizeChanged(onSizeChanged)
+                            .padding(24.dp),
+                    ) {
+                        // Head
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(24.dp),
                         ) {
-                            val formater = remember(Unit) { DecimalFormat("0.0") }
-                            Text(
-                                text = formater.format(potential),
-                                color = MaterialTheme.colorScheme.onBackground,
-                                fontSize = 64.sp,
-                                maxLines = 1,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.width(200.dp),
+                            Image(
+                                painter = painterResource(Res.drawable.head_story),
+                                contentDescription = "Head image",
+                                modifier = Modifier.size(256.dp),
                             )
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(24.dp),
-                                verticalArrangement = Arrangement.spacedBy(24.dp),
-                                maxItemsInEachRow = 5,
-                                modifier = Modifier.width(2256.dp),
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
-                                groupedData[potential]!!.sortedByDescending {
-                                    it.diveRecord?.potential ?: 0.0
-                                }.forEach { (song, difficult, diveRecord) ->
-                                    SongCard(
-                                        clearType = diveRecord?.clearType ?: None,
-                                        grading = diveRecord?.grading,
-                                        difficult = difficult,
-                                        level = potential,
-                                        name = song.title,
-                                        position = null,
-                                        image = song.name,
-                                        score = diveRecord?.score ?: 0,
-                                        potential = diveRecord?.potential ?: 0.0,
-                                        exactPlus = diveRecord?.count?.exactPlus,
-                                        exact = diveRecord?.count?.exact,
-                                        near = diveRecord?.count?.near,
-                                        `break` = diveRecord?.count?.`break`,
+                                Text(
+                                    text = username,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    fontSize = 48.sp,
+                                    maxLines = 1,
+                                )
+                                Box(
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    val formater = remember(Unit) {
+                                        DecimalFormat("0.000")
+                                    }
+                                    Image(
+                                        painter = painterResource(Res.drawable.banner_story),
+                                        contentDescription = "Banner image",
+                                        modifier = Modifier.size(256.dp, 64.dp),
                                     )
+                                    Text(
+                                        text = formater.format(potential),
+                                        color = Color.White.copy(alpha = 0.75f),
+                                        fontSize = 24.sp,
+                                        maxLines = 1,
+                                    )
+                                }
+                            }
+                        }
+
+                        // Content
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(32.dp),
+                        ) {
+                            groupedData.keys.sortedDescending().forEachIndexed { index, potential ->
+                                if (index > 0) {
+                                    HorizontalDivider(
+                                        thickness = 2.dp,
+                                        color = Color.Transparent,
+                                        modifier = Modifier
+                                            .width(1500.dp)
+                                            .background(
+                                                brush = Brush.horizontalGradient(
+                                                    0.00F to MaterialTheme.colorScheme.outline.copy(alpha = 0.0F),
+                                                    0.25F to MaterialTheme.colorScheme.outline.copy(alpha = 1.0F),
+                                                    0.75F to MaterialTheme.colorScheme.outline.copy(alpha = 1.0F),
+                                                    1.00F to MaterialTheme.colorScheme.outline.copy(alpha = 0.0F),
+                                                ),
+                                            ),
+                                    )
+                                }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                ) {
+                                    val formater = remember(Unit) { DecimalFormat("0.0") }
+                                    Text(
+                                        text = formater.format(potential),
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontSize = 64.sp,
+                                        maxLines = 1,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.width(200.dp),
+                                    )
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                        verticalArrangement = Arrangement.spacedBy(24.dp),
+                                        maxItemsInEachRow = 5,
+                                        modifier = Modifier.width(2256.dp),
+                                    ) {
+                                        groupedData[potential]!!.sortedByDescending {
+                                            it.diveRecord?.potential ?: 0.0
+                                        }.forEach { (song, difficult, diveRecord) ->
+                                            SongCard(
+                                                clearType = diveRecord?.clearType ?: None,
+                                                grading = diveRecord?.grading,
+                                                difficult = difficult,
+                                                level = potential,
+                                                name = song.title,
+                                                position = null,
+                                                image = song.name,
+                                                score = diveRecord?.score ?: 0,
+                                                potential = diveRecord?.potential ?: 0.0,
+                                                exactPlus = diveRecord?.count?.exactPlus,
+                                                exact = diveRecord?.count?.exact,
+                                                near = diveRecord?.count?.near,
+                                                `break` = diveRecord?.count?.`break`,
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+            HorizontalScrollbar(
+                adapter = rememberScrollbarAdapter(horizontalScrollState),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter),
+            )
+            VerticalScrollbar(
+                adapter = rememberScrollbarAdapter(verticalScrollState),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd),
+            )
         }
     }
 }

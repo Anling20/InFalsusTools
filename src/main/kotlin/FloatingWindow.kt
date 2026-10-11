@@ -20,6 +20,8 @@ import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.floating_window_background
 import cn.anling.infalsustools.generated.resources.floating_window_background2
 import cn.anling.infalsustools.generated.resources.head_story
+import cn.anling.inftool.localization.LocalizationContext
+import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.theme.AppTheme
 import cn.anling.inftool.theme.exo2
 import cn.anling.inftool.theme.notosans
@@ -33,6 +35,7 @@ data class PlayResult(
 )
 
 @Composable
+context(_: LocalizationContext)
 fun FloatingWindow(
     scale: Float,
     username: String,
@@ -145,7 +148,7 @@ fun FloatingWindow(
                                 modifier = Modifier.width(225.dp),
                             ) {
                                 Text(
-                                    text = "游玩潜力值",
+                                    text = i18n("submodule.potential_window.play_potential"),
                                     color = Color.White.copy(alpha = 0.75F),
                                     fontSize = 16.sp,
                                     lineHeight = 16.sp,

@@ -1,11 +1,11 @@
 package cn.anling.inftool.parser
 
 import cn.anling.inftool.readBytesWhenAvailable
-import java.nio.file.Path
+import io.github.vinceglb.filekit.PlatformFile
 
 object SaveFileParser {
-    suspend fun parse(path: Path): ParsedSave {
-        val data = path.readBytesWhenAvailable()
+    suspend fun parse(file: PlatformFile): ParsedSave {
+        val data = file.readBytesWhenAvailable()
 
         return ParsedSave(
             history = HistoryParser.parse(data = data),

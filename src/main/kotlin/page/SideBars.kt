@@ -27,8 +27,11 @@ import cn.anling.infalsustools.generated.resources.home
 import cn.anling.infalsustools.generated.resources.module
 import cn.anling.infalsustools.generated.resources.more
 import cn.anling.infalsustools.generated.resources.setting
+import cn.anling.infalsustools.generated.resources.terminal
 import cn.anling.inftool.HomeDestination
 import cn.anling.inftool.ModuleDestination
+import cn.anling.inftool.localization.LocalizationContext
+import cn.anling.inftool.localization.i18n
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.blur.HazeBlurStyle
@@ -37,6 +40,7 @@ import dev.chrisbanes.haze.blur.material3.Material3
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
+context(_: LocalizationContext)
 fun HomeSideBarContent(
     hazeState: HazeState,
     destination: HomeDestination,
@@ -85,6 +89,20 @@ fun HomeSideBarContent(
                 .clickable { onChangeDestination(HomeDestination.Module(ModuleDestination.PotentialWindow)) },
         )
         Icon(
+            painter = painterResource(Res.drawable.terminal),
+            contentDescription = null,
+            tint = animateColorAsState(
+                when (destination is HomeDestination.Module) {
+                    true -> MaterialTheme.colorScheme.primary
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
+            ).value,
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable { onChangeDestination(HomeDestination.Terminal) },
+        )
+        Icon(
             painter = painterResource(Res.drawable.setting),
             contentDescription = null,
             tint = animateColorAsState(
@@ -116,6 +134,7 @@ fun HomeSideBarContent(
 }
 
 @Composable
+context(_: LocalizationContext)
 fun ModuleSideBarContent(
     hazeState: HazeState,
     onBack: () -> Unit,
@@ -149,7 +168,7 @@ fun ModuleSideBarContent(
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = "Back",
+                text = i18n("sidebar.module.back"),
                 color = MaterialTheme.colorScheme.outline,
                 fontSize = 14.sp,
             )
@@ -162,7 +181,7 @@ fun ModuleSideBarContent(
             val achievementsImageSource = remember { MutableInteractionSource() }
             val playHistoriesSource = remember { MutableInteractionSource() }
             Text(
-                text = "Potential window",
+                text = i18n("sidebar.module.potential_window"),
                 color = animateColorAsState(
                     when (destination == ModuleDestination.PotentialWindow || potentialWindowSource.collectIsHoveredAsState().value) {
                         true -> MaterialTheme.colorScheme.primary
@@ -178,7 +197,7 @@ fun ModuleSideBarContent(
                 ),
             )
             Text(
-                text = "Best30 image",
+                text = i18n("sidebar.module.best30_image"),
                 color = animateColorAsState(
                     when (destination == ModuleDestination.Best30Image || best30ImageSource.collectIsHoveredAsState().value) {
                         true -> MaterialTheme.colorScheme.primary
@@ -194,7 +213,7 @@ fun ModuleSideBarContent(
                 ),
             )
             Text(
-                text = "Achievements image",
+                text = i18n("sidebar.module.achievements_image"),
                 color = animateColorAsState(
                     when (destination == ModuleDestination.AchievementsImage || achievementsImageSource.collectIsHoveredAsState().value) {
                         true -> MaterialTheme.colorScheme.primary
@@ -210,7 +229,7 @@ fun ModuleSideBarContent(
                 ),
             )
             Text(
-                text = "Play histories",
+                text = i18n("sidebar.module.play_histories"),
                 color = animateColorAsState(
                     when (destination == ModuleDestination.PlayHistories || playHistoriesSource.collectIsHoveredAsState().value) {
                         true -> MaterialTheme.colorScheme.primary

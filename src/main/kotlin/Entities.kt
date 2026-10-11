@@ -89,10 +89,6 @@ data class WindowTranslation(
     val size: Pair<Int, Int>,
 )
 
-enum class PotentialAlgorithm(val displayText: String) {
-    InFalsusTools("In Falsus Tools"),
-}
-
-enum class Language(val displayText: String) {
-    English("English"),
+enum class PotentialAlgorithm(val i18nKey: String) {
+    InFalsusTools("potential_algorithm.in_falsus_tools"),
 }

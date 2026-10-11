@@ -25,7 +25,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.*
 import cn.anling.inftool.*
+import cn.anling.inftool.localization.LocalizationContext
+import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.HomeModel
+import cn.anling.inftool.parser.ImageGenerationType.Clipboard
+import cn.anling.inftool.parser.ImageGenerationType.File
 import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.theme.AppTheme
 import dev.chrisbanes.haze.HazeInput
@@ -44,10 +48,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.skia.EncodedImageFormat
-import kotlin.io.path.Path
 
 @Composable
-context(model: HomeModel)
+context(model: HomeModel, _: LocalizationContext)
 fun Home(
     onMinimum: () -> Unit,
     onQuit: () -> Unit,
@@ -134,6 +137,7 @@ fun Home(
 }
 
 @Composable
+context(_: LocalizationContext)
 private fun TopBar(
     hazeState: HazeState,
     onMinimum: () -> Unit,
@@ -163,7 +167,7 @@ private fun TopBar(
 
         }
         Text(
-            text = "In Falsus Tools",
+            text = i18n("title"),
             fontSize = 20.sp,
             textAlign = TextAlign.Center,
             lineHeight = 24.sp,
@@ -197,7 +201,7 @@ private fun TopBar(
 }
 
 @Composable
-context(_: HomeModel)
+context(_: HomeModel, _: LocalizationContext)
 fun ContentContainer(
     hazeState: HazeState,
     destination: HomeDestination,
@@ -222,6 +226,7 @@ fun ContentContainer(
 }
 
 @Composable
+context(_: LocalizationContext)
 private fun SideBarSelect(
     hazeState: HazeState,
     destination: HomeDestination,
@@ -257,13 +262,9 @@ private fun SideBarSelect(
 }
 
 @Composable
-context(model: HomeModel)
+context(model: HomeModel, _: LocalizationContext)
 private fun Content(hazeState: HazeState) {
     val scope = remember { CoroutineScope(Dispatchers.IO) }
-    suspend fun getData() = SaveFileParser.parse(Path(model.settingModel.saveFile))
-        .toDiveRecordList()
-        .map { it.process(model.settingModel.useExperimentalLevel) }
-
     AnimatedVisibility(
         visible = model.destination != HomeDestination.Home,
         enter = fadeIn() + slideInVertically { it },
@@ -299,50 +300,13 @@ private fun Content(hazeState: HazeState) {
 
                             ModuleDestination.Best30Image -> context(model.best30ImageModel) {
                                 ModuleBest30ImageContent(
-                                    onGenerateToFile = {
-                                        scope.launch {
-                                            val file = FileKit.openFileSaver(
-                                                suggestedName = "B30",
-                                                defaultExtension = ".jpg",
-                                                allowedExtensions = setOf(".jpg", ".jpeg"),
-                                            )
-                                            if (file != null) {
-                                                model.waiting = true
-                                                val data = getData()
-                                                renderComposeScene(1, 1) {
-                                                    B30(
-                                                        darkTheme = false,
-                                                        onSizeChanged = { size ->
-                                                            val img = renderComposeScene(size.width, size.height) {
-                                                                B30(
-                                                                    darkTheme = false,
-                                                                    onSizeChanged = {},
-                                                                    username = model.settingModel.username,
-                                                                    data = data,
-                                                                )
-                                                            }
-                                                            scope.launch {
-                                                                img.encodeToData(
-                                                                    format = EncodedImageFormat.JPEG,
-                                                                    quality = model.best30ImageModel.quality,
-                                                                )?.let { data ->
-                                                                    file.write(data.bytes)
-                                                                    println("B30 generated to " + file.absolutePath())
-                                                                }
-                                                            }
-                                                        },
-                                                        username = model.settingModel.username,
-                                                        data = data,
-                                                    )
-                                                }
-                                                model.waiting = false
-                                            }
-                                        }
-                                    },
-                                    onGenerateToClipboard = {
+                                    onOpenPreview = { model.displayingB30Preview = true },
+                                    onGenerate = { type ->
                                         scope.launch {
                                             model.waiting = true
-                                            val data = getData()
+                                            val data = SaveFileParser.parse(model.settingModel.saveFile)
+                                                .toDiveRecordList()
+                                                .map { it.process(model.settingModel.useExperimentalLevel) }
                                             renderComposeScene(1, 1) {
                                                 B30(
                                                     darkTheme = false,
@@ -355,8 +319,28 @@ private fun Content(hazeState: HazeState) {
                                                                 data = data,
                                                             )
                                                         }
-                                                        copyImageToClipboard(img.toComposeImageBitmap())
-                                                        println("B30 generated to clipboard")
+                                                        when (type) {
+                                                            File -> scope.launch {
+                                                                FileKit.openFileSaver(
+                                                                    suggestedName = "B30",
+                                                                    defaultExtension = ".jpg",
+                                                                    allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                                )?.let { file ->
+                                                                    img.encodeToData(
+                                                                        format = EncodedImageFormat.JPEG,
+                                                                        quality = model.best30ImageModel.quality,
+                                                                    )?.let { data ->
+                                                                        file.write(data.bytes)
+                                                                        println("B30 generated to " + file.absolutePath())
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            Clipboard -> {
+                                                                copyImageToClipboard(img.toComposeImageBitmap())
+                                                                println("B30 generated to clipboard")
+                                                            }
+                                                        }
                                                     },
                                                     username = model.settingModel.username,
                                                     data = data,
@@ -370,72 +354,13 @@ private fun Content(hazeState: HazeState) {
 
                             ModuleDestination.AchievementsImage -> context(model.achievementsImageModel) {
                                 ModuleAchievementsImageContent(
-                                    onGenerateToFile = {
-                                        scope.launch {
-                                            val file = FileKit.openFileSaver(
-                                                suggestedName = "AHV",
-                                                defaultExtension = ".jpg",
-                                                allowedExtensions = setOf(".jpg", ".jpeg"),
-                                            )
-                                            if (file != null) {
-                                                model.waiting = true
-                                                val data = getData()
-                                                val difficulties = buildList {
-                                                    if (model.achievementsImageModel.minDifficultSelect) {
-                                                        add(Difficult.MIN)
-                                                    }
-                                                    if (model.achievementsImageModel.evoDifficultSelect) {
-                                                        add(Difficult.EVO)
-                                                    }
-                                                    if (model.achievementsImageModel.ultDifficultSelect) {
-                                                        add(Difficult.ULT)
-                                                    }
-                                                    if (model.achievementsImageModel.fbdDifficultSelect) {
-                                                        add(Difficult.FBD)
-                                                    }
-                                                }
-                                                renderComposeScene(1, 1) {
-                                                    Ahv(
-                                                        darkTheme = false,
-                                                        onSizeChanged = { size ->
-                                                            val img = renderComposeScene(size.width, size.height) {
-                                                                Ahv(
-                                                                    darkTheme = false,
-                                                                    onSizeChanged = {},
-                                                                    username = model.settingModel.username,
-                                                                    data = data,
-                                                                    experimentalLevel = model.settingModel.useExperimentalLevel,
-                                                                    min = model.achievementsImageModel.minLevelLimit,
-                                                                    max = model.achievementsImageModel.maxLevelLimit,
-                                                                    difficulties = difficulties,
-                                                                )
-                                                            }
-                                                            scope.launch {
-                                                                img.encodeToData(
-                                                                    format = EncodedImageFormat.JPEG,
-                                                                    quality = model.achievementsImageModel.quality,
-                                                                )?.let { data ->
-                                                                    file.write(data.bytes)
-                                                                    println("Ahv generated to " + file.absolutePath())
-                                                                }
-                                                            }
-                                                        },
-                                                        username = model.settingModel.username,
-                                                        data = data,
-                                                        experimentalLevel = model.settingModel.useExperimentalLevel,
-                                                        min = model.achievementsImageModel.minLevelLimit,
-                                                        max = model.achievementsImageModel.maxLevelLimit,
-                                                        difficulties = difficulties,
-                                                    )
-                                                }
-                                                model.waiting = false
-                                            }
-                                        }
-                                    },
-                                    onGenerateToClipboard = {
+                                    onOpenPreview = { model.displayingAchievementsPreview = true },
+                                    onGenerate = { type ->
                                         scope.launch {
                                             model.waiting = true
-                                            val data = getData()
+                                            val data = SaveFileParser.parse(model.settingModel.saveFile)
+                                                .toDiveRecordList()
+                                                .map { it.process(model.settingModel.useExperimentalLevel) }
                                             val difficulties = buildList {
                                                 if (model.achievementsImageModel.minDifficultSelect) {
                                                     add(Difficult.MIN)
@@ -466,8 +391,28 @@ private fun Content(hazeState: HazeState) {
                                                                 difficulties = difficulties,
                                                             )
                                                         }
-                                                        copyImageToClipboard(img.toComposeImageBitmap())
-                                                        println("Ahv generated to clipboard")
+                                                        when (type) {
+                                                            File -> scope.launch {
+                                                                FileKit.openFileSaver(
+                                                                    suggestedName = "AHV",
+                                                                    defaultExtension = ".jpg",
+                                                                    allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                                )?.let { file ->
+                                                                    img.encodeToData(
+                                                                        format = EncodedImageFormat.JPEG,
+                                                                        quality = model.achievementsImageModel.quality,
+                                                                    )?.let { data ->
+                                                                        file.write(data.bytes)
+                                                                        println("Ahv generated to " + file.absolutePath())
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            Clipboard -> {
+                                                                copyImageToClipboard(img.toComposeImageBitmap())
+                                                                println("Ahv generated to clipboard")
+                                                            }
+                                                        }
                                                     },
                                                     username = model.settingModel.username,
                                                     data = data,
@@ -485,6 +430,8 @@ private fun Content(hazeState: HazeState) {
 
                             ModuleDestination.PlayHistories -> Unit
                         }
+
+                        HomeDestination.Terminal -> Unit
 
                         HomeDestination.Setting -> context(model.settingModel) {
                             SettingContent()
