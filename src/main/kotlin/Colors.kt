@@ -1,9 +1,117 @@
 package cn.anling.inftool
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 object Colors {
+    object DiveCard {
+        object Normal {
+            object Background {
+                val perfectDive = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255),
+                    1.00F to Color(237, 187, 255),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val fullLink = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255),
+                    1.00F to Color(173, 150, 247),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val diveCleared = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255),
+                    1.00F to Color(123, 245, 255),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val diveFailed = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255),
+                    1.00F to Color(255, 105, 81),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val none = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255),
+                    1.00F to Color(70, 83, 80),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+            }
+        }
+
+        object Flat {
+            object Background {
+                val perfectDive = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255).copy(alpha = 0.25F),
+                    1.00F to Color(237, 187, 255).copy(alpha = 0.75F),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val fullLink = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255).copy(alpha = 0.25F),
+                    1.00F to Color(173, 150, 247).copy(alpha = 0.75F),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val diveCleared = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255).copy(alpha = 0.25F),
+                    1.00F to Color(123, 245, 255).copy(alpha = 0.75F),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val diveFailed = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255).copy(alpha = 0.25F),
+                    1.00F to Color(255, 105, 81).copy(alpha = 0.75F),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+
+                val none = Brush.linearGradient(
+                    0.25F to Color(255, 255, 255).copy(alpha = 0.25F),
+                    1.00F to Color(70, 83, 80).copy(alpha = 0.75F),
+                    start = Offset.Infinite.copy(x = 0.0F),
+                    end = Offset.Infinite.copy(y = 0.0F),
+                )
+            }
+        }
+
+        object JudgementCount {
+            object Background {
+                val exactPlus = Brush.horizontalGradient(
+                    0.25F to Color(247, 174, 247).copy(alpha = 0.25F),
+                    1.00F to Color(247, 174, 247).copy(alpha = 0.75F),
+                )
+
+                val exact = Brush.horizontalGradient(
+                    0.25F to Color(140, 134, 255).copy(alpha = 0.25F),
+                    1.00F to Color(140, 134, 255).copy(alpha = 0.75F),
+                )
+
+                val near = Brush.horizontalGradient(
+                    0.25F to Color(114, 190, 206).copy(alpha = 0.25F),
+                    1.00F to Color(114, 190, 206).copy(alpha = 0.75F),
+                )
+
+                val `break` = Brush.horizontalGradient(
+                    0.25F to Color(225, 89, 95).copy(alpha = 0.25F),
+                    1.00F to Color(225, 89, 95).copy(alpha = 0.75F),
+                )
+            }
+
+            val early = Color(148, 170, 222)
+            val late = Color(255, 149, 170)
+        }
+    }
+
     object SongCard {
         object Background {
             val perfectDive = Brush.linearGradient(

@@ -28,7 +28,7 @@ fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScore
         difficult = Difficult.entries[highScoreRecord.difficultyIndex],
         score = highScoreRecord.score,
         clearType = ClearType.entries[historyRecord?.resultClear ?: highScoreRecord.resultClear],
-        count = historyRecord?.run {
+        judgement = historyRecord?.run {
             CountContainer(
                 maxLink = maxCombo,
                 tap = JudgementCount(
@@ -74,7 +74,7 @@ fun ParsedRecord.toDiveRecord(): DiveRecord = DiveRecord(
     difficult = Difficult.entries[difficultyIndex],
     score = score,
     clearType = ClearType.entries[resultClear],
-    count = CountContainer(
+    judgement = CountContainer(
         maxLink = maxCombo,
         tap = JudgementCount(
             exactPlus = counts.tap.shiny,
@@ -115,7 +115,6 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
     val song = Songs.entries.firstOrNull { it.id == id } ?: Song(
         id = id,
         name = name,
-        title = name,
         minimal = 1.0,
         evolved = 1.0,
         ultimate = 1.0,
@@ -156,7 +155,7 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         difficult = difficult,
         score = score,
         clearType = clearType,
-        count = count,
+        judgement = judgement,
         potential = potential,
         grading = grading,
         level = level,

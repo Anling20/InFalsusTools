@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -20,14 +22,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.folder_open
+import cn.anling.inftool.DiveCardFlat
 import cn.anling.inftool.PotentialAlgorithm
+import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.localization.Language
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
-import cn.anling.inftool.model.AchievementsImageModel
-import cn.anling.inftool.model.Best30ImageModel
-import cn.anling.inftool.model.PotentialWindowModel
+import cn.anling.inftool.model.ModuleAchievementsImageModel
+import cn.anling.inftool.model.ModuleBest30ImageModel
+import cn.anling.inftool.model.ModulePotentialWindowModel
 import cn.anling.inftool.model.SettingModel
 import cn.anling.inftool.parser.ImageGenerationType
 import io.github.vinceglb.filekit.FileKit
@@ -40,7 +44,7 @@ import io.github.vinceglb.filekit.parent
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-context(model: PotentialWindowModel, _: LocalizationContext)
+context(model: ModulePotentialWindowModel, _: LocalizationContext)
 fun ColumnScope.ModulePotentialWindowContent(
     started: Boolean,
     onSwitchStarted: () -> Unit,
@@ -104,7 +108,7 @@ fun ColumnScope.ModulePotentialWindowContent(
 }
 
 @Composable
-context(model: Best30ImageModel, _: LocalizationContext)
+context(model: ModuleBest30ImageModel, _: LocalizationContext)
 fun ColumnScope.ModuleBest30ImageContent(
     onOpenPreview: () -> Unit,
     onGenerate: (ImageGenerationType) -> Unit,
@@ -137,6 +141,18 @@ fun ColumnScope.ModuleBest30ImageContent(
                 }
             },
         )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = i18n("module.best30_image.use_neo_card"),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Checkbox(
+                checked = model.useNeoCard,
+                onCheckedChange = { model.useNeoCard = it },
+            )
+        }
     }
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -192,7 +208,7 @@ fun ColumnScope.ModuleBest30ImageContent(
 }
 
 @Composable
-context(model: AchievementsImageModel, _: LocalizationContext)
+context(model: ModuleAchievementsImageModel, _: LocalizationContext)
 fun ColumnScope.ModuleAchievementsImageContent(
     onOpenPreview: () -> Unit,
     onGenerate: (ImageGenerationType) -> Unit,
@@ -330,6 +346,19 @@ fun ColumnScope.ModuleAchievementsImageContent(
                 }
             }
         }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = i18n("module.achievements_image.use_neo_card"),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Checkbox(
+                checked = model.useNeoCard,
+                onCheckedChange = { model.useNeoCard = it },
+            )
+        }
     }
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -379,6 +408,29 @@ fun ColumnScope.ModuleAchievementsImageContent(
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+context(_: LocalizationContext)
+fun ModulePlayHistoriesContent(records: List<ProcessedDiveRecord>) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        items(records.reversed()) { record ->
+            DiveCardFlat(
+                clearType = record.clearType,
+                image = record.song.name,
+                difficult = record.difficult,
+                level = record.level,
+                titleKey = "song_title.${record.song.name}",
+                score = record.score,
+                potential = record.potential,
+                grading = record.grading,
+                judgement = record.judgement,
             )
         }
     }

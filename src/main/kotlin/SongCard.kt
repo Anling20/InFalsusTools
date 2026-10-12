@@ -58,7 +58,8 @@ fun SongCard(
                     offset = DpOffset(1.dp, 1.dp),
                     alpha = 0.5F,
                 )
-            ).clip(RoundedCornerShape(24.dp))
+            )
+            .clip(RoundedCornerShape(24.dp))
             .background(
                 brush = when (clearType) {
                     PerfectDive -> Colors.SongCard.Background.perfectDive

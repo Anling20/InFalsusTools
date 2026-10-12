@@ -5,6 +5,7 @@ import androidx.compose.ui.window.application
 import cn.anling.inftool.WindowTranslation
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.defaultLocalizationContainers
+import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.setting.createPlatformSettings
 import cn.anling.inftool.window.potentialWindow
@@ -15,6 +16,7 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.float
 import io.github.vinceglb.filekit.PlatformFile
+import kotlinx.coroutines.runBlocking
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -48,13 +50,20 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     },
                 )
             }
+            val gameRecordsModel = remember(Unit) {
+                GameRecordsModel().apply {
+                    runBlocking {
+                        update(model.settingModel.saveFile, model.settingModel.useExperimentalLevel)
+                    }
+                }
+            }
             val localizationContext = remember(Unit) {
                 LocalizationContext(
                     language = model.settingModel.language,
                     containers = defaultLocalizationContainers,
                 )
             }
-            context(model, localizationContext) {
+            context(model, gameRecordsModel, localizationContext) {
                 potentialWindow(
                     onCloseRequest = ::exitApplication,
                     username = username,

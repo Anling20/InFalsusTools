@@ -14,19 +14,18 @@ import cn.anling.inftool.command.getCursorPosition
 import cn.anling.inftool.command.getFocusingGameTranslation
 import cn.anling.inftool.command.isFocusingGame
 import cn.anling.inftool.localization.LocalizationContext
-import cn.anling.inftool.parser.SaveFileParser
+import cn.anling.inftool.model.GameRecordsModel
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val animationTime = 50
 
 @Composable
-context(_: LocalizationContext)
+context(model: GameRecordsModel, _: LocalizationContext)
 fun potentialWindow(
     onCloseRequest: () -> Unit,
     username: String,
@@ -53,19 +52,9 @@ fun potentialWindow(
         focusable = false,
         alwaysOnTop = true,
     ) {
-        var parsedData by remember {
-            runBlocking {
-                mutableStateOf(SaveFileParser.parse(saveFile))
-            }
-        }
-        var data by remember {
-            runBlocking {
-                mutableStateOf(parsedData.toDiveRecordList().map { it.process(useExperimentalLevel) })
-            }
-        }
         var playResult by remember { mutableStateOf<PlayResult?>(null) }
 
-        var potential by remember { mutableDoubleStateOf(data.potential().floor(3)) }
+        var potential by remember { mutableDoubleStateOf(model.highScoreRecords.potential().floor(3)) }
         var playingGame by remember { mutableStateOf(false) }
         var focusingGame by remember { mutableStateOf(false) }
         var cursorCovered by remember { mutableStateOf(false) }
@@ -133,29 +122,24 @@ fun potentialWindow(
                             window.isAlwaysOnTop = true
                             window.toFront()
                         }
+                    },
+                    onResultsStarted = {
+                        val oldPtt = model.highScoreRecords.toList().potential()
 
-                        val oldParsedData = parsedData
-                        val oldData = data
+                        model.update(saveFile, useExperimentalLevel)
 
-                        parsedData = SaveFileParser.parse(saveFile)
-                        data = parsedData.toDiveRecordList().map { it.process(useExperimentalLevel) }
-
-                        val oldPtt = oldData.potential()
-                        val newPtt = data.potential()
+                        val newPtt = model.highScoreRecords.potential()
                         potential = newPtt.floor(3)
                         val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
 
-                        if (parsedData.history != oldParsedData.history || deltaPtt > 0.0) {
-                            val recent = parsedData.history.last().toDiveRecord().process(useExperimentalLevel)
-                            playResult = PlayResult(
-                                level = recent.level,
-                                potential = recent.potential,
-                                additionPotential = deltaPtt
-                            )
-                            println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
-                        }
+                        val recent = model.historyRecords.last()
+                        playResult = PlayResult(
+                            level = recent.level,
+                            potential = recent.potential,
+                            additionPotential = deltaPtt
+                        )
+                        println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
                     },
-                    onResultsStarted = {},
                     onResultsExited = {
                         if (playResult != null) {
                             playResult = null

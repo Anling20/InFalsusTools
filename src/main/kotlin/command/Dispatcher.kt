@@ -7,12 +7,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import cn.anling.inftool.*
+import cn.anling.inftool.Ahv
+import cn.anling.inftool.B30
+import cn.anling.inftool.Difficult
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.defaultLocalizationContainers
+import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.page.Home
-import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.setting.createPlatformSettings
 import cn.anling.inftool.window.potentialWindow
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
@@ -80,13 +82,20 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                         },
                     )
                 }
+                val gameRecordsModel = remember(Unit) {
+                    GameRecordsModel().apply {
+                        runBlocking {
+                            update(model.settingModel.saveFile, model.settingModel.useExperimentalLevel)
+                        }
+                    }
+                }
                 val localizationContext = remember(Unit) {
                     LocalizationContext(
                         language = model.settingModel.language,
                         containers = defaultLocalizationContainers,
                     )
                 }
-                context(model, localizationContext) {
+                context(model, gameRecordsModel, localizationContext) {
                     val windowState = rememberWindowState(
                         size = DpSize(
                             width = 1280.dp,
@@ -112,7 +121,7 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                             username = model.settingModel.username,
                             saveFile = model.settingModel.saveFile,
                             useExperimentalLevel = model.settingModel.useExperimentalLevel,
-                            scale = model.potentialWindowModel.scale,
+                            scale = model.modulePotentialWindowModel.scale,
                         )
                     }
 
@@ -122,53 +131,45 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                             state = rememberWindowState(),
                             title = "Best30 Preview",
                         ) {
-                            val data = runBlocking {
-                                SaveFileParser.parse(model.settingModel.saveFile)
-                                    .toDiveRecordList()
-                                    .map { it.process(model.settingModel.useExperimentalLevel) }
-                            }
                             B30(
                                 darkTheme = false,
                                 onSizeChanged = {},
+                                useNeoCard = model.moduleBest30ImageModel.useNeoCard,
                                 username = model.settingModel.username,
-                                data = data,
+                                highScores = gameRecordsModel.highScoreRecords,
                             )
                         }
                     }
 
                     if (model.displayingAchievementsPreview) {
                         Window(
-                            onCloseRequest = { model.displayingB30Preview = false },
+                            onCloseRequest = { model.displayingAchievementsPreview = false },
                             state = rememberWindowState(),
                             title = "Achievements Preview",
                         ) {
-                            val data = runBlocking {
-                                SaveFileParser.parse(model.settingModel.saveFile)
-                                    .toDiveRecordList()
-                                    .map { it.process(model.settingModel.useExperimentalLevel) }
-                            }
                             val difficulties = buildList {
-                                if (model.achievementsImageModel.minDifficultSelect) {
+                                if (model.moduleAchievementsImageModel.minDifficultSelect) {
                                     add(Difficult.MIN)
                                 }
-                                if (model.achievementsImageModel.evoDifficultSelect) {
+                                if (model.moduleAchievementsImageModel.evoDifficultSelect) {
                                     add(Difficult.EVO)
                                 }
-                                if (model.achievementsImageModel.ultDifficultSelect) {
+                                if (model.moduleAchievementsImageModel.ultDifficultSelect) {
                                     add(Difficult.ULT)
                                 }
-                                if (model.achievementsImageModel.fbdDifficultSelect) {
+                                if (model.moduleAchievementsImageModel.fbdDifficultSelect) {
                                     add(Difficult.FBD)
                                 }
                             }
                             Ahv(
                                 darkTheme = false,
                                 onSizeChanged = {},
+                                useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
                                 username = model.settingModel.username,
-                                data = data,
+                                highScores = gameRecordsModel.highScoreRecords,
                                 experimentalLevel = model.settingModel.useExperimentalLevel,
-                                min = model.achievementsImageModel.minLevelLimit,
-                                max = model.achievementsImageModel.maxLevelLimit,
+                                min = model.moduleAchievementsImageModel.minLevelLimit,
+                                max = model.moduleAchievementsImageModel.maxLevelLimit,
                                 difficulties = difficulties,
                             )
                         }

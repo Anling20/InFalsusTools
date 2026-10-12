@@ -6,6 +6,9 @@ import cn.anling.inftool.Ahv
 import cn.anling.inftool.Difficult
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.copyImageToClipboard
+import cn.anling.inftool.localization.Language
+import cn.anling.inftool.localization.LocalizationContext
+import cn.anling.inftool.localization.defaultLocalizationContainers
 import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.process
 import cn.anling.inftool.toDiveRecordList
@@ -43,42 +46,46 @@ class AhvCommand : SuspendingCliktCommand("ahv") {
         val data = SaveFileParser.parse(PlatformFile(save)).toDiveRecordList().map { it.process(experimentalLevel) }
 
         renderComposeScene(1, 1) {
-            Ahv(
-                darkTheme = false,
-                onSizeChanged = { size ->
-                    val img = renderComposeScene(size.width, size.height) {
-                        Ahv(
-                            darkTheme = false,
-                            onSizeChanged = {},
-                            username = username,
-                            data = data,
-                            experimentalLevel = experimentalLevel,
-                            min = min,
-                            max = max,
-                            difficulties = difficulties,
-                        )
-                    }
-                    if (copyToClipboard) {
-                        copyImageToClipboard(img.toComposeImageBitmap())
-                        println("Ahv generated to clipboard")
-                    }
-                    out?.let { out ->
-                        img.encodeToData(
-                            format = EncodedImageFormat.JPEG,
-                            quality = quality,
-                        )?.let { data ->
-                            out.writeBytes(data.bytes)
-                            println("Ahv generated to " + out.absolutePath)
+            context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
+                Ahv(
+                    darkTheme = false,
+                    onSizeChanged = { size ->
+                        val img = renderComposeScene(size.width, size.height) {
+                            Ahv(
+                                darkTheme = false,
+                                onSizeChanged = {},
+                                useNeoCard = false,
+                                username = username,
+                                highScores = data,
+                                experimentalLevel = experimentalLevel,
+                                min = min,
+                                max = max,
+                                difficulties = difficulties,
+                            )
                         }
-                    }
-                },
-                username = username,
-                data = data,
-                experimentalLevel = experimentalLevel,
-                min = min,
-                max = max,
-                difficulties = difficulties,
-            )
+                        if (copyToClipboard) {
+                            copyImageToClipboard(img.toComposeImageBitmap())
+                            println("Ahv generated to clipboard")
+                        }
+                        out?.let { out ->
+                            img.encodeToData(
+                                format = EncodedImageFormat.JPEG,
+                                quality = quality,
+                            )?.let { data ->
+                                out.writeBytes(data.bytes)
+                                println("Ahv generated to " + out.absolutePath)
+                            }
+                        }
+                    },
+                    useNeoCard = false,
+                    username = username,
+                    highScores = data,
+                    experimentalLevel = experimentalLevel,
+                    min = min,
+                    max = max,
+                    difficulties = difficulties,
+                )
+            }
         }
     }
 }

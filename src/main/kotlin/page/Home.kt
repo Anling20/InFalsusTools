@@ -27,10 +27,10 @@ import cn.anling.infalsustools.generated.resources.*
 import cn.anling.inftool.*
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.i18n
+import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.parser.ImageGenerationType.Clipboard
 import cn.anling.inftool.parser.ImageGenerationType.File
-import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.theme.AppTheme
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.HazeState
@@ -50,7 +50,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.skia.EncodedImageFormat
 
 @Composable
-context(model: HomeModel, _: LocalizationContext)
+context(model: HomeModel, _: GameRecordsModel, _: LocalizationContext)
 fun Home(
     onMinimum: () -> Unit,
     onQuit: () -> Unit,
@@ -201,7 +201,7 @@ private fun TopBar(
 }
 
 @Composable
-context(_: HomeModel, _: LocalizationContext)
+context(_: HomeModel, _: GameRecordsModel, _: LocalizationContext)
 fun ContentContainer(
     hazeState: HazeState,
     destination: HomeDestination,
@@ -262,7 +262,7 @@ private fun SideBarSelect(
 }
 
 @Composable
-context(model: HomeModel, _: LocalizationContext)
+context(model: HomeModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
 private fun Content(hazeState: HazeState) {
     val scope = remember { CoroutineScope(Dispatchers.IO) }
     AnimatedVisibility(
@@ -291,22 +291,19 @@ private fun Content(hazeState: HazeState) {
                     when (destination) {
                         HomeDestination.Home -> Unit
                         is HomeDestination.Module -> when (destination.child) {
-                            ModuleDestination.PotentialWindow -> context(model.potentialWindowModel) {
+                            ModuleDestination.PotentialWindow -> context(model.modulePotentialWindowModel) {
                                 ModulePotentialWindowContent(
                                     started = model.startedPotentialWindow,
                                     onSwitchStarted = { model.startedPotentialWindow = !model.startedPotentialWindow },
                                 )
                             }
 
-                            ModuleDestination.Best30Image -> context(model.best30ImageModel) {
+                            ModuleDestination.Best30Image -> context(model.moduleBest30ImageModel) {
                                 ModuleBest30ImageContent(
                                     onOpenPreview = { model.displayingB30Preview = true },
                                     onGenerate = { type ->
                                         scope.launch {
                                             model.waiting = true
-                                            val data = SaveFileParser.parse(model.settingModel.saveFile)
-                                                .toDiveRecordList()
-                                                .map { it.process(model.settingModel.useExperimentalLevel) }
                                             renderComposeScene(1, 1) {
                                                 B30(
                                                     darkTheme = false,
@@ -315,8 +312,9 @@ private fun Content(hazeState: HazeState) {
                                                             B30(
                                                                 darkTheme = false,
                                                                 onSizeChanged = {},
+                                                                useNeoCard = model.moduleBest30ImageModel.useNeoCard,
                                                                 username = model.settingModel.username,
-                                                                data = data,
+                                                                highScores = gameRecordsModel.highScoreRecords,
                                                             )
                                                         }
                                                         when (type) {
@@ -328,7 +326,7 @@ private fun Content(hazeState: HazeState) {
                                                                 )?.let { file ->
                                                                     img.encodeToData(
                                                                         format = EncodedImageFormat.JPEG,
-                                                                        quality = model.best30ImageModel.quality,
+                                                                        quality = model.moduleBest30ImageModel.quality,
                                                                     )?.let { data ->
                                                                         file.write(data.bytes)
                                                                         println("B30 generated to " + file.absolutePath())
@@ -342,8 +340,9 @@ private fun Content(hazeState: HazeState) {
                                                             }
                                                         }
                                                     },
+                                                    useNeoCard = model.moduleBest30ImageModel.useNeoCard,
                                                     username = model.settingModel.username,
-                                                    data = data,
+                                                    highScores = gameRecordsModel.highScoreRecords,
                                                 )
                                             }
                                             model.waiting = false
@@ -352,26 +351,23 @@ private fun Content(hazeState: HazeState) {
                                 )
                             }
 
-                            ModuleDestination.AchievementsImage -> context(model.achievementsImageModel) {
+                            ModuleDestination.AchievementsImage -> context(model.moduleAchievementsImageModel) {
                                 ModuleAchievementsImageContent(
                                     onOpenPreview = { model.displayingAchievementsPreview = true },
                                     onGenerate = { type ->
                                         scope.launch {
                                             model.waiting = true
-                                            val data = SaveFileParser.parse(model.settingModel.saveFile)
-                                                .toDiveRecordList()
-                                                .map { it.process(model.settingModel.useExperimentalLevel) }
                                             val difficulties = buildList {
-                                                if (model.achievementsImageModel.minDifficultSelect) {
+                                                if (model.moduleAchievementsImageModel.minDifficultSelect) {
                                                     add(Difficult.MIN)
                                                 }
-                                                if (model.achievementsImageModel.evoDifficultSelect) {
+                                                if (model.moduleAchievementsImageModel.evoDifficultSelect) {
                                                     add(Difficult.EVO)
                                                 }
-                                                if (model.achievementsImageModel.ultDifficultSelect) {
+                                                if (model.moduleAchievementsImageModel.ultDifficultSelect) {
                                                     add(Difficult.ULT)
                                                 }
-                                                if (model.achievementsImageModel.fbdDifficultSelect) {
+                                                if (model.moduleAchievementsImageModel.fbdDifficultSelect) {
                                                     add(Difficult.FBD)
                                                 }
                                             }
@@ -383,11 +379,12 @@ private fun Content(hazeState: HazeState) {
                                                             Ahv(
                                                                 darkTheme = false,
                                                                 onSizeChanged = {},
+                                                                useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
                                                                 username = model.settingModel.username,
-                                                                data = data,
+                                                                highScores = gameRecordsModel.highScoreRecords,
                                                                 experimentalLevel = model.settingModel.useExperimentalLevel,
-                                                                min = model.achievementsImageModel.minLevelLimit,
-                                                                max = model.achievementsImageModel.maxLevelLimit,
+                                                                min = model.moduleAchievementsImageModel.minLevelLimit,
+                                                                max = model.moduleAchievementsImageModel.maxLevelLimit,
                                                                 difficulties = difficulties,
                                                             )
                                                         }
@@ -400,7 +397,7 @@ private fun Content(hazeState: HazeState) {
                                                                 )?.let { file ->
                                                                     img.encodeToData(
                                                                         format = EncodedImageFormat.JPEG,
-                                                                        quality = model.achievementsImageModel.quality,
+                                                                        quality = model.moduleAchievementsImageModel.quality,
                                                                     )?.let { data ->
                                                                         file.write(data.bytes)
                                                                         println("Ahv generated to " + file.absolutePath())
@@ -414,11 +411,12 @@ private fun Content(hazeState: HazeState) {
                                                             }
                                                         }
                                                     },
+                                                    useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
                                                     username = model.settingModel.username,
-                                                    data = data,
+                                                    highScores = gameRecordsModel.highScoreRecords,
                                                     experimentalLevel = model.settingModel.useExperimentalLevel,
-                                                    min = model.achievementsImageModel.minLevelLimit,
-                                                    max = model.achievementsImageModel.maxLevelLimit,
+                                                    min = model.moduleAchievementsImageModel.minLevelLimit,
+                                                    max = model.moduleAchievementsImageModel.maxLevelLimit,
                                                     difficulties = difficulties,
                                                 )
                                             }
@@ -428,7 +426,11 @@ private fun Content(hazeState: HazeState) {
                                 )
                             }
 
-                            ModuleDestination.PlayHistories -> Unit
+                            ModuleDestination.PlayHistories -> context(model.modulePlayHistoriesModel) {
+                                ModulePlayHistoriesContent(
+                                    records = gameRecordsModel.historyRecords,
+                                )
+                            }
                         }
 
                         HomeDestination.Terminal -> Unit
