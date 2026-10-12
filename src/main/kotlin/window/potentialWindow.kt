@@ -122,8 +122,8 @@ fun potentialWindow(
                             window.isAlwaysOnTop = true
                             window.toFront()
                         }
-                    },
-                    onResultsStarted = {
+
+                        val oldHistories = model.historyRecords.toList()
                         val oldPtt = model.highScoreRecords.toList().potential()
 
                         model.update(saveFile, useExperimentalLevel)
@@ -132,14 +132,17 @@ fun potentialWindow(
                         potential = newPtt.floor(3)
                         val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
 
-                        val recent = model.historyRecords.last()
-                        playResult = PlayResult(
-                            level = recent.level,
-                            potential = recent.potential,
-                            additionPotential = deltaPtt
-                        )
-                        println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
+                        if (model.historyRecords != oldHistories || deltaPtt > 0.0) {
+                            val recent = model.historyRecords.last()
+                            playResult = PlayResult(
+                                level = recent.level,
+                                potential = recent.potential,
+                                additionPotential = deltaPtt
+                            )
+                            println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
+                        }
                     },
+                    onResultsStarted = {},
                     onResultsExited = {
                         if (playResult != null) {
                             playResult = null
