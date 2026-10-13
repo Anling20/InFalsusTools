@@ -160,7 +160,7 @@ fun B30(
                                                 grading = grading,
                                                 difficult = difficult,
                                                 level = level,
-                                                name = titleKey,
+                                                titleKey = titleKey,
                                                 position = index + 1,
                                                 image = image,
                                                 score = score,

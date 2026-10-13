@@ -27,16 +27,19 @@ import cn.anling.infalsustools.generated.resources.*
 import cn.anling.inftool.ClearType.*
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.Grading.*
+import cn.anling.inftool.localization.LocalizationContext
+import cn.anling.inftool.localization.i18n
 import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
 
 @Composable
+context(_: LocalizationContext)
 fun SongCard(
     clearType: ClearType,
     grading: Grading?,
     difficult: Difficult,
     level: Double,
-    name: String,
+    titleKey: String,
     position: Int?,
     image: String?,
     score: Long,
@@ -86,7 +89,7 @@ fun SongCard(
                         append(' ')
                         append(formater.format(level))
                         append(']')
-                        append(name)
+                        append(i18n(titleKey))
                     },
                     style = LocalTextStyle.current.copy(
                         brush = when (difficult) {

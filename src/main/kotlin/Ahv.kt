@@ -245,7 +245,7 @@ fun Ahv(
                                                             grading = grading,
                                                             difficult = difficult,
                                                             level = level,
-                                                            name = titleKey,
+                                                            titleKey = titleKey,
                                                             position = null,
                                                             image = image,
                                                             score = score,
