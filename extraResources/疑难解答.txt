@@ -1,1 +1,0 @@
-如果启动游戏后潜力值悬浮窗后日志一直显示 [GameSceneMonitor] infalsus.exe not found, 请尝试使用管理员权限运行
