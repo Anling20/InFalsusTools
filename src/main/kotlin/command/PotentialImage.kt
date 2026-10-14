@@ -18,7 +18,6 @@ import com.github.ajalt.clikt.parameters.types.int
 import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
-import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class PotentialImageCommand : SuspendingCliktCommand("potential") {
@@ -55,21 +54,18 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
 
         context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
             renderComposable(
-                onRendered = { graphicsLayer ->
-                    runBlocking {
-                        val imageBitmap = graphicsLayer.toImageBitmap()
-                        if (copyToClipboard) {
-                            copyImageToClipboard(imageBitmap)
-                            println("Potential generated to clipboard")
-                        }
-                        out?.let { out ->
-                            val byteArray = imageBitmap.encodeToByteArray(
-                                format = ImageFormat.JPEG,
-                                quality = quality,
-                            )
-                            out.writeBytes(byteArray)
-                            println("Potential generated to " + out.absolutePath)
-                        }
+                onRendered = { imageBitmap ->
+                    if (copyToClipboard) {
+                        copyImageToClipboard(imageBitmap)
+                        println("Potential generated to clipboard")
+                    }
+                    out?.let { out ->
+                        val byteArray = imageBitmap.encodeToByteArray(
+                            format = ImageFormat.JPEG,
+                            quality = quality,
+                        )
+                        out.writeBytes(byteArray)
+                        println("Potential generated to ${out.absolutePath}")
                     }
                 }
             ) {

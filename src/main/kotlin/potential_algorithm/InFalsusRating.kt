@@ -48,6 +48,7 @@ object InFalsusRatingPotentialAlgorithm : PotentialAlgorithm("potential_algorith
         val maxPace = histories.filter {
             it.id == playRecord.id && it.difficult == playRecord.difficult && it.diveValue != null
         }.maxOfOrNull { it.diveValue!! } ?: playRecord.diveValue ?: 0
+
         val rating = when (maxPace >= 0) {
             true -> baseRating + maxPace * 0.01
             else -> {

@@ -22,7 +22,6 @@ import com.github.ajalt.clikt.parameters.types.int
 import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
-import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
@@ -63,22 +62,19 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
 
         context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
             renderComposable(
-                onRendered = { graphicsLayer ->
-                    runBlocking {
-                        val imageBitmap = graphicsLayer.toImageBitmap()
-                        if (copyToClipboard) {
-                            copyImageToClipboard(imageBitmap)
-                            println("Achievements generated to clipboard")
-                        }
+                onRendered = { imageBitmap ->
+                    if (copyToClipboard) {
+                        copyImageToClipboard(imageBitmap)
+                        println("Achievements generated to clipboard")
+                    }
 
-                        out?.let { out ->
-                            val byteArray = imageBitmap.encodeToByteArray(
-                                format = ImageFormat.JPEG,
-                                quality = quality,
-                            )
-                            out.writeBytes(byteArray)
-                            println("Achievements generated to " + out.absolutePath)
-                        }
+                    out?.let { out ->
+                        val byteArray = imageBitmap.encodeToByteArray(
+                            format = ImageFormat.JPEG,
+                            quality = quality,
+                        )
+                        out.writeBytes(byteArray)
+                        println("Achievements generated to ${out.absolutePath}")
                     }
                 }
             ) {

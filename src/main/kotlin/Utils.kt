@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -19,9 +19,7 @@ import cn.anling.inftool.song.Songs
 import cn.anling.inftool.theme.AppTheme
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
@@ -196,7 +194,7 @@ fun Double.floor(decimalPlaces: Int): Double {
 }
 
 fun renderComposable(
-    onRendered: (GraphicsLayer) -> Unit,
+    onRendered: suspend (ImageBitmap) -> Unit,
     content: @Composable () -> Unit,
 ) {
     singleWindowApplication(
@@ -228,9 +226,7 @@ fun renderComposable(
             while (!rendered) {
                 delay(50.milliseconds)
             }
-            withContext(Dispatchers.IO) {
-                onRendered(graphicsLayer)
-            }
+            onRendered(graphicsLayer.toImageBitmap())
             exitApplication()
         }
     }

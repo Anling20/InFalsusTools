@@ -45,7 +45,6 @@ import io.github.vinceglb.filekit.dialogs.openFileSaver
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 
@@ -108,7 +107,12 @@ fun Home(
                                     blurRadius(8.dp)
                                 }
                             )
-                            .background(Color.Black.copy(alpha = 0.32F)),
+                            .background(Color.Black.copy(alpha = 0.32F))
+                            .clickable(
+                                interactionSource = null,
+                                indication = null,
+                                onClick = {},
+                            ),
                     ) {
                         Icon(
                             painter = painterResource(Res.drawable.loading),
@@ -303,15 +307,14 @@ private fun Content(hazeState: HazeState) {
                                     onOpenPreview = { model.displayingB30Preview = true },
                                     onGenerate = { type ->
                                         scope.launch(Dispatchers.IO) {
-                                            model.waiting = true
                                             val contents = model.settingModel.potentialAlgorithm.contents(
                                                 highScores = gameRecordsModel.highScoreRecords,
                                                 histories = gameRecordsModel.historyRecords,
                                             )
                                             renderComposable(
-                                                onRendered = { graphicsLayer ->
-                                                    runBlocking {
-                                                        val imageBitmap = graphicsLayer.toImageBitmap()
+                                                onRendered = { imageBitmap ->
+                                                    model.waiting = true
+                                                    withContext(Dispatchers.IO) {
                                                         when (type) {
                                                             File -> FileKit.openFileSaver(
                                                                 suggestedName = "Potential",
@@ -323,7 +326,7 @@ private fun Content(hazeState: HazeState) {
                                                                     quality = model.modulePotentialImageModel.quality,
                                                                 )
                                                                 file.write(byteArray)
-                                                                println("Potential generated to " + file.absolutePath())
+                                                                println("Potential generated to ${file.absolutePath()}")
                                                             }
 
                                                             Clipboard -> {
@@ -332,6 +335,7 @@ private fun Content(hazeState: HazeState) {
                                                             }
                                                         }
                                                     }
+                                                    model.waiting = false
                                                 }
                                             ) {
                                                 PotentialImageContent(
@@ -343,7 +347,6 @@ private fun Content(hazeState: HazeState) {
                                                     contents = contents,
                                                 )
                                             }
-                                            model.waiting = false
                                         }
                                     },
                                 )
@@ -354,7 +357,6 @@ private fun Content(hazeState: HazeState) {
                                     onOpenPreview = { model.displayingAchievementsPreview = true },
                                     onGenerate = { type ->
                                         scope.launch(Dispatchers.IO) {
-                                            model.waiting = true
                                             val difficulties = buildList {
                                                 if (model.moduleAchievementsImageModel.minDifficultSelect) {
                                                     add(Difficult.MIN)
@@ -370,9 +372,9 @@ private fun Content(hazeState: HazeState) {
                                                 }
                                             }
                                             renderComposable(
-                                                onRendered = { graphicsLayer ->
-                                                    runBlocking {
-                                                        val imageBitmap = graphicsLayer.toImageBitmap()
+                                                onRendered = { imageBitmap ->
+                                                    model.waiting = true
+                                                    withContext(Dispatchers.IO) {
                                                         when (type) {
                                                             File -> withContext(Dispatchers.Main) {
                                                                 FileKit.openFileSaver(
@@ -385,7 +387,7 @@ private fun Content(hazeState: HazeState) {
                                                                         quality = model.moduleAchievementsImageModel.quality,
                                                                     )
                                                                     file.write(byteArray)
-                                                                    println("Achievements generated to " + file.absolutePath())
+                                                                    println("Achievements generated to ${file.absolutePath()}")
                                                                 }
                                                             }
 
@@ -395,6 +397,7 @@ private fun Content(hazeState: HazeState) {
                                                             }
                                                         }
                                                     }
+                                                    model.waiting = false
                                                 }
                                             ) {
                                                 AchievementsImageContent(
@@ -410,7 +413,6 @@ private fun Content(hazeState: HazeState) {
                                                     difficulties = difficulties,
                                                 )
                                             }
-                                            model.waiting = false
                                         }
                                     },
                                 )
