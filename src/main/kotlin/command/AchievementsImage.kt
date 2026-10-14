@@ -22,7 +22,10 @@ import com.github.ajalt.clikt.parameters.types.int
 import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
     val copyToClipboard: Boolean by option(help = "复制图片到剪贴板").flag()
@@ -62,21 +65,24 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
 
         context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
             renderComposable(
-                onRendered = { imageBitmap ->
-                    if (copyToClipboard) {
-                        copyImageToClipboard(imageBitmap)
-                        println("Achievements generated to clipboard")
-                    }
+                onRendered = { graphicsLayer ->
+                    runBlocking {
+                        delay(100.milliseconds)
+                        val imageBitmap = graphicsLayer.toImageBitmap()
+                        if (copyToClipboard) {
+                            copyImageToClipboard(imageBitmap)
+                            println("Achievements generated to clipboard")
+                        }
 
-                    out?.let { out ->
-                        val byteArray = imageBitmap.encodeToByteArray(
-                            format = ImageFormat.JPEG,
-                            quality = quality,
-                        )
-                        out.writeBytes(byteArray)
-                        println("Achievements generated to " + out.absolutePath)
+                        out?.let { out ->
+                            val byteArray = imageBitmap.encodeToByteArray(
+                                format = ImageFormat.JPEG,
+                                quality = quality,
+                            )
+                            out.writeBytes(byteArray)
+                            println("Achievements generated to " + out.absolutePath)
+                        }
                     }
-
                 }
             ) {
                 AchievementsImageContent(

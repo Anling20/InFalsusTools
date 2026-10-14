@@ -2,12 +2,12 @@ package cn.anling.inftool
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.FrameRecomposer
@@ -21,7 +21,6 @@ import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
@@ -197,14 +196,13 @@ fun Double.floor(decimalPlaces: Int): Double {
 
 @OptIn(InternalComposeUiApi::class)
 fun renderComposable(
-    onRendered: suspend (ImageBitmap) -> Unit,
+    onRendered: (GraphicsLayer) -> Unit,
     content: @Composable () -> Unit,
 ) {
     FrameRecomposer(Dispatchers.Unconfined).use { frameRecomposer ->
         CanvasLayersComposeScene(frameRecomposer).use { composeScene ->
             composeScene.setContent {
                 val graphicsLayer = rememberGraphicsLayer()
-                val scope = rememberCoroutineScope()
                 Box(
                     modifier = Modifier.drawWithContent {
                         graphicsLayer.record {
@@ -212,15 +210,13 @@ fun renderComposable(
                         }
                         drawLayer(graphicsLayer)
 
-                        scope.launch {
-                            onRendered(graphicsLayer.toImageBitmap())
-                        }
+                        onRendered(graphicsLayer)
                     }
                 ) {
                     content()
                 }
             }
-            frameRecomposer.performFrame(0)
+            frameRecomposer.performFrame(100)
             composeScene.measureAndLayout()
             composeScene.draw(Canvas(ImageBitmap(1, 1)))
         }

@@ -44,8 +44,12 @@ import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
 import io.github.vinceglb.filekit.dialogs.openFileSaver
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 context(model: HomeModel, _: GameRecordsModel, _: LocalizationContext)
@@ -307,24 +311,28 @@ private fun Content(hazeState: HazeState) {
                                                 histories = gameRecordsModel.historyRecords,
                                             )
                                             renderComposable(
-                                                onRendered = { imageBitmap ->
-                                                    when (type) {
-                                                        File -> FileKit.openFileSaver(
-                                                            suggestedName = "Potential",
-                                                            defaultExtension = ".jpg",
-                                                            allowedExtensions = setOf(".jpg", ".jpeg"),
-                                                        )?.let { file ->
-                                                            val byteArray = imageBitmap.encodeToByteArray(
-                                                                format = ImageFormat.JPEG,
-                                                                quality = model.modulePotentialImageModel.quality,
-                                                            )
-                                                            file.write(byteArray)
-                                                            println("Potential generated to " + file.absolutePath())
-                                                        }
+                                                onRendered = { graphicsLayer ->
+                                                    runBlocking {
+                                                        delay(100.milliseconds)
+                                                        val imageBitmap = graphicsLayer.toImageBitmap()
+                                                        when (type) {
+                                                            File -> FileKit.openFileSaver(
+                                                                suggestedName = "Potential",
+                                                                defaultExtension = ".jpg",
+                                                                allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                            )?.let { file ->
+                                                                val byteArray = imageBitmap.encodeToByteArray(
+                                                                    format = ImageFormat.JPEG,
+                                                                    quality = model.modulePotentialImageModel.quality,
+                                                                )
+                                                                file.write(byteArray)
+                                                                println("Potential generated to " + file.absolutePath())
+                                                            }
 
-                                                        Clipboard -> {
-                                                            copyImageToClipboard(imageBitmap)
-                                                            println("Potential generated to clipboard")
+                                                            Clipboard -> {
+                                                                copyImageToClipboard(imageBitmap)
+                                                                println("Potential generated to clipboard")
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -365,24 +373,30 @@ private fun Content(hazeState: HazeState) {
                                                 }
                                             }
                                             renderComposable(
-                                                onRendered = { imageBitmap ->
-                                                    when (type) {
-                                                        File -> FileKit.openFileSaver(
-                                                            suggestedName = "Achievements",
-                                                            defaultExtension = ".jpg",
-                                                            allowedExtensions = setOf(".jpg", ".jpeg"),
-                                                        )?.let { file ->
-                                                            val byteArray = imageBitmap.encodeToByteArray(
-                                                                format = ImageFormat.JPEG,
-                                                                quality = model.moduleAchievementsImageModel.quality,
-                                                            )
-                                                            file.write(byteArray)
-                                                            println("Achievements generated to " + file.absolutePath())
-                                                        }
+                                                onRendered = { graphicsLayer ->
+                                                    runBlocking {
+                                                        delay(100.milliseconds)
+                                                        val imageBitmap = graphicsLayer.toImageBitmap()
+                                                        when (type) {
+                                                            File -> withContext(Dispatchers.Main) {
+                                                                FileKit.openFileSaver(
+                                                                    suggestedName = "Achievements",
+                                                                    defaultExtension = ".jpg",
+                                                                    allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                                )?.let { file ->
+                                                                    val byteArray = imageBitmap.encodeToByteArray(
+                                                                        format = ImageFormat.JPEG,
+                                                                        quality = model.moduleAchievementsImageModel.quality,
+                                                                    )
+                                                                    file.write(byteArray)
+                                                                    println("Achievements generated to " + file.absolutePath())
+                                                                }
+                                                            }
 
-                                                        Clipboard -> {
-                                                            copyImageToClipboard(imageBitmap)
-                                                            println("Achievements generated to clipboard")
+                                                            Clipboard -> {
+                                                                copyImageToClipboard(imageBitmap)
+                                                                println("Achievements generated to clipboard")
+                                                            }
                                                         }
                                                     }
                                                 }

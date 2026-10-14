@@ -65,6 +65,8 @@ kotlin {
             implementation(compose.desktop.currentOs) {
                 exclude("org.jetbrains.compose.material", "material")
             }
+
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.0")
         }
     }
 }

@@ -18,7 +18,10 @@ import com.github.ajalt.clikt.parameters.types.int
 import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 class PotentialImageCommand : SuspendingCliktCommand("potential") {
     val copyToClipboard: Boolean by option(help = "复制图片到剪贴板").flag()
@@ -54,18 +57,22 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
 
         context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
             renderComposable(
-                onRendered = { imageBitmap ->
-                    if (copyToClipboard) {
-                        copyImageToClipboard(imageBitmap)
-                        println("Potential generated to clipboard")
-                    }
-                    out?.let { out ->
-                        val byteArray = imageBitmap.encodeToByteArray(
-                            format = ImageFormat.JPEG,
-                            quality = quality,
-                        )
-                        out.writeBytes(byteArray)
-                        println("Potential generated to " + out.absolutePath)
+                onRendered = { graphicsLayer ->
+                    runBlocking {
+                        delay(100.milliseconds)
+                        val imageBitmap = graphicsLayer.toImageBitmap()
+                        if (copyToClipboard) {
+                            copyImageToClipboard(imageBitmap)
+                            println("Potential generated to clipboard")
+                        }
+                        out?.let { out ->
+                            val byteArray = imageBitmap.encodeToByteArray(
+                                format = ImageFormat.JPEG,
+                                quality = quality,
+                            )
+                            out.writeBytes(byteArray)
+                            println("Potential generated to " + out.absolutePath)
+                        }
                     }
                 }
             ) {
