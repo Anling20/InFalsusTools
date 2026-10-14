@@ -214,9 +214,7 @@ private fun Content(
                 }
             },
         ) { measurables, constraints ->
-            val score = measurables[0].measure(
-                constraints.copy(minWidth = 0, maxWidth = constraints.maxWidth)
-            )
+            val score = measurables[0].measure(constraints.copy())
 
             val width = score.width
             val rowConstraints = constraints.copy(

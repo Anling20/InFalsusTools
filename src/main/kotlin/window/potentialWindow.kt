@@ -15,6 +15,7 @@ import cn.anling.inftool.command.getFocusingGameTranslation
 import cn.anling.inftool.command.isFocusingGame
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.model.GameRecordsModel
+import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -29,7 +30,9 @@ context(model: GameRecordsModel, _: LocalizationContext)
 fun potentialWindow(
     onCloseRequest: () -> Unit,
     username: String,
+    potential: Double,
     saveFile: PlatformFile,
+    algorithm: PotentialAlgorithm,
     useExperimentalLevel: Boolean,
     scale: Float,
     pollInterval: Duration = 500.milliseconds,
@@ -54,7 +57,6 @@ fun potentialWindow(
     ) {
         var playResult by remember { mutableStateOf<PlayResult?>(null) }
 
-        var potential by remember { mutableDoubleStateOf(model.highScoreRecords.potential().floor(3)) }
         var playingGame by remember { mutableStateOf(false) }
         var focusingGame by remember { mutableStateOf(false) }
         var cursorCovered by remember { mutableStateOf(false) }
@@ -124,12 +126,17 @@ fun potentialWindow(
                         }
 
                         val oldHistories = model.historyRecords.toList()
-                        val oldPtt = model.highScoreRecords.toList().potential()
+                        val oldPtt = algorithm.calcPotential(
+                            highScores = model.highScoreRecords,
+                            histories = model.historyRecords,
+                        )
 
-                        model.update(saveFile, useExperimentalLevel)
+                        model.update(saveFile, algorithm, useExperimentalLevel)
 
-                        val newPtt = model.highScoreRecords.potential()
-                        potential = newPtt.floor(3)
+                        val newPtt = algorithm.calcPotential(
+                            highScores = model.highScoreRecords,
+                            histories = model.historyRecords,
+                        )
                         val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
 
                         if (model.historyRecords != oldHistories || deltaPtt > 0.0) {
@@ -188,7 +195,7 @@ fun potentialWindow(
             FloatingWindow(
                 scale = scale,
                 username = username,
-                potential = potential,
+                potential = potential.floor(3),
                 playResult = playResult,
             )
         }

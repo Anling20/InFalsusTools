@@ -22,7 +22,6 @@ import cn.anling.infalsustools.generated.resources.floating_window_background2
 import cn.anling.infalsustools.generated.resources.head_story
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.i18n
-import cn.anling.inftool.theme.AppTheme
 import cn.anling.inftool.theme.exo2
 import cn.anling.inftool.theme.notosans
 import org.jetbrains.compose.resources.painterResource
@@ -52,122 +51,120 @@ fun FloatingWindow(
         DecimalFormat("00.0000")
     }
 
-    AppTheme(false) {
-        Surface(
-            color = Color.Transparent,
-            modifier = Modifier
-                .wrapContentSize(unbounded = true)
-                .scale(scale),
+    Surface(
+        color = Color.Transparent,
+        modifier = Modifier
+            .wrapContentSize(unbounded = true)
+            .scale(scale),
+    ) {
+        Box(
+            modifier = Modifier.size(768.dp, 128.dp),
         ) {
-            Box(
-                modifier = Modifier.size(768.dp, 128.dp),
+            Image(
+                painter = painterResource(Res.drawable.floating_window_background),
+                contentDescription = null,
+                modifier = Modifier.size(768.dp, 96.dp),
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(120.dp),
+                modifier = Modifier.padding(start = 60.dp),
             ) {
-                Image(
-                    painter = painterResource(Res.drawable.floating_window_background),
-                    contentDescription = null,
-                    modifier = Modifier.size(768.dp, 96.dp),
-                )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(120.dp),
-                    modifier = Modifier.padding(start = 60.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.width(220.dp),
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.width(220.dp),
-                    ) {
-                        Image(
-                            painter = painterResource(Res.drawable.head_story),
-                            contentDescription = "Head image",
-                            modifier = Modifier.size(96.dp),
-                        )
+                    Image(
+                        painter = painterResource(Res.drawable.head_story),
+                        contentDescription = "Head image",
+                        modifier = Modifier.size(96.dp),
+                    )
 
+                    Text(
+                        text = username,
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Right,
+                        style = LocalTextStyle.current.copy(fontFamily = notosans),
+                        modifier = Modifier.width(100.dp),
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(50.dp),
+                ) {
+                    Text(
+                        text = "PTT",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        maxLines = 1,
+                        style = LocalTextStyle.current.copy(fontFamily = exo2)
+                    )
+
+                    AnimatedContent(potential) {
                         Text(
-                            text = username,
-                            color = Color.White,
-                            fontSize = 24.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Right,
-                            style = LocalTextStyle.current.copy(fontFamily = notosans),
-                            modifier = Modifier.width(100.dp),
-                        )
-                    }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(50.dp),
-                    ) {
-                        Text(
-                            text = "PTT",
+                            text = additionPotentialFormater.format(it),
                             color = Color.White,
                             fontSize = 24.sp,
                             maxLines = 1,
                             style = LocalTextStyle.current.copy(fontFamily = exo2)
                         )
+                    }
 
-                        AnimatedContent(potential) {
+                    AnimatedContent(playResult) {
+                        if (it != null) {
                             Text(
-                                text = additionPotentialFormater.format(it),
-                                color = Color.White,
+                                text = "+" + additionPotentialFormater.format(it.additionPotential),
+                                color = Color(83, 225, 230),
                                 fontSize = 24.sp,
                                 maxLines = 1,
                                 style = LocalTextStyle.current.copy(fontFamily = exo2)
                             )
                         }
-
-                        AnimatedContent(playResult) {
-                            if (it != null) {
-                                Text(
-                                    text = "+" + additionPotentialFormater.format(it.additionPotential),
-                                    color = Color(83, 225, 230),
-                                    fontSize = 24.sp,
-                                    maxLines = 1,
-                                    style = LocalTextStyle.current.copy(fontFamily = exo2)
-                                )
-                            }
-                        }
                     }
                 }
-                AnimatedContent(
-                    targetState = playResult,
-                    modifier = Modifier.padding(start = 350.dp, top = 81.dp),
-                ) {
-                    if (it != null) {
-                        Image(
-                            painter = painterResource(Res.drawable.floating_window_background2),
-                            contentDescription = null,
-                            modifier = Modifier.size(300.dp, 40.dp),
-                        )
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(300.dp, 35.dp),
+            }
+            AnimatedContent(
+                targetState = playResult,
+                modifier = Modifier.padding(start = 350.dp, top = 81.dp),
+            ) {
+                if (it != null) {
+                    Image(
+                        painter = painterResource(Res.drawable.floating_window_background2),
+                        contentDescription = null,
+                        modifier = Modifier.size(300.dp, 40.dp),
+                    )
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(300.dp, 35.dp),
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.width(225.dp),
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.width(225.dp),
-                            ) {
-                                Text(
-                                    text = i18n("submodule.potential_window.play_potential"),
-                                    color = Color.White.copy(alpha = 0.75F),
-                                    fontSize = 16.sp,
-                                    lineHeight = 16.sp,
-                                    maxLines = 1,
-                                    style = LocalTextStyle.current.copy(fontFamily = notosans)
-                                )
-                                Text(
-                                    text = buildString {
-                                        append(levelFormater.format(it.level))
-                                        append("  >  ")
-                                        append(potentialFormater.format(it.potential))
-                                    },
-                                    color = Color.White.copy(alpha = 0.75F),
-                                    fontSize = 16.sp,
-                                    lineHeight = 16.sp,
-                                    maxLines = 1,
-                                    style = LocalTextStyle.current.copy(fontFamily = exo2)
-                                )
-                            }
+                            Text(
+                                text = i18n("submodule.potential_window.play_potential"),
+                                color = Color.White.copy(alpha = 0.75F),
+                                fontSize = 16.sp,
+                                lineHeight = 16.sp,
+                                maxLines = 1,
+                                style = LocalTextStyle.current.copy(fontFamily = notosans)
+                            )
+                            Text(
+                                text = buildString {
+                                    append(levelFormater.format(it.level))
+                                    append("  >  ")
+                                    append(potentialFormater.format(it.potential))
+                                },
+                                color = Color.White.copy(alpha = 0.75F),
+                                fontSize = 16.sp,
+                                lineHeight = 16.sp,
+                                maxLines = 1,
+                                style = LocalTextStyle.current.copy(fontFamily = exo2)
+                            )
                         }
                     }
                 }

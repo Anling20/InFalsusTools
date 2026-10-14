@@ -1,15 +1,22 @@
 package cn.anling.inftool
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.use
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.parser.ParsedSave
+import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.song.Songs
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.delay
+import org.jetbrains.skia.Image
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.ExperimentalTime
 
 fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScoreRecord ->
     val result = history.findLast { historyRecord ->
@@ -27,7 +34,8 @@ fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScore
         name = highScoreRecord.baseName,
         difficult = Difficult.entries[highScoreRecord.difficultyIndex],
         score = highScoreRecord.score,
-        clearType = ClearType.entries[historyRecord?.resultClear ?: highScoreRecord.resultClear],
+        clearType = historyRecord?.run { ClearType.entries[resultClear] },
+        diveValue = historyRecord?.paceValue,
         judgement = historyRecord?.run {
             CountContainer(
                 maxLink = maxCombo,
@@ -74,6 +82,7 @@ fun ParsedRecord.toDiveRecord(): DiveRecord = DiveRecord(
     difficult = Difficult.entries[difficultyIndex],
     score = score,
     clearType = ClearType.entries[resultClear],
+    diveValue = paceValue,
     judgement = CountContainer(
         maxLink = maxCombo,
         tap = JudgementCount(
@@ -111,7 +120,12 @@ fun ParsedRecord.toDiveRecord(): DiveRecord = DiveRecord(
     ),
 )
 
-fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
+fun DiveRecord.process(
+    highScores: List<DiveRecord>,
+    histories: List<DiveRecord>,
+    algorithm: PotentialAlgorithm,
+    useExperimentalLevel: Boolean,
+): ProcessedDiveRecord {
     val song = Songs.entries.firstOrNull { it.id == id } ?: Song(
         id = id,
         name = name,
@@ -127,18 +141,13 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         ULT -> song.ultimate
         FBD -> song.forbidden
     }.let {
-        when (experimentalLevel) {
+        when (useExperimentalLevel) {
             true -> it
             else -> it.toInt().toDouble()
         }
     }
 
-    val potential = when (score) {
-        in 0..<95000000 -> level * (score / 95000000.0).pow(10)
-        in 95000000..<98000000 -> level + ((score - 95000000) / 3000000.0)
-        in 98000000..<100000000 -> level + 1 + ((score - 98000000) / 2000000.0)
-        else -> level + 2.1
-    }
+    val potential = algorithm.calcPlayPotential(highScores, histories, this, useExperimentalLevel)
 
     val grading = when (score) {
         in 0..<80000000 -> Grading.D
@@ -155,21 +164,13 @@ fun DiveRecord.process(experimentalLevel: Boolean): ProcessedDiveRecord {
         difficult = difficult,
         score = score,
         clearType = clearType,
+        diveValue = diveValue,
         judgement = judgement,
         potential = potential,
         grading = grading,
         level = level,
         raw = this,
     )
-}
-
-fun List<ProcessedDiveRecord>.potential(): Double {
-    val b30 = sortedByDescending {
-        it.potential
-    }.take(30)
-    val b10ptt = b30.take(10).map { it.potential }
-    val b30ptt = b30.map { it.potential }
-    return (b10ptt.sum() + b30ptt.sum()) / 40.0
 }
 
 suspend fun PlatformFile.readBytesWhenAvailable(): ByteArray {
@@ -184,4 +185,13 @@ suspend fun PlatformFile.readBytesWhenAvailable(): ByteArray {
 fun Double.floor(decimalPlaces: Int): Double {
     val n = 10.0.pow(decimalPlaces)
     return floor(this * n) / n
+}
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalTime::class)
+fun renderComposable(content: @Composable () -> Unit): Image {
+    val size = ImageComposeScene(1, 1, content = content).use { it.calculateContentSize() }
+
+    return ImageComposeScene(size.width, size.height, content = content).use {
+        it.render(50.milliseconds)
+    }
 }

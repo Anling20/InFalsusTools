@@ -1,5 +1,5 @@
-import cn.anling.inftool.command.AhvCommand
-import cn.anling.inftool.command.B50Command
+import cn.anling.inftool.command.AchievementsImageCommand
+import cn.anling.inftool.command.PotentialImageCommand
 import cn.anling.inftool.command.DispatcherCommand
 import cn.anling.inftool.command.FloatingWindowCommand
 import com.github.ajalt.clikt.command.main
@@ -18,5 +18,5 @@ private fun redirectOutput() {
 suspend fun main(args: Array<String>) {
     redirectOutput()
     FileKit.init("cn.anling.inftool")
-    DispatcherCommand().subcommands(B50Command(), FloatingWindowCommand(), AhvCommand()).main(args)
+    DispatcherCommand().subcommands(PotentialImageCommand(), FloatingWindowCommand(), AchievementsImageCommand()).main(args)
 }

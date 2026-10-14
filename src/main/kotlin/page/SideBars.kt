@@ -177,7 +177,7 @@ fun ModuleSideBarContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             val potentialWindowSource = remember { MutableInteractionSource() }
-            val best30ImageSource = remember { MutableInteractionSource() }
+            val potentialImageSource = remember { MutableInteractionSource() }
             val achievementsImageSource = remember { MutableInteractionSource() }
             val playHistoriesSource = remember { MutableInteractionSource() }
             Text(
@@ -197,9 +197,9 @@ fun ModuleSideBarContent(
                 ),
             )
             Text(
-                text = i18n("sidebar.module.best30_image"),
+                text = i18n("sidebar.module.potential_image"),
                 color = animateColorAsState(
-                    when (destination == ModuleDestination.Best30Image || best30ImageSource.collectIsHoveredAsState().value) {
+                    when (destination == ModuleDestination.PotentialImage || potentialImageSource.collectIsHoveredAsState().value) {
                         true -> MaterialTheme.colorScheme.primary
                         else -> MaterialTheme.colorScheme.onSurface
                     }
@@ -207,9 +207,9 @@ fun ModuleSideBarContent(
                 fontSize = 14.sp,
                 lineHeight = 18.sp,
                 modifier = Modifier.clickable(
-                    interactionSource = best30ImageSource,
+                    interactionSource = potentialImageSource,
                     indication = null,
-                    onClick = { onChangeDestination(ModuleDestination.Best30Image) },
+                    onClick = { onChangeDestination(ModuleDestination.PotentialImage) },
                 ),
             )
             Text(

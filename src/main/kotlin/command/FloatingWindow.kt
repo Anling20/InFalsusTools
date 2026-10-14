@@ -15,7 +15,6 @@ import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.float
-import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.runBlocking
 import java.nio.file.Files
 import java.nio.file.Path
@@ -53,7 +52,11 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
             val gameRecordsModel = remember(Unit) {
                 GameRecordsModel().apply {
                     runBlocking {
-                        update(model.settingModel.saveFile, model.settingModel.useExperimentalLevel)
+                        update(
+                            saveFile = model.settingModel.saveFile,
+                            algorithm = model.settingModel.potentialAlgorithm,
+                            useExperimentalLevel = model.settingModel.useExperimentalLevel,
+                        )
                     }
                 }
             }
@@ -66,9 +69,11 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
             context(model, gameRecordsModel, localizationContext) {
                 potentialWindow(
                     onCloseRequest = ::exitApplication,
-                    username = username,
-                    saveFile = PlatformFile(save),
-                    useExperimentalLevel = experimentalLevel,
+                    username = model.settingModel.username,
+                    potential = gameRecordsModel.potential,
+                    saveFile = model.settingModel.saveFile,
+                    algorithm = model.settingModel.potentialAlgorithm,
+                    useExperimentalLevel = model.settingModel.useExperimentalLevel,
                     scale = scale,
                 )
             }

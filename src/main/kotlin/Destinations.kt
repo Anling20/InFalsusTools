@@ -10,7 +10,7 @@ sealed class HomeDestination {
 
 sealed class ModuleDestination {
     data object PotentialWindow : ModuleDestination()
-    data object Best30Image : ModuleDestination()
+    data object PotentialImage : ModuleDestination()
     data object AchievementsImage : ModuleDestination()
     data object PlayHistories : ModuleDestination()
 }

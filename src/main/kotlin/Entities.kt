@@ -25,7 +25,8 @@ data class ProcessedDiveRecord(
     val song: Song,
     val difficult: Difficult,
     val score: Long,
-    val clearType: ClearType,
+    val clearType: ClearType?,
+    val diveValue: Int?,
     val judgement: CountContainer?,
     val potential: Double,
     val grading: Grading,
@@ -38,7 +39,8 @@ data class DiveRecord(
     val name: String,
     val difficult: Difficult,
     val score: Long,
-    val clearType: ClearType,
+    val clearType: ClearType?,
+    val diveValue: Int?,
     val judgement: CountContainer?,
 )
 
@@ -87,7 +89,3 @@ data class WindowTranslation(
     val position: Pair<Int, Int>,
     val size: Pair<Int, Int>,
 )
-
-enum class PotentialAlgorithm(val i18nKey: String) {
-    InFalsusTools("potential_algorithm.in_falsus_tools"),
-}

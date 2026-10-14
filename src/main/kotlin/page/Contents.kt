@@ -22,18 +22,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.folder_open
+import cn.anling.inftool.ClearType
 import cn.anling.inftool.DiveCardFlat
-import cn.anling.inftool.PotentialAlgorithm
 import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.localization.Language
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
+import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.ModuleAchievementsImageModel
-import cn.anling.inftool.model.ModuleBest30ImageModel
+import cn.anling.inftool.model.ModulePotentialImageModel
 import cn.anling.inftool.model.ModulePotentialWindowModel
 import cn.anling.inftool.model.SettingModel
 import cn.anling.inftool.parser.ImageGenerationType
+import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.absolutePath
@@ -41,6 +43,8 @@ import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import io.github.vinceglb.filekit.parent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -108,8 +112,8 @@ fun ColumnScope.ModulePotentialWindowContent(
 }
 
 @Composable
-context(model: ModuleBest30ImageModel, _: LocalizationContext)
-fun ColumnScope.ModuleBest30ImageContent(
+context(model: ModulePotentialImageModel, _: LocalizationContext)
+fun ColumnScope.ModulePotentialImageContent(
     onOpenPreview: () -> Unit,
     onGenerate: (ImageGenerationType) -> Unit,
 ) {
@@ -122,7 +126,7 @@ fun ColumnScope.ModuleBest30ImageContent(
         val state = rememberTextFieldState(model.quality.toString())
         TextField(
             state = state,
-            label = { Text(i18n("module.best30_image.quality")) },
+            label = { Text(i18n("module.potential_image.quality")) },
             inputTransformation = InputTransformation {
                 toString().toIntOrNull()?.let {
                     if (it !in 1..100) {
@@ -145,7 +149,7 @@ fun ColumnScope.ModuleBest30ImageContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = i18n("module.best30_image.use_neo_card"),
+                text = i18n("module.potential_image.use_neo_card"),
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Checkbox(
@@ -168,7 +172,7 @@ fun ColumnScope.ModuleBest30ImageContent(
                 .clickable(onClick = onOpenPreview),
         ) {
             Text(
-                text = i18n("module.best30_image.preview"),
+                text = i18n("module.potential_image.preview"),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
@@ -183,7 +187,7 @@ fun ColumnScope.ModuleBest30ImageContent(
                 .clickable { onGenerate(ImageGenerationType.File) },
         ) {
             Text(
-                text = i18n("module.best30_image.generate_to_file"),
+                text = i18n("module.potential_image.generate_to_file"),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
@@ -198,7 +202,7 @@ fun ColumnScope.ModuleBest30ImageContent(
                 .clickable { onGenerate(ImageGenerationType.Clipboard) },
         ) {
             Text(
-                text = i18n("module.best30_image.generate_to_clipboard"),
+                text = i18n("module.potential_image.generate_to_clipboard"),
                 color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 24.sp,
                 maxLines = 1,
@@ -422,7 +426,7 @@ fun ModulePlayHistoriesContent(records: List<ProcessedDiveRecord>) {
     ) {
         items(records.reversed()) { record ->
             DiveCardFlat(
-                clearType = record.clearType,
+                clearType = record.clearType ?: ClearType.None,
                 image = record.song.name,
                 difficult = record.difficult,
                 level = record.level,
@@ -438,8 +442,9 @@ fun ModulePlayHistoriesContent(records: List<ProcessedDiveRecord>) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-context(model: SettingModel, _: LocalizationContext)
+context(model: SettingModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
 fun SettingContent() {
+    val scope = rememberCoroutineScope()
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier.fillMaxSize(),
@@ -485,6 +490,13 @@ fun SettingContent() {
                             )
                             if (file != null) {
                                 model.saveFile = file
+                                scope.launch(Dispatchers.IO) {
+                                    gameRecordsModel.update(
+                                        saveFile = model.saveFile,
+                                        algorithm = model.potentialAlgorithm,
+                                        useExperimentalLevel = model.useExperimentalLevel,
+                                    )
+                                }
                             }
                         }
                     }
@@ -504,7 +516,16 @@ fun SettingContent() {
             )
             Checkbox(
                 checked = model.useExperimentalLevel,
-                onCheckedChange = { model.useExperimentalLevel = it },
+                onCheckedChange = {
+                    model.useExperimentalLevel = it
+                    scope.launch(Dispatchers.IO) {
+                        gameRecordsModel.update(
+                            saveFile = model.saveFile,
+                            algorithm = model.potentialAlgorithm,
+                            useExperimentalLevel = model.useExperimentalLevel,
+                        )
+                    }
+                },
             )
         }
         run {
@@ -537,6 +558,13 @@ fun SettingContent() {
                             onClick = {
                                 expanded = false
                                 model.potentialAlgorithm = item
+                                scope.launch(Dispatchers.IO) {
+                                    gameRecordsModel.update(
+                                        saveFile = model.saveFile,
+                                        algorithm = model.potentialAlgorithm,
+                                        useExperimentalLevel = model.useExperimentalLevel,
+                                    )
+                                }
                             },
                         )
                     }
