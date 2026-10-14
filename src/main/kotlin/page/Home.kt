@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,14 +38,14 @@ import dev.chrisbanes.haze.blur.material3.Material3
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
 import io.github.vinceglb.filekit.dialogs.openFileSaver
 import io.github.vinceglb.filekit.write
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.skia.EncodedImageFormat
 
 @Composable
 context(model: HomeModel, _: GameRecordsModel, _: LocalizationContext)
@@ -263,7 +262,7 @@ private fun SideBarSelect(
 @Composable
 context(model: HomeModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
 private fun Content(hazeState: HazeState) {
-    val scope = remember { CoroutineScope(Dispatchers.IO) }
+    val scope = rememberCoroutineScope()
     AnimatedVisibility(
         visible = model.destination != HomeDestination.Home,
         enter = fadeIn() + slideInVertically { it },
@@ -301,13 +300,35 @@ private fun Content(hazeState: HazeState) {
                                 ModulePotentialImageContent(
                                     onOpenPreview = { model.displayingB30Preview = true },
                                     onGenerate = { type ->
-                                        scope.launch {
+                                        scope.launch(Dispatchers.IO) {
                                             model.waiting = true
                                             val contents = model.settingModel.potentialAlgorithm.contents(
                                                 highScores = gameRecordsModel.highScoreRecords,
                                                 histories = gameRecordsModel.historyRecords,
                                             )
-                                            val img = renderComposable {
+                                            renderComposable(
+                                                onRendered = { imageBitmap ->
+                                                    when (type) {
+                                                        File -> FileKit.openFileSaver(
+                                                            suggestedName = "Potential",
+                                                            defaultExtension = ".jpg",
+                                                            allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                        )?.let { file ->
+                                                            val byteArray = imageBitmap.encodeToByteArray(
+                                                                format = ImageFormat.JPEG,
+                                                                quality = model.modulePotentialImageModel.quality,
+                                                            )
+                                                            file.write(byteArray)
+                                                            println("Potential generated to " + file.absolutePath())
+                                                        }
+
+                                                        Clipboard -> {
+                                                            copyImageToClipboard(imageBitmap)
+                                                            println("Potential generated to clipboard")
+                                                        }
+                                                    }
+                                                }
+                                            ) {
                                                 PotentialImageContent(
                                                     scale = 1.0F,
                                                     useNeoCard = model.modulePotentialImageModel.useNeoCard,
@@ -316,28 +337,6 @@ private fun Content(hazeState: HazeState) {
                                                     algorithm = model.settingModel.potentialAlgorithm,
                                                     contents = contents,
                                                 )
-                                            }
-                                            when (type) {
-                                                File -> scope.launch {
-                                                    FileKit.openFileSaver(
-                                                        suggestedName = "Potential",
-                                                        defaultExtension = ".jpg",
-                                                        allowedExtensions = setOf(".jpg", ".jpeg"),
-                                                    )?.let { file ->
-                                                        img.encodeToData(
-                                                            format = EncodedImageFormat.JPEG,
-                                                            quality = model.modulePotentialImageModel.quality,
-                                                        )?.let { data ->
-                                                            file.write(data.bytes)
-                                                            println("Potential generated to " + file.absolutePath())
-                                                        }
-                                                    }
-                                                }
-
-                                                Clipboard -> {
-                                                    copyImageToClipboard(img.toComposeImageBitmap())
-                                                    println("Potential generated to clipboard")
-                                                }
                                             }
                                             model.waiting = false
                                         }
@@ -349,7 +348,7 @@ private fun Content(hazeState: HazeState) {
                                 ModuleAchievementsImageContent(
                                     onOpenPreview = { model.displayingAchievementsPreview = true },
                                     onGenerate = { type ->
-                                        scope.launch {
+                                        scope.launch(Dispatchers.IO) {
                                             model.waiting = true
                                             val difficulties = buildList {
                                                 if (model.moduleAchievementsImageModel.minDifficultSelect) {
@@ -365,7 +364,29 @@ private fun Content(hazeState: HazeState) {
                                                     add(Difficult.FBD)
                                                 }
                                             }
-                                            val img = renderComposable {
+                                            renderComposable(
+                                                onRendered = { imageBitmap ->
+                                                    when (type) {
+                                                        File -> FileKit.openFileSaver(
+                                                            suggestedName = "Achievements",
+                                                            defaultExtension = ".jpg",
+                                                            allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                        )?.let { file ->
+                                                            val byteArray = imageBitmap.encodeToByteArray(
+                                                                format = ImageFormat.JPEG,
+                                                                quality = model.moduleAchievementsImageModel.quality,
+                                                            )
+                                                            file.write(byteArray)
+                                                            println("Achievements generated to " + file.absolutePath())
+                                                        }
+
+                                                        Clipboard -> {
+                                                            copyImageToClipboard(imageBitmap)
+                                                            println("Achievements generated to clipboard")
+                                                        }
+                                                    }
+                                                }
+                                            ) {
                                                 AchievementsImageContent(
                                                     scale = 1.0F,
                                                     useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
@@ -378,28 +399,6 @@ private fun Content(hazeState: HazeState) {
                                                     max = model.moduleAchievementsImageModel.maxLevelLimit,
                                                     difficulties = difficulties,
                                                 )
-                                            }
-                                            when (type) {
-                                                File -> scope.launch {
-                                                    FileKit.openFileSaver(
-                                                        suggestedName = "Achievements",
-                                                        defaultExtension = ".jpg",
-                                                        allowedExtensions = setOf(".jpg", ".jpeg"),
-                                                    )?.let { file ->
-                                                        img.encodeToData(
-                                                            format = EncodedImageFormat.JPEG,
-                                                            quality = model.moduleAchievementsImageModel.quality,
-                                                        )?.let { data ->
-                                                            file.write(data.bytes)
-                                                            println("Achievements generated to " + file.absolutePath())
-                                                        }
-                                                    }
-                                                }
-
-                                                Clipboard -> {
-                                                    copyImageToClipboard(img.toComposeImageBitmap())
-                                                    println("Achievements generated to clipboard")
-                                                }
                                             }
                                             model.waiting = false
                                         }

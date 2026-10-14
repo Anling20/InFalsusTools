@@ -1,6 +1,5 @@
 package cn.anling.inftool.command
 
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import cn.anling.inftool.*
 import cn.anling.inftool.localization.Language
 import cn.anling.inftool.localization.LocalizationContext
@@ -16,8 +15,9 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
+import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.PlatformFile
-import org.jetbrains.skia.EncodedImageFormat
+import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
 import java.io.File
 
 class PotentialImageCommand : SuspendingCliktCommand("potential") {
@@ -53,7 +53,22 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
         val contents = algorithm.contents(highScores, histories)
 
         context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
-            val img = renderComposable {
+            renderComposable(
+                onRendered = { imageBitmap ->
+                    if (copyToClipboard) {
+                        copyImageToClipboard(imageBitmap)
+                        println("Potential generated to clipboard")
+                    }
+                    out?.let { out ->
+                        val byteArray = imageBitmap.encodeToByteArray(
+                            format = ImageFormat.JPEG,
+                            quality = quality,
+                        )
+                        out.writeBytes(byteArray)
+                        println("Potential generated to " + out.absolutePath)
+                    }
+                }
+            ) {
                 PotentialImageContent(
                     scale = 1.0F,
                     useNeoCard = false,
@@ -62,20 +77,6 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
                     algorithm = algorithm,
                     contents = contents,
                 )
-            }
-
-            if (copyToClipboard) {
-                copyImageToClipboard(img.toComposeImageBitmap())
-                println("Potential generated to clipboard")
-            }
-            out?.let { out ->
-                img.encodeToData(
-                    format = EncodedImageFormat.JPEG,
-                    quality = quality,
-                )?.let { data ->
-                    out.writeBytes(data.bytes)
-                    println("Potential generated to " + out.absolutePath)
-                }
             }
         }
     }

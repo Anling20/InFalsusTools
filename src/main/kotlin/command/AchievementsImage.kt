@@ -1,6 +1,5 @@
 package cn.anling.inftool.command
 
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import cn.anling.inftool.*
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.localization.Language
@@ -20,8 +19,9 @@ import com.github.ajalt.clikt.parameters.types.choice
 import com.github.ajalt.clikt.parameters.types.double
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
+import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.PlatformFile
-import org.jetbrains.skia.EncodedImageFormat
+import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
 import java.io.File
 
 class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
@@ -61,7 +61,24 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
         val potential = algorithm.calcPotential(highScores, histories)
 
         context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
-            val img = renderComposable {
+            renderComposable(
+                onRendered = { imageBitmap ->
+                    if (copyToClipboard) {
+                        copyImageToClipboard(imageBitmap)
+                        println("Achievements generated to clipboard")
+                    }
+
+                    out?.let { out ->
+                        val byteArray = imageBitmap.encodeToByteArray(
+                            format = ImageFormat.JPEG,
+                            quality = quality,
+                        )
+                        out.writeBytes(byteArray)
+                        println("Achievements generated to " + out.absolutePath)
+                    }
+
+                }
+            ) {
                 AchievementsImageContent(
                     scale = 1.0F,
                     useNeoCard = false,
@@ -74,20 +91,6 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
                     max = max,
                     difficulties = difficulties,
                 )
-            }
-
-            if (copyToClipboard) {
-                copyImageToClipboard(img.toComposeImageBitmap())
-                println("Achievements generated to clipboard")
-            }
-            out?.let { out ->
-                img.encodeToData(
-                    format = EncodedImageFormat.JPEG,
-                    quality = quality,
-                )?.let { data ->
-                    out.writeBytes(data.bytes)
-                    println("Achievements generated to " + out.absolutePath)
-                }
             }
         }
     }

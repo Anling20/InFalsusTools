@@ -1,9 +1,17 @@
 package cn.anling.inftool
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.ImageComposeScene
-import androidx.compose.ui.use
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.InternalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.platform.FrameRecomposer
+import androidx.compose.ui.scene.CanvasLayersComposeScene
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.parser.ParsedSave
@@ -11,12 +19,12 @@ import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.song.Songs
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import org.jetbrains.skia.Image
+import kotlinx.coroutines.launch
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.ExperimentalTime
 
 fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScoreRecord ->
     val result = history.findLast { historyRecord ->
@@ -187,11 +195,34 @@ fun Double.floor(decimalPlaces: Int): Double {
     return floor(this * n) / n
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalTime::class)
-fun renderComposable(content: @Composable () -> Unit): Image {
-    val size = ImageComposeScene(1, 1, content = content).use { it.calculateContentSize() }
+@OptIn(InternalComposeUiApi::class)
+fun renderComposable(
+    onRendered: suspend (ImageBitmap) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    FrameRecomposer(Dispatchers.Unconfined).use { frameRecomposer ->
+        CanvasLayersComposeScene(frameRecomposer).use { composeScene ->
+            composeScene.setContent {
+                val graphicsLayer = rememberGraphicsLayer()
+                val scope = rememberCoroutineScope()
+                Box(
+                    modifier = Modifier.drawWithContent {
+                        graphicsLayer.record {
+                            this@drawWithContent.drawContent()
+                        }
+                        drawLayer(graphicsLayer)
 
-    return ImageComposeScene(size.width, size.height, content = content).use {
-        it.render(50.milliseconds)
+                        scope.launch {
+                            onRendered(graphicsLayer.toImageBitmap())
+                        }
+                    }
+                ) {
+                    content()
+                }
+            }
+            frameRecomposer.performFrame(0)
+            composeScene.measureAndLayout()
+            composeScene.draw(Canvas(ImageBitmap(1, 1)))
+        }
     }
 }

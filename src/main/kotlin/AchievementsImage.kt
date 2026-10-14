@@ -138,49 +138,47 @@ fun AchievementsImageContent(
                             algorithm = algorithm,
                         )
 
-                        val groupedData = remember(highScores) {
-                            Songs.entries.flatMap { song ->
-                                listOf(
-                                    AhvData(
-                                        song = song,
-                                        difficult = MIN,
-                                        diveRecord = highScores.find { it.song == song && it.difficult == MIN }
-                                    ),
-                                    AhvData(
-                                        song = song,
-                                        difficult = EVO,
-                                        diveRecord = highScores.find { it.song == song && it.difficult == EVO }
-                                    ),
-                                    AhvData(
-                                        song = song,
-                                        difficult = ULT,
-                                        diveRecord = highScores.find { it.song == song && it.difficult == ULT }
-                                    ),
-                                    AhvData(
-                                        song = song,
-                                        difficult = FBD,
-                                        diveRecord = highScores.find { it.song == song && it.difficult == FBD }
-                                    ),
-                                )
-                            }.filter {
-                                difficulties.isEmpty() || it.difficult in difficulties
-                            }.groupBy { ahvData ->
-                                when (ahvData.difficult) {
-                                    MIN -> ahvData.song.minimal
-                                    EVO -> ahvData.song.evolved
-                                    ULT -> ahvData.song.ultimate
-                                    FBD -> ahvData.song.forbidden
-                                }.let {
-                                    when (useExperimentalLevel) {
-                                        true -> it
-                                        else -> it.toInt().toDouble()
-                                    }
+                        val groupedData = Songs.entries.flatMap { song ->
+                            listOf(
+                                AhvData(
+                                    song = song,
+                                    difficult = MIN,
+                                    diveRecord = highScores.find { it.song == song && it.difficult == MIN }
+                                ),
+                                AhvData(
+                                    song = song,
+                                    difficult = EVO,
+                                    diveRecord = highScores.find { it.song == song && it.difficult == EVO }
+                                ),
+                                AhvData(
+                                    song = song,
+                                    difficult = ULT,
+                                    diveRecord = highScores.find { it.song == song && it.difficult == ULT }
+                                ),
+                                AhvData(
+                                    song = song,
+                                    difficult = FBD,
+                                    diveRecord = highScores.find { it.song == song && it.difficult == FBD }
+                                ),
+                            )
+                        }.filter {
+                            difficulties.isEmpty() || it.difficult in difficulties
+                        }.groupBy { ahvData ->
+                            when (ahvData.difficult) {
+                                MIN -> ahvData.song.minimal
+                                EVO -> ahvData.song.evolved
+                                ULT -> ahvData.song.ultimate
+                                FBD -> ahvData.song.forbidden
+                            }.let {
+                                when (useExperimentalLevel) {
+                                    true -> it
+                                    else -> it.toInt().toDouble()
                                 }
-                            }.filterKeys {
-                                min == null || it >= min
-                            }.filterKeys {
-                                max == null || it <= max
                             }
+                        }.filterKeys {
+                            min == null || it >= min
+                        }.filterKeys {
+                            max == null || it <= max
                         }
                         Content(
                             groupedData = groupedData,
