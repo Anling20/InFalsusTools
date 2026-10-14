@@ -1,26 +1,27 @@
 package cn.anling.inftool
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.InternalComposeUiApi
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Canvas
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
-import androidx.compose.ui.platform.FrameRecomposer
-import androidx.compose.ui.scene.CanvasLayersComposeScene
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.window.singleWindowApplication
 import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.parser.ParsedSave
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.song.Songs
+import cn.anling.inftool.theme.AppTheme
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
@@ -194,31 +195,43 @@ fun Double.floor(decimalPlaces: Int): Double {
     return floor(this * n) / n
 }
 
-@OptIn(InternalComposeUiApi::class)
 fun renderComposable(
     onRendered: (GraphicsLayer) -> Unit,
     content: @Composable () -> Unit,
 ) {
-    FrameRecomposer(Dispatchers.Unconfined).use { frameRecomposer ->
-        CanvasLayersComposeScene(frameRecomposer).use { composeScene ->
-            composeScene.setContent {
-                val graphicsLayer = rememberGraphicsLayer()
-                Box(
-                    modifier = Modifier.drawWithContent {
-                        graphicsLayer.record {
-                            this@drawWithContent.drawContent()
-                        }
-                        drawLayer(graphicsLayer)
-
-                        onRendered(graphicsLayer)
+    singleWindowApplication(
+        visible = false,
+        exitProcessOnExit = false,
+    ) {
+        val graphicsLayer = rememberGraphicsLayer()
+        var rendered by remember { mutableStateOf(false) }
+        Box(
+            modifier = Modifier
+                .wrapContentSize(unbounded = true)
+                .drawWithContent {
+                    graphicsLayer.record {
+                        this@drawWithContent.drawContent()
                     }
-                ) {
+                    drawLayer(graphicsLayer)
+
+                    rendered = true
+                },
+        ) {
+            CompositionLocalProvider(LocalDensity provides Density(1f, 1f)) {
+                AppTheme(false) {
                     content()
                 }
             }
-            frameRecomposer.performFrame(100)
-            composeScene.measureAndLayout()
-            composeScene.draw(Canvas(ImageBitmap(1, 1)))
+        }
+
+        LaunchedEffect(Unit) {
+            while (!rendered) {
+                delay(50.milliseconds)
+            }
+            withContext(Dispatchers.IO) {
+                onRendered(graphicsLayer)
+            }
+            exitApplication()
         }
     }
 }

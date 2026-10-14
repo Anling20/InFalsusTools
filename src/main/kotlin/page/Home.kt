@@ -44,12 +44,10 @@ import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
 import io.github.vinceglb.filekit.dialogs.openFileSaver
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 context(model: HomeModel, _: GameRecordsModel, _: LocalizationContext)
@@ -313,7 +311,6 @@ private fun Content(hazeState: HazeState) {
                                             renderComposable(
                                                 onRendered = { graphicsLayer ->
                                                     runBlocking {
-                                                        delay(100.milliseconds)
                                                         val imageBitmap = graphicsLayer.toImageBitmap()
                                                         when (type) {
                                                             File -> FileKit.openFileSaver(
@@ -375,7 +372,6 @@ private fun Content(hazeState: HazeState) {
                                             renderComposable(
                                                 onRendered = { graphicsLayer ->
                                                     runBlocking {
-                                                        delay(100.milliseconds)
                                                         val imageBitmap = graphicsLayer.toImageBitmap()
                                                         when (type) {
                                                             File -> withContext(Dispatchers.Main) {
