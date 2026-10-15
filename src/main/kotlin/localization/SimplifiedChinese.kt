@@ -7,7 +7,7 @@ private val container = LocalizationContainer(
     "sidebar.module.back" to "返回",
     "sidebar.module.potential_window" to "潜力值悬浮窗",
     "sidebar.module.potential_image" to "潜力值图片",
-    "sidebar.module.achievements_image" to "铺面达成图片",
+    "sidebar.module.achievements_image" to "谱面达成图片",
     "sidebar.module.play_histories" to "游玩记录",
 
     "module.potential_window.scale" to "缩放",
