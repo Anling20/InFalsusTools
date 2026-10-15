@@ -23,7 +23,9 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
+import io.github.vinceglb.filekit.readString
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -122,12 +124,15 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                     if (model.startedPotentialWindow) {
                         potentialWindow(
                             onCloseRequest = { model.startedPotentialWindow = false },
+                            scale = model.modulePotentialWindowModel.scale,
                             username = model.settingModel.username,
                             potential = gameRecordsModel.potential,
                             saveFile = model.settingModel.saveFile,
                             algorithm = model.settingModel.potentialAlgorithm,
                             useExperimentalLevel = model.settingModel.useExperimentalLevel,
-                            scale = model.modulePotentialWindowModel.scale,
+                            addressContainer = runBlocking {
+                                Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
+                            }
                         )
                     }
 

@@ -32,8 +32,15 @@
 # 疑难解答
 
 - 潜力值悬浮窗仅在聚焦游戏窗口时显示, 且检测到开始游戏后会自动隐藏(或是鼠标移到悬浮窗位置时手动隐藏)
-- 如果启动游戏后潜力值悬浮窗后日志一直显示 `[GameSceneMonitor] infalsus.exe not found`, 且聚焦游戏窗口时未看到潜力值悬浮窗, 请尝试使用管理员权限运行
+- 如果启动游戏后潜力值悬浮窗后聚焦游戏窗口时未看到潜力值悬浮窗, 请尝试使用管理员权限运行
+- 如果游戏更新后潜力值悬浮窗在进行游戏时不会自动隐藏且结算页面不显示游玩数据, 请检查 `地址文件` 是否与游戏版本匹配
 - 如果使用微星小飞机 RTSS 时遇到页面卡死, 请关闭 RTSS 后重新启动软件
+
+# 地址文件
+
+潜力值悬浮窗的自动隐藏及结算状态通过读取游戏内存实现, 软件包内会默认携带 `已兼容的` 最新版本地址文件
+
+如需历史版本, 请前往 [此处](./address)
 
 # 反馈与建议
 
@@ -53,7 +60,10 @@
 深度可定制版本管理及构建工具
 
 [Compose Multiplatform](https://kotlinlang.org/compose-multiplatform/)<br>
-多平台声明式 UI 框架
+Kotlin Multiplatform 声明式 UI 框架
+
+[kotlinx-serialization](https://github.com/kotlin/kotlinx.serialization)<br>
+Kotlin Multiplatform 序列化, 用于 JSON 文件解析
 
 [clikt](https://github.com/ajalt/clikt)<br>
 Kotlin Multiplatform 命令行参数解析

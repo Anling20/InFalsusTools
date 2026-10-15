@@ -10,9 +10,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import cn.anling.inftool.*
-import cn.anling.inftool.command.getCursorPosition
-import cn.anling.inftool.command.getFocusingGameTranslation
-import cn.anling.inftool.command.isFocusingGame
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
@@ -29,12 +26,13 @@ private const val animationTime = 50
 context(model: GameRecordsModel, _: LocalizationContext)
 fun potentialWindow(
     onCloseRequest: () -> Unit,
+    scale: Float,
     username: String,
     potential: Double,
     saveFile: PlatformFile,
     algorithm: PotentialAlgorithm,
     useExperimentalLevel: Boolean,
-    scale: Float,
+    addressContainer: AddressContainer,
     pollInterval: Duration = 500.milliseconds,
 ) {
     val windowState = rememberWindowState(
@@ -82,7 +80,7 @@ fun potentialWindow(
             // Focus detect
             launch(Dispatchers.IO) {
                 while (true) {
-                    focusingGame = isFocusingGame()
+                    focusingGame = getFocusingWindowPID() in listGamesPID()
                     val newVisible = focusingGame && !playingGame && !cursorCovered
                     if (visible != newVisible) {
                         val oldVisible = visible
@@ -101,65 +99,131 @@ fun potentialWindow(
                 }
             }
 
-            // Play detect
+            // Scene detect
             launch(Dispatchers.IO) {
-                GameSceneMonitor(
-                    scope = this,
-                    onGameStarted = {
-                        playingGame = true
-                        if (visible) {
-                            visible = false
-                            window.isAlwaysOnTop = true
-                            window.toFront()
-                            delay(animationTime.milliseconds)
-                            windowVisible = false
-                        }
-                    },
-                    onGameExited = {
-                        playingGame = false
-                        val newVisible = focusingGame && !cursorCovered
-                        if (visible != newVisible) {
-                            windowVisible = true
-                            visible = true
-                            window.isAlwaysOnTop = true
-                            window.toFront()
-                        }
+                val onGameSceneEntered = suspend {
+                    playingGame = true
+                    if (visible) {
+                        visible = false
+                        window.isAlwaysOnTop = true
+                        window.toFront()
+                        delay(animationTime.milliseconds)
+                        windowVisible = false
+                    }
+                }
+                val onGameSceneExited = suspend {
+                    playingGame = false
+                    val newVisible = focusingGame && !cursorCovered
+                    if (visible != newVisible) {
+                        windowVisible = true
+                        visible = true
+                        window.isAlwaysOnTop = true
+                        window.toFront()
+                    }
 
-                        val oldHistories = model.historyRecords.toList()
-                        val oldPtt = algorithm.calcPotential(
-                            highScores = model.highScoreRecords,
-                            histories = model.historyRecords,
+                    val oldHistories = model.historyRecords.toList()
+                    val oldPtt = algorithm.calcPotential(
+                        highScores = model.highScoreRecords,
+                        histories = model.historyRecords,
+                    )
+
+                    model.update(saveFile, algorithm, useExperimentalLevel)
+
+                    val newPtt = algorithm.calcPotential(
+                        highScores = model.highScoreRecords,
+                        histories = model.historyRecords,
+                    )
+                    val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
+
+                    if (model.historyRecords.lastOrNull() != oldHistories.lastOrNull() || deltaPtt > 0.0) {
+                        val recent = model.historyRecords.last()
+                        playResult = PlayResult(
+                            level = recent.level,
+                            potential = recent.potential,
+                            additionPotential = deltaPtt
                         )
+                        println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
+                    }
+                }
+                val onResultsSceneExited = suspend {
+                    if (playResult != null) {
+                        playResult = null
+                    }
+                }
+                val processMemoryMap = mutableMapOf<Long, ProcessMemory>()
+                var latestFocusingGame: Long? = null
+                var latestInGameScene = false
+                var latestInResultsScene = false
+                while (true) {
+                    processMemoryMap.iterator().let { iterator ->
+                        while (iterator.hasNext()) {
+                            val (pid, processMemory) = iterator.next()
 
-                        model.update(saveFile, algorithm, useExperimentalLevel)
+                            if (!processMemory.isAlive()) {
+                                iterator.remove()
+                                processMemory.close()
 
-                        val newPtt = algorithm.calcPotential(
-                            highScores = model.highScoreRecords,
-                            histories = model.historyRecords,
-                        )
-                        val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
+                                if (latestFocusingGame == pid) {
+                                    if (latestInGameScene) {
+                                        onGameSceneExited()
+                                    }
 
-                        if (model.historyRecords != oldHistories || deltaPtt > 0.0) {
-                            val recent = model.historyRecords.last()
-                            playResult = PlayResult(
-                                level = recent.level,
-                                potential = recent.potential,
-                                additionPotential = deltaPtt
-                            )
-                            println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
+                                    if (latestInResultsScene) {
+                                        onResultsSceneExited()
+                                    }
+                                }
+                            }
                         }
-                    },
-                    onResultsStarted = {},
-                    onResultsExited = {
-                        if (playResult != null) {
-                            playResult = null
+                    }
+                    val gamePIDs = listGamesPID()
+                    gamePIDs.filterNot {
+                        processMemoryMap.keys.contains(it)
+                    }.forEach { pid ->
+                        val processMemory = ProcessMemory.tryOpen(pid, addressContainer)
+                        if (processMemory != null) {
+                            processMemoryMap[pid] = processMemory
                         }
-                    },
-                    pollInterval = pollInterval,
-                ).start()
+                    }
+
+                    val focusingWindowPID = getFocusingWindowPID()
+                    processMemoryMap[focusingWindowPID]?.let { processMemory ->
+                        runCatching {
+                            latestFocusingGame = focusingWindowPID
+                            val currentGameScene = processMemory.readGameSceneInstance()
+                            when {
+                                !latestInGameScene && currentGameScene != 0L -> {
+                                    latestInGameScene = true
+                                    onGameSceneEntered()
+                                }
+
+                                latestInGameScene && currentGameScene == 0L -> {
+                                    latestInGameScene = false
+                                    onGameSceneExited()
+                                }
+                            }
+
+                            val currentResultsScene = processMemory.readResultsSceneInstance()
+                            when {
+                                !latestInResultsScene && currentResultsScene != 0L -> {
+                                    latestInResultsScene = true
+                                }
+
+                                latestInResultsScene && currentResultsScene == 0L -> {
+                                    latestInResultsScene = false
+                                    onResultsSceneExited()
+                                }
+                            }
+                        }.onFailure { e ->
+                            println("${e::class.simpleName}: ${e.message}")
+                            processMemory.close()
+                            processMemoryMap.remove(focusingWindowPID)
+                        }
+                    }
+                    delay(pollInterval)
+                }
             }
 
-            // Mouse overlay detect
+            // Cursor overlay detect
             launch(Dispatchers.IO) {
                 while (true) {
                     val cursorPos = getCursorPosition()

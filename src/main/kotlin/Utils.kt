@@ -19,7 +19,10 @@ import cn.anling.inftool.song.Songs
 import cn.anling.inftool.theme.AppTheme
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
@@ -202,7 +205,7 @@ fun renderComposable(
         exitProcessOnExit = false,
     ) {
         val graphicsLayer = rememberGraphicsLayer()
-        var rendered by remember { mutableStateOf(false) }
+        val rendered = remember { CompletableDeferred<Unit>() }
         Box(
             modifier = Modifier
                 .wrapContentSize(unbounded = true)
@@ -211,8 +214,7 @@ fun renderComposable(
                         this@drawWithContent.drawContent()
                     }
                     drawLayer(graphicsLayer)
-
-                    rendered = true
+                    rendered.complete(Unit)
                 },
         ) {
             CompositionLocalProvider(LocalDensity provides Density(1f, 1f)) {
@@ -223,11 +225,12 @@ fun renderComposable(
         }
 
         LaunchedEffect(Unit) {
-            while (!rendered) {
-                delay(50.milliseconds)
+            withContext(Dispatchers.IO) {
+                rendered.await()
+                val imageBitmap = graphicsLayer.toImageBitmap()
+                onRendered(imageBitmap)
+                exitApplication()
             }
-            onRendered(graphicsLayer.toImageBitmap())
-            exitApplication()
         }
     }
 }

@@ -65,7 +65,7 @@ object WindowTranslationUtil {
 
     fun getTranslation(): WindowTranslation? {
         Arena.ofConfined().use { arena ->
-            if (WindowsForeground.getForegroundProcessId() !in WindowsForeground.findProcessId("infalsus.exe")) {
+            if (WindowsForeground.getForegroundProcessId() !in WindowsForeground.listProcessPID("infalsus.exe")) {
                 return null
             }
 

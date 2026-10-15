@@ -3,8 +3,6 @@ package cn.anling.inftool.page
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,24 +23,19 @@ import cn.anling.infalsustools.generated.resources.folder_open
 import cn.anling.inftool.ClearType
 import cn.anling.inftool.DiveCardFlat
 import cn.anling.inftool.ProcessedDiveRecord
+import cn.anling.inftool.component.ClickableTextField
+import cn.anling.inftool.getWorkingFolder
 import cn.anling.inftool.localization.Language
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
-import cn.anling.inftool.model.GameRecordsModel
-import cn.anling.inftool.model.ModuleAchievementsImageModel
-import cn.anling.inftool.model.ModulePotentialImageModel
-import cn.anling.inftool.model.ModulePotentialWindowModel
-import cn.anling.inftool.model.SettingModel
+import cn.anling.inftool.model.*
 import cn.anling.inftool.parser.ImageGenerationType
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.*
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
-import io.github.vinceglb.filekit.parent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -79,6 +72,37 @@ fun ColumnScope.ModulePotentialWindowContent(
             modifier = Modifier.onFocusChanged { focusState ->
                 if (!focusState.isFocused) {
                     model.scale = state.text.toString().toFloat()
+                }
+            },
+        )
+        ClickableTextField(
+            value = model.addressFile.absolutePath(),
+            label = { Text(i18n("module.potential_window.address_file_path")) },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(Res.drawable.folder_open),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            },
+            singleLine = true,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
+                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
+            ),
+            onClick = {
+                val parent = model.addressFile.parent()
+                val directory = when {
+                    parent?.exists() == true -> parent
+                    else -> getWorkingFolder()
+                }
+                val file = FileKit.openFilePicker(
+                    type = FileKitType.File("json"),
+                    mode = FileKitMode.Single,
+                    directory = directory,
+                )
+                if (file != null) {
+                    model.addressFile = file
                 }
             },
         )
@@ -464,10 +488,8 @@ fun SettingContent() {
                 }
             },
         )
-        TextField(
+        ClickableTextField(
             value = model.saveFile.absolutePath(),
-            onValueChange = {},
-            readOnly = true,
             label = { Text(i18n("setting.save_file_path")) },
             trailingIcon = {
                 Icon(
@@ -477,35 +499,27 @@ fun SettingContent() {
                 )
             },
             singleLine = true,
-            interactionSource = remember {
-                MutableInteractionSource()
-            }.also { interactionSource ->
-                LaunchedEffect(interactionSource) {
-                    interactionSource.interactions.collect {
-                        if (it is PressInteraction.Release) {
-                            val file = FileKit.openFilePicker(
-                                type = FileKitType.File("sav"),
-                                mode = FileKitMode.Single,
-                                directory = PlatformFile(model.saveFile.parent()!!.absolutePath()),
-                            )
-                            if (file != null) {
-                                model.saveFile = file
-                                scope.launch(Dispatchers.IO) {
-                                    gameRecordsModel.update(
-                                        saveFile = model.saveFile,
-                                        algorithm = model.potentialAlgorithm,
-                                        useExperimentalLevel = model.useExperimentalLevel,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
+            onClick = {
+                val file = FileKit.openFilePicker(
+                    type = FileKitType.File("sav"),
+                    mode = FileKitMode.Single,
+                    directory = model.saveFile.parent()!!,
+                )
+                if (file != null) {
+                    model.saveFile = file
+                    scope.launch(Dispatchers.IO) {
+                        gameRecordsModel.update(
+                            saveFile = model.saveFile,
+                            algorithm = model.potentialAlgorithm,
+                            useExperimentalLevel = model.useExperimentalLevel,
+                        )
+                    }
+                }
+            },
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,

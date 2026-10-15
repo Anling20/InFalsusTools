@@ -2,9 +2,10 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    kotlin("multiplatform") version "2.4.20"
-    id("org.jetbrains.kotlin.plugin.compose") version "2.4.20"
+    kotlin("multiplatform") version "2.4.21"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.4.21"
     id("org.jetbrains.compose") version "1.12.1"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.4.21"
 }
 
 group = "cn.anling"
@@ -51,6 +52,8 @@ kotlin {
             implementation("org.jetbrains.compose.foundation:foundation:1.12.1")
             implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
             implementation("org.jetbrains.compose.components:components-resources:1.12.1")
+
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0-RC")
 
             implementation("com.github.ajalt.clikt:clikt:5.1.0")
             implementation("com.github.ajalt.clikt:clikt-markdown:5.1.0")

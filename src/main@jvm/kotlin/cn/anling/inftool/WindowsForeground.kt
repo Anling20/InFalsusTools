@@ -42,7 +42,7 @@ object WindowsForeground {
         }
     }
 
-    fun findProcessId(processName: String): List<Long> {
+    fun listProcessPID(processName: String): List<Long> {
         return ProcessHandle.allProcesses()
             .filter { process ->
                 process.info()

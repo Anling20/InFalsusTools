@@ -2,7 +2,6 @@ package cn.anling.inftool.command
 
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.application
-import cn.anling.inftool.WindowTranslation
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.defaultLocalizationContainers
 import cn.anling.inftool.model.GameRecordsModel
@@ -15,7 +14,9 @@ import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.float
+import io.github.vinceglb.filekit.readString
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.absolutePathString
@@ -69,18 +70,17 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
             context(model, gameRecordsModel, localizationContext) {
                 potentialWindow(
                     onCloseRequest = ::exitApplication,
+                    scale = scale,
                     username = model.settingModel.username,
                     potential = gameRecordsModel.potential,
                     saveFile = model.settingModel.saveFile,
                     algorithm = model.settingModel.potentialAlgorithm,
                     useExperimentalLevel = model.settingModel.useExperimentalLevel,
-                    scale = scale,
+                    addressContainer = runBlocking {
+                        Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
+                    }
                 )
             }
         }
     }
 }
-
-expect fun isFocusingGame(): Boolean
-expect fun getCursorPosition(): Pair<Int, Int>?
-expect fun getFocusingGameTranslation(): WindowTranslation?

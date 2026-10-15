@@ -70,7 +70,6 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
                 }
             ) {
                 PotentialImageContent(
-                    scale = 1.0F,
                     useNeoCard = false,
                     username = username,
                     potential = potential,

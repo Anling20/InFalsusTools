@@ -79,7 +79,6 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
                 }
             ) {
                 AchievementsImageContent(
-                    scale = 1.0F,
                     useNeoCard = false,
                     username = username,
                     potential = potential,

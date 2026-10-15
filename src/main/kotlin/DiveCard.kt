@@ -298,7 +298,7 @@ private fun JudgementContainer(judgement: CountContainer?) {
             .fillMaxWidth()
             .height(70.dp),
     ) {
-        Judgement(
+        Judgment(
             background = Colors.DiveCard.JudgementCount.Background.exactPlus,
             image = Res.drawable.judgement_exact_plus,
             total = judgement?.exactPlus,
@@ -307,7 +307,7 @@ private fun JudgementContainer(judgement: CountContainer?) {
             displayDetails = false,
         )
 
-        Judgement(
+        Judgment(
             background = Colors.DiveCard.JudgementCount.Background.exact,
             image = Res.drawable.judgement_exact,
             total = judgement?.let { it.exactEarly + it.exactLate },
@@ -316,7 +316,7 @@ private fun JudgementContainer(judgement: CountContainer?) {
             displayDetails = true,
         )
 
-        Judgement(
+        Judgment(
             background = Colors.DiveCard.JudgementCount.Background.near,
             image = Res.drawable.judgement_near,
             total = judgement?.let { it.nearEarly + it.nearLate },
@@ -325,7 +325,7 @@ private fun JudgementContainer(judgement: CountContainer?) {
             displayDetails = true,
         )
 
-        Judgement(
+        Judgment(
             background = Colors.DiveCard.JudgementCount.Background.`break`,
             image = Res.drawable.judgement_break,
             total = judgement?.`break`,
@@ -338,7 +338,7 @@ private fun JudgementContainer(judgement: CountContainer?) {
 
 @Composable
 context(_: LocalizationContext)
-private fun RowScope.Judgement(
+private fun RowScope.Judgment(
     background: Brush,
     image: DrawableResource,
     total: Int?,
@@ -374,6 +374,9 @@ private fun RowScope.Judgement(
                 fontSize = 16.sp,
                 lineHeight = 18.sp,
                 maxLines = 1,
+                style = LocalTextStyle.current.copy(
+                    shadow = androidx.compose.ui.graphics.Shadow(blurRadius = 2F),
+                ),
             )
         }
 
@@ -392,6 +395,9 @@ private fun RowScope.Judgement(
                         fontSize = 16.sp,
                         lineHeight = 18.sp,
                         maxLines = 1,
+                        style = LocalTextStyle.current.copy(
+                            shadow = androidx.compose.ui.graphics.Shadow(blurRadius = 2F),
+                        ),
                         modifier = Modifier.width(48.dp),
                     )
                     Text(
@@ -401,6 +407,9 @@ private fun RowScope.Judgement(
                         textAlign = TextAlign.End,
                         lineHeight = 18.sp,
                         maxLines = 1,
+                        style = LocalTextStyle.current.copy(
+                            shadow = androidx.compose.ui.graphics.Shadow(blurRadius = 2F),
+                        ),
                         modifier = Modifier.width(48.dp),
                     )
                 }
@@ -417,6 +426,9 @@ private fun RowScope.Judgement(
                         fontSize = 16.sp,
                         lineHeight = 18.sp,
                         maxLines = 1,
+                        style = LocalTextStyle.current.copy(
+                            shadow = androidx.compose.ui.graphics.Shadow(blurRadius = 2F),
+                        ),
                         modifier = Modifier.width(48.dp),
                     )
                     Text(
@@ -426,6 +438,9 @@ private fun RowScope.Judgement(
                         textAlign = TextAlign.End,
                         lineHeight = 18.sp,
                         maxLines = 1,
+                        style = LocalTextStyle.current.copy(
+                            shadow = androidx.compose.ui.graphics.Shadow(blurRadius = 2F),
+                        ),
                         modifier = Modifier.width(48.dp),
                     )
                 }

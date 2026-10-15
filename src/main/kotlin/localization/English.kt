@@ -13,6 +13,7 @@ private val container = LocalizationContainer(
     "sidebar.module.play_histories" to "Play Histories",
 
     "module.potential_window.scale" to "Scale",
+    "module.potential_window.address_file_path" to "Address file path",
     "module.potential_window.stop" to "Stop",
     "module.potential_window.start" to "Start",
 

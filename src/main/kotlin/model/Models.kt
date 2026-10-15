@@ -63,6 +63,15 @@ class HomeModel(
 
 class ModulePotentialWindowModel(settings: Settings) {
     var scale by settings.float("PotentialWindow.scale", 1.0F).toComposeStated()
+    private var addressFilePath by settings.string(
+        key = "PotentialWindow.addressFile",
+        defaultValue = "config/address.json",
+    ).toComposeStated()
+    var addressFile
+        get() = PlatformFile(addressFilePath)
+        set(value) {
+            addressFilePath = value.absolutePath()
+        }
 }
 
 class ModulePotentialImageModel(settings: Settings) {

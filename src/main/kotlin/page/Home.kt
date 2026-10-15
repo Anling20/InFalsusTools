@@ -45,6 +45,8 @@ import io.github.vinceglb.filekit.dialogs.openFileSaver
 import io.github.vinceglb.filekit.write
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 
@@ -303,18 +305,21 @@ private fun Content(hazeState: HazeState) {
                             }
 
                             ModuleDestination.PotentialImage -> context(model.modulePotentialImageModel) {
+                                val lock = remember { Mutex() }
                                 ModulePotentialImageContent(
                                     onOpenPreview = { model.displayingB30Preview = true },
                                     onGenerate = { type ->
+                                        if (lock.isLocked) return@ModulePotentialImageContent
                                         scope.launch(Dispatchers.IO) {
-                                            val contents = model.settingModel.potentialAlgorithm.contents(
-                                                highScores = gameRecordsModel.highScoreRecords,
-                                                histories = gameRecordsModel.historyRecords,
-                                            )
-                                            renderComposable(
-                                                onRendered = { imageBitmap ->
-                                                    model.waiting = true
-                                                    withContext(Dispatchers.IO) {
+                                            lock.withLock {
+                                                model.waiting = true
+                                                val contents = model.settingModel.potentialAlgorithm.contents(
+                                                    highScores = gameRecordsModel.highScoreRecords,
+                                                    histories = gameRecordsModel.historyRecords,
+                                                )
+
+                                                renderComposable(
+                                                    onRendered = { imageBitmap ->
                                                         when (type) {
                                                             File -> FileKit.openFileSaver(
                                                                 suggestedName = "Potential",
@@ -335,17 +340,16 @@ private fun Content(hazeState: HazeState) {
                                                             }
                                                         }
                                                     }
-                                                    model.waiting = false
+                                                ) {
+                                                    PotentialImageContent(
+                                                        useNeoCard = model.modulePotentialImageModel.useNeoCard,
+                                                        username = model.settingModel.username,
+                                                        potential = gameRecordsModel.potential,
+                                                        algorithm = model.settingModel.potentialAlgorithm,
+                                                        contents = contents,
+                                                    )
                                                 }
-                                            ) {
-                                                PotentialImageContent(
-                                                    scale = 1.0F,
-                                                    useNeoCard = model.modulePotentialImageModel.useNeoCard,
-                                                    username = model.settingModel.username,
-                                                    potential = gameRecordsModel.potential,
-                                                    algorithm = model.settingModel.potentialAlgorithm,
-                                                    contents = contents,
-                                                )
+                                                model.waiting = false
                                             }
                                         }
                                     },
@@ -353,28 +357,30 @@ private fun Content(hazeState: HazeState) {
                             }
 
                             ModuleDestination.AchievementsImage -> context(model.moduleAchievementsImageModel) {
+                                val lock = remember { Mutex() }
                                 ModuleAchievementsImageContent(
                                     onOpenPreview = { model.displayingAchievementsPreview = true },
                                     onGenerate = { type ->
+                                        if (lock.isLocked) return@ModuleAchievementsImageContent
                                         scope.launch(Dispatchers.IO) {
-                                            val difficulties = buildList {
-                                                if (model.moduleAchievementsImageModel.minDifficultSelect) {
-                                                    add(Difficult.MIN)
+                                            lock.withLock {
+                                                model.waiting = true
+                                                val difficulties = buildList {
+                                                    if (model.moduleAchievementsImageModel.minDifficultSelect) {
+                                                        add(Difficult.MIN)
+                                                    }
+                                                    if (model.moduleAchievementsImageModel.evoDifficultSelect) {
+                                                        add(Difficult.EVO)
+                                                    }
+                                                    if (model.moduleAchievementsImageModel.ultDifficultSelect) {
+                                                        add(Difficult.ULT)
+                                                    }
+                                                    if (model.moduleAchievementsImageModel.fbdDifficultSelect) {
+                                                        add(Difficult.FBD)
+                                                    }
                                                 }
-                                                if (model.moduleAchievementsImageModel.evoDifficultSelect) {
-                                                    add(Difficult.EVO)
-                                                }
-                                                if (model.moduleAchievementsImageModel.ultDifficultSelect) {
-                                                    add(Difficult.ULT)
-                                                }
-                                                if (model.moduleAchievementsImageModel.fbdDifficultSelect) {
-                                                    add(Difficult.FBD)
-                                                }
-                                            }
-                                            renderComposable(
-                                                onRendered = { imageBitmap ->
-                                                    model.waiting = true
-                                                    withContext(Dispatchers.IO) {
+                                                renderComposable(
+                                                    onRendered = { imageBitmap ->
                                                         when (type) {
                                                             File -> withContext(Dispatchers.Main) {
                                                                 FileKit.openFileSaver(
@@ -397,21 +403,20 @@ private fun Content(hazeState: HazeState) {
                                                             }
                                                         }
                                                     }
-                                                    model.waiting = false
+                                                ) {
+                                                    AchievementsImageContent(
+                                                        useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
+                                                        username = model.settingModel.username,
+                                                        potential = gameRecordsModel.potential,
+                                                        algorithm = model.settingModel.potentialAlgorithm,
+                                                        highScores = gameRecordsModel.highScoreRecords,
+                                                        useExperimentalLevel = model.settingModel.useExperimentalLevel,
+                                                        min = model.moduleAchievementsImageModel.minLevelLimit,
+                                                        max = model.moduleAchievementsImageModel.maxLevelLimit,
+                                                        difficulties = difficulties,
+                                                    )
                                                 }
-                                            ) {
-                                                AchievementsImageContent(
-                                                    scale = 1.0F,
-                                                    useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
-                                                    username = model.settingModel.username,
-                                                    potential = gameRecordsModel.potential,
-                                                    algorithm = model.settingModel.potentialAlgorithm,
-                                                    highScores = gameRecordsModel.highScoreRecords,
-                                                    useExperimentalLevel = model.settingModel.useExperimentalLevel,
-                                                    min = model.moduleAchievementsImageModel.minLevelLimit,
-                                                    max = model.moduleAchievementsImageModel.maxLevelLimit,
-                                                    difficulties = difficulties,
-                                                )
+                                                model.waiting = false
                                             }
                                         }
                                     },

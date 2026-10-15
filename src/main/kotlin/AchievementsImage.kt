@@ -11,10 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -77,18 +74,31 @@ fun AchievementsImage(
                     }
                 },
         ) {
-            AchievementsImageContent(
-                scale = scale,
-                useNeoCard = useNeoCard,
-                username = username,
-                potential = potential,
-                algorithm = algorithm,
-                highScores = highScores,
-                useExperimentalLevel = useExperimentalLevel,
-                min = min,
-                max = max,
-                difficulties = difficulties,
-            )
+            Layout(
+                content = {
+                    AchievementsImageContent(
+                        useNeoCard = useNeoCard,
+                        username = username,
+                        potential = potential,
+                        algorithm = algorithm,
+                        highScores = highScores,
+                        useExperimentalLevel = useExperimentalLevel,
+                        min = min,
+                        max = max,
+                        difficulties = difficulties,
+                    )
+                },
+            ) { measurables, constraints ->
+                val content = measurables[0].measure(constraints.copy())
+
+                layout((content.width * scale).toInt(), (content.height * scale).toInt()) {
+                    content.placeWithLayer(0, 0) {
+                        scaleX = scale
+                        scaleY = scale
+                        transformOrigin = TransformOrigin(0F, 0F)
+                    }
+                }
+            }
         }
         HorizontalScrollbar(
             adapter = rememberScrollbarAdapter(horizontalScrollState),
@@ -104,7 +114,6 @@ fun AchievementsImage(
 @Composable
 context(_: LocalizationContext)
 fun AchievementsImageContent(
-    scale: Float,
     useNeoCard: Boolean,
     username: String,
     potential: Double,
@@ -115,119 +124,90 @@ fun AchievementsImageContent(
     max: Double?,
     difficulties: List<Difficult>,
 ) {
-    Layout(
-        content = {
-            Image(
-                painter = painterResource(Res.drawable.home_background),
-                contentDescription = null,
-                alignment = Alignment.BottomCenter,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.blur(16.dp),
-            )
-
-            Box(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .padding(24.dp),
-            ) {
-                Layout(
-                    content = {
-                        Title(
-                            username = username,
-                            potential = potential,
-                            algorithm = algorithm,
-                        )
-
-                        val groupedData = Songs.entries.flatMap { song ->
-                            listOf(
-                                AhvData(
-                                    song = song,
-                                    difficult = MIN,
-                                    diveRecord = highScores.find { it.song == song && it.difficult == MIN }
-                                ),
-                                AhvData(
-                                    song = song,
-                                    difficult = EVO,
-                                    diveRecord = highScores.find { it.song == song && it.difficult == EVO }
-                                ),
-                                AhvData(
-                                    song = song,
-                                    difficult = ULT,
-                                    diveRecord = highScores.find { it.song == song && it.difficult == ULT }
-                                ),
-                                AhvData(
-                                    song = song,
-                                    difficult = FBD,
-                                    diveRecord = highScores.find { it.song == song && it.difficult == FBD }
-                                ),
-                            )
-                        }.filter {
-                            difficulties.isEmpty() || it.difficult in difficulties
-                        }.groupBy { ahvData ->
-                            when (ahvData.difficult) {
-                                MIN -> ahvData.song.minimal
-                                EVO -> ahvData.song.evolved
-                                ULT -> ahvData.song.ultimate
-                                FBD -> ahvData.song.forbidden
-                            }.let {
-                                when (useExperimentalLevel) {
-                                    true -> it
-                                    else -> it.toInt().toDouble()
-                                }
-                            }
-                        }.filterKeys {
-                            min == null || it >= min
-                        }.filterKeys {
-                            max == null || it <= max
-                        }
-                        Content(
-                            groupedData = groupedData,
-                            useNeoCard = useNeoCard,
-                        )
-                    }
-                ) { measurables, constraints ->
-                    val content = measurables[1].measure(constraints.copy())
-
-                    val width = content.width
-
-                    val title = measurables[0].measure(
-                        constraints.copy(
-                            minWidth = width,
-                            maxWidth = width,
-                        )
-                    )
-
-                    val height = title.height + 24 + content.height
-
-                    layout(width, height) {
-                        title.place(0, 0)
-                        content.place(0, title.height + 24)
-                    }
-                }
-            }
-        }
-    ) { measurables, constraints ->
-        val content = measurables[1].measure(constraints.copy())
-
-        val width = (content.width * scale).toInt()
-        val height = (content.height * scale).toInt()
-
-        val background = measurables[0].measure(
-            constraints.copy(
-                minWidth = width,
-                maxWidth = width,
-                minHeight = height,
-                maxHeight = height,
-            )
+    Box {
+        Image(
+            painter = painterResource(Res.drawable.home_background),
+            contentDescription = null,
+            alignment = Alignment.BottomCenter,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .matchParentSize()
+                .blur(16.dp),
         )
 
-        layout(width, height) {
-            background.place(0, 0)
+        Layout(
+            content = {
+                Title(
+                    username = username,
+                    potential = potential,
+                    algorithm = algorithm,
+                )
 
-            content.placeWithLayer(0, 0) {
-                scaleX = scale
-                scaleY = scale
-                transformOrigin = TransformOrigin(0.0F, 0.0F)
+                val groupedData = Songs.entries.flatMap { song ->
+                    listOf(
+                        AhvData(
+                            song = song,
+                            difficult = MIN,
+                            diveRecord = highScores.find { it.song == song && it.difficult == MIN }
+                        ),
+                        AhvData(
+                            song = song,
+                            difficult = EVO,
+                            diveRecord = highScores.find { it.song == song && it.difficult == EVO }
+                        ),
+                        AhvData(
+                            song = song,
+                            difficult = ULT,
+                            diveRecord = highScores.find { it.song == song && it.difficult == ULT }
+                        ),
+                        AhvData(
+                            song = song,
+                            difficult = FBD,
+                            diveRecord = highScores.find { it.song == song && it.difficult == FBD }
+                        ),
+                    )
+                }.filter {
+                    difficulties.isEmpty() || it.difficult in difficulties
+                }.groupBy { ahvData ->
+                    when (ahvData.difficult) {
+                        MIN -> ahvData.song.minimal
+                        EVO -> ahvData.song.evolved
+                        ULT -> ahvData.song.ultimate
+                        FBD -> ahvData.song.forbidden
+                    }.let {
+                        when (useExperimentalLevel) {
+                            true -> it
+                            else -> it.toInt().toDouble()
+                        }
+                    }
+                }.filterKeys {
+                    min == null || it >= min
+                }.filterKeys {
+                    max == null || it <= max
+                }
+                Content(
+                    groupedData = groupedData,
+                    useNeoCard = useNeoCard,
+                )
+            },
+            modifier = Modifier.padding(24.dp),
+        ) { measurables, constraints ->
+            val content = measurables[1].measure(constraints.copy())
+
+            val width = content.width
+
+            val title = measurables[0].measure(
+                constraints.copy(
+                    minWidth = width,
+                    maxWidth = width,
+                )
+            )
+
+            val height = title.height + 24 + content.height
+
+            layout(width, height) {
+                title.place(0, 0)
+                content.place(0, title.height + 24)
             }
         }
     }

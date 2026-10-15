@@ -61,14 +61,27 @@ fun PotentialImage(
                     }
                 },
         ) {
-            PotentialImageContent(
-                scale = scale,
-                useNeoCard = useNeoCard,
-                username = username,
-                potential = potential,
-                algorithm = algorithm,
-                contents = contents,
-            )
+            Layout(
+                content = {
+                    PotentialImageContent(
+                        useNeoCard = useNeoCard,
+                        username = username,
+                        potential = potential,
+                        algorithm = algorithm,
+                        contents = contents,
+                    )
+                },
+            ) { measurables, constraints ->
+                val content = measurables[0].measure(constraints.copy())
+
+                layout((content.width * scale).toInt(), (content.height * scale).toInt()) {
+                    content.placeWithLayer(0, 0) {
+                        scaleX = scale
+                        scaleY = scale
+                        transformOrigin = TransformOrigin(0F, 0F)
+                    }
+                }
+            }
         }
         HorizontalScrollbar(
             adapter = rememberScrollbarAdapter(horizontalScrollState),
@@ -86,84 +99,54 @@ fun PotentialImage(
 @Composable
 context(_: LocalizationContext)
 fun PotentialImageContent(
-    scale: Float,
     useNeoCard: Boolean,
     username: String,
     potential: Double,
     algorithm: PotentialAlgorithm,
     contents: Map<String, List<ProcessedDiveRecord>>,
 ) {
-    Layout(
-        content = {
-            Image(
-                painter = painterResource(Res.drawable.home_background),
-                contentDescription = null,
-                alignment = Alignment.BottomCenter,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.blur(16.dp),
-            )
-
-            Box(
-                modifier = Modifier
-                    .wrapContentWidth()
-                    .padding(24.dp),
-            ) {
-                Layout(
-                    content = {
-                        Title(
-                            username = username,
-                            potential = potential,
-                            algorithm = algorithm,
-                        )
-
-                        Content(
-                            useNeoCard = useNeoCard,
-                            contents = contents,
-                        )
-                    }
-                ) { measurables, constraints ->
-                    val content = measurables[1].measure(constraints.copy())
-
-                    val width = content.width
-
-                    val title = measurables[0].measure(
-                        constraints.copy(
-                            minWidth = width,
-                            maxWidth = width,
-                        )
-                    )
-
-                    val height = title.height + content.height
-
-                    layout(width, height) {
-                        title.place(0, 0)
-                        content.place(0, title.height)
-                    }
-                }
-            }
-        }
-    ) { measurables, constraints ->
-        val content = measurables[1].measure(constraints.copy())
-
-        val width = (content.width * scale).toInt()
-        val height = (content.height * scale).toInt()
-
-        val background = measurables[0].measure(
-            constraints.copy(
-                minWidth = width,
-                maxWidth = width,
-                minHeight = height,
-                maxHeight = height,
-            )
+    Box {
+        Image(
+            painter = painterResource(Res.drawable.home_background),
+            contentDescription = null,
+            alignment = Alignment.BottomCenter,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .matchParentSize()
+                .blur(16.dp),
         )
 
-        layout(width, height) {
-            background.place(0, 0)
+        Layout(
+            content = {
+                Title(
+                    username = username,
+                    potential = potential,
+                    algorithm = algorithm,
+                )
 
-            content.placeWithLayer(0, 0) {
-                scaleX = scale
-                scaleY = scale
-                transformOrigin = TransformOrigin(0.0F, 0.0F)
+                Content(
+                    useNeoCard = useNeoCard,
+                    contents = contents,
+                )
+            },
+            modifier = Modifier.padding(24.dp),
+        ) { measurables, constraints ->
+            val content = measurables[1].measure(constraints.copy())
+
+            val width = content.width
+
+            val title = measurables[0].measure(
+                constraints.copy(
+                    minWidth = width,
+                    maxWidth = width,
+                )
+            )
+
+            val height = title.height + content.height
+
+            layout(width, height) {
+                title.place(0, 0)
+                content.place(0, title.height)
             }
         }
     }
