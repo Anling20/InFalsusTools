@@ -117,8 +117,16 @@ fun FloatingWindow(
                     AnimatedContent(playResult) {
                         if (it != null) {
                             Text(
-                                text = "+" + additionPotentialFormater.format(it.additionPotential),
-                                color = Color(83, 225, 230),
+                                text = when {
+                                    it.additionPotential > 0 -> "+" + additionPotentialFormater.format(it.additionPotential)
+                                    it.additionPotential < 0 -> additionPotentialFormater.format(it.additionPotential)
+                                    else -> "Keep"
+                                },
+                                color = when {
+                                    it.additionPotential > 0 -> Colors.PotentialWindow.potentialIncrease
+                                    it.additionPotential < 0 -> Colors.PotentialWindow.potentialDecrease
+                                    else -> Colors.PotentialWindow.potentialKeep
+                                },
                                 fontSize = 24.sp,
                                 maxLines = 1,
                                 style = LocalTextStyle.current.copy(fontFamily = exo2)

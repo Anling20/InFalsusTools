@@ -32,10 +32,13 @@ import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.*
 import cn.anling.inftool.parser.ImageGenerationType
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import io.github.vinceglb.filekit.*
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.parent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -75,6 +78,18 @@ fun ColumnScope.ModulePotentialWindowContent(
                 }
             },
         )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = i18n("module.potential_window.only_display_in_results_scene"),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Checkbox(
+                checked = model.onlyDisplayInResultsScene,
+                onCheckedChange = { model.onlyDisplayInResultsScene = it },
+            )
+        }
         ClickableTextField(
             value = model.addressFile.absolutePath(),
             label = { Text(i18n("module.potential_window.address_file_path")) },

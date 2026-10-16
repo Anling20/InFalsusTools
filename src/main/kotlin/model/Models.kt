@@ -63,6 +63,10 @@ class HomeModel(
 
 class ModulePotentialWindowModel(settings: Settings) {
     var scale by settings.float("PotentialWindow.scale", 1.0F).toComposeStated()
+    var onlyDisplayInResultsScene by settings.boolean(
+        key = "PotentialWindow.onlyDisplayInResultsScene",
+        defaultValue = false,
+    ).toComposeStated()
     private var addressFilePath by settings.string(
         key = "PotentialWindow.addressFile",
         defaultValue = "config/address.json",

@@ -78,7 +78,8 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     useExperimentalLevel = model.settingModel.useExperimentalLevel,
                     addressContainer = runBlocking {
                         Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
-                    }
+                    },
+                    onlyDisplayInResultsScene = model.modulePotentialWindowModel.onlyDisplayInResultsScene,
                 )
             }
         }

@@ -220,4 +220,10 @@ object Colors {
             }
         }
     }
+
+    object PotentialWindow {
+        val potentialIncrease = Color(83, 225, 230)
+        val potentialDecrease = Color(206, 60, 60)
+        val potentialKeep = Color(178, 178, 178)
+    }
 }

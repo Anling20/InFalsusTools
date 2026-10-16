@@ -13,6 +13,7 @@ private val container = LocalizationContainer(
     "sidebar.module.play_histories" to "Play Histories",
 
     "module.potential_window.scale" to "Scale",
+    "module.potential_window.only_display_in_results_scene" to "Only display in results scene",
     "module.potential_window.address_file_path" to "Address file path",
     "module.potential_window.stop" to "Stop",
     "module.potential_window.start" to "Start",
@@ -39,6 +40,7 @@ private val container = LocalizationContainer(
     "setting.language" to "Language",
 
     "submodule.potential_window.play_potential" to "Play potential",
+
     "submodule.achievements_image.potential_algorithm" to "Potential algorithm",
 
     "component.dive_card.potential" to "Potential",
@@ -47,8 +49,12 @@ private val container = LocalizationContainer(
     "component.dive_card.late" to "Late",
 
     "potential_algorithm.in_falsus_tools" to "In Falsus Tools",
+    "potential_algorithm.in_falsus_tools_recent10" to "In Falsus Tools(Recent 10)",
     "potential_algorithm.in_falsus_rating" to "In Falsus Rating",
-    "potential_algorithm.arcaea_best50" to "Arcaea Best50",
+    "potential_algorithm.arcaea" to "Arcaea",
+    "potential_algorithm.arcaea_classic" to "Arcaea Classic",
+    "potential_algorithm.arcaea_classic_max" to "Arcaea Classic(Max)",
+    "potential_algorithm.arcaea_classic_min" to "Arcaea Classic(Min)",
 
     "song_title.alamode" to "à la mode",
     "song_title.alterededge" to "Altered Edge",

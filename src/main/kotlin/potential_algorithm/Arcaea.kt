@@ -8,10 +8,10 @@ import cn.anling.inftool.Song
 import cn.anling.inftool.song.Songs
 import kotlin.math.max
 
-val PotentialAlgorithm.Companion.arcaeaBest50
-    get() = ArcaeaBest50PotentialAlgorithm
+val PotentialAlgorithm.Companion.arcaea
+    get() = ArcaeaPotentialAlgorithm
 
-object ArcaeaBest50PotentialAlgorithm : PotentialAlgorithm("potential_algorithm.arcaea_best50") {
+object ArcaeaPotentialAlgorithm : PotentialAlgorithm("potential_algorithm.arcaea") {
     override fun calcPlayPotential(
         highScores: List<DiveRecord>,
         histories: List<DiveRecord>,
@@ -61,8 +61,8 @@ object ArcaeaBest50PotentialAlgorithm : PotentialAlgorithm("potential_algorithm.
         highScores: List<ProcessedDiveRecord>,
         histories: List<ProcessedDiveRecord>,
     ): Double {
-        val b50 = highScores.sortedByDescending { it.potential }.take(50).map { it.potential }
-        return (b50 + b50.take(10)).sum() / 60.0
+        val b50ptt = highScores.sortedByDescending { it.potential }.map { it.potential }.take(50)
+        return (b50ptt + b50ptt.take(10)).sum() / 60.0
     }
 
     override fun contents(
@@ -71,8 +71,8 @@ object ArcaeaBest50PotentialAlgorithm : PotentialAlgorithm("potential_algorithm.
     ): Map<String, List<ProcessedDiveRecord>> {
         val b50 = highScores.sortedByDescending { it.potential }.take(50)
         return mapOf(
-            "Best50" to b50,
-            "Best10" to b50.take(10),
+            "Best 50" to b50,
+            "Best 10" to b50.take(10),
         )
     }
 }

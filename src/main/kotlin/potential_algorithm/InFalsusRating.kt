@@ -67,10 +67,10 @@ object InFalsusRatingPotentialAlgorithm : PotentialAlgorithm("potential_algorith
         highScores: List<ProcessedDiveRecord>,
         histories: List<ProcessedDiveRecord>,
     ): Double {
-        val b30 = highScores.sortedByDescending { it.potential }.take(30).map { it.potential }
-        val b6 = b30.take(6)
-        val b1 = b30.take(1)
-        return (b30 + b6 + b1 + b1).sum() / 38.0
+        val b30ptt = highScores.sortedByDescending { it.potential }.map { it.potential }.take(30)
+        val b6ptt = b30ptt.take(6)
+        val b1ptt = b30ptt.take(1)
+        return (b30ptt + b6ptt + b1ptt + b1ptt).sum() / 38.0
     }
 
     override fun contents(
@@ -78,11 +78,12 @@ object InFalsusRatingPotentialAlgorithm : PotentialAlgorithm("potential_algorith
         histories: List<ProcessedDiveRecord>,
     ): Map<String, List<ProcessedDiveRecord>> {
         val b30 = highScores.sortedByDescending { it.potential }.take(30)
+        val b6 = b30.take(6)
         val b1 = b30.take(1)
         return mapOf(
-            "Best30" to b30,
-            "Best6" to b30.take(6),
-            "Best1" to b1 + b1,
+            "Best 30" to b30,
+            "Best 6" to b6,
+            "Best 1" to b1 + b1,
         )
     }
 }

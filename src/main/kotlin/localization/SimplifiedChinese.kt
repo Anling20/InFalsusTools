@@ -11,6 +11,7 @@ private val container = LocalizationContainer(
     "sidebar.module.play_histories" to "游玩记录",
 
     "module.potential_window.scale" to "缩放",
+    "module.potential_window.only_display_in_results_scene" to "仅在结算场景显示",
     "module.potential_window.address_file_path" to "地址文件路径",
     "module.potential_window.stop" to "停止",
     "module.potential_window.start" to "启动",
@@ -37,6 +38,7 @@ private val container = LocalizationContainer(
     "setting.language" to "语言",
 
     "submodule.potential_window.play_potential" to "游玩潜力值",
+
     "submodule.achievements_image.potential_algorithm" to "潜力值算法",
 
     "component.dive_card.potential" to "潜力值",

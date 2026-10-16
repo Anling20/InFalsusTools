@@ -24,8 +24,12 @@ sealed class PotentialAlgorithm(val i18nKey: String) {
     companion object {
         val entries = listOf(
             PotentialAlgorithm.inFalsusTools,
+            PotentialAlgorithm.inFalsusToolsRecent10,
             PotentialAlgorithm.inFalsusRating,
-            PotentialAlgorithm.arcaeaBest50,
+            PotentialAlgorithm.arcaea,
+            PotentialAlgorithm.arcaeaClassic,
+            PotentialAlgorithm.arcaeaClassicMax,
+            PotentialAlgorithm.arcaeaClassicMin,
         )
     }
 }

@@ -4,8 +4,7 @@
 
 # 快速开始
 
-从 [Actions](https://github.com/Anling20/InFalsusTools/actions) 下载最新自动构建包(如果你不知道 UberJar 是什么, 请不要下它), 或是从 [QQ群](https://qm.qq.com/q/ndmzU21OyA) 下载手动构建包
-
+从 [Actions](https://github.com/Anling20/InFalsusTools/actions) 下载最新自动构建包(如果你不知道 UberJar 是什么, 请不要下它), 或是从 [QQ群](https://qm.qq.com/q/ndmzU21OyA) 下载手动构建包<br>
 如果下载非安装版, 解压到任意位置后直接双击主程序运行即可, 无需对游戏进行任何补丁操作
 
 # 社区定数
@@ -18,7 +17,9 @@
 
 # 潜力值
 
-考虑到游戏曲库较少, 使用 b30 + b10 算法而非 b50 + b10, 且没有 Dive Cleared 奖励, Perfect Dive 奖励 0.1 分
+## In Falsus Tools
+
+考虑到游戏曲库较少, 使用 b30 算法而非 b50, 且没有 Dive Cleared 奖励, Perfect Dive 奖励 0.1 分
 
 单曲潜力值计算:
 
@@ -27,7 +28,28 @@
 - 分数 < 100M: 定数 + 1 + ((分数 - 98000000) / 2000000)
 - 分数 > 100M: 定数 + 2.1
 
-个人潜力值计算: (b30 + b10) / 40
+个人潜力值计算: (b30 + r10) / 40
+
+- 当使用 `In Falsus Tools` 算法时, r10 视为 b10
+- 当使用 `In Falsus Tools(Recent 10)` 算法时, r10 算法与 `Arcaea Classic` 一致
+
+## In Falsus Rating
+
+该算法为插件 [In Falsus Rating](https://github.com/ATres001/InFalsusRating) 所使用的潜力值计算法<br>
+请参考 [评级公式](https://github.com/ATres001/InFalsusRating#%E8%AF%84%E7%BA%A7%E5%85%AC%E5%BC%8F)
+
+## Arcaea
+
+该算法为游戏 [Arcaea](https://arcaea.lowiro.com) 所使用的潜力值计算法<br>
+请参考 [计算方法](https://wiki.arcaea.cn/index.php?title=%E6%BD%9C%E5%8A%9B%E5%80%BC#%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95)
+
+## Arcaea Classic
+
+该算法为游戏 [Arcaea](https://arcaea.lowiro.com) 版本 7.0.0 前所使用的潜力值计算法<br>
+请参考 [计算方法](https://wiki.arcaea.cn/index.php?title=%E6%BD%9C%E5%8A%9B%E5%80%BC&oldid=88386#%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95)
+
+- 当使用 `Arcaea Classic(Max)` 算法时, r10 视为 b10
+- 当使用 `Arcaea Classic(Min)` 算法时, r10 视为空集合
 
 # 疑难解答
 
@@ -38,8 +60,7 @@
 
 # 地址文件
 
-潜力值悬浮窗的自动隐藏及结算状态通过读取游戏内存实现, 软件包内会默认携带 `已兼容的` 最新版本地址文件
-
+潜力值悬浮窗的自动隐藏及结算状态通过读取游戏内存实现, 软件包内会默认携带 `已兼容的` 最新版本地址文件<br>
 如需历史版本, 请前往 [此处](./address)
 
 # 反馈与建议
@@ -48,7 +69,8 @@
 
 # 其他页面
 
-[潜力值函数](https://www.desmos.com/calculator/fbyae8c2un)<br>
+[单曲潜力值函数(In Falsus Tools)](https://www.desmos.com/calculator/fbyae8c2un)
+
 [UI 设计稿](https://mastergo.com/goto/WONSik65?page_id=M&file=204973649365725)
 
 # 项目架构

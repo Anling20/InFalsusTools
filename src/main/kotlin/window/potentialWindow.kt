@@ -33,6 +33,7 @@ fun potentialWindow(
     algorithm: PotentialAlgorithm,
     useExperimentalLevel: Boolean,
     addressContainer: AddressContainer,
+    onlyDisplayInResultsScene: Boolean,
     pollInterval: Duration = 500.milliseconds,
 ) {
     val windowState = rememberWindowState(
@@ -58,6 +59,7 @@ fun potentialWindow(
         var playingGame by remember { mutableStateOf(false) }
         var focusingGame by remember { mutableStateOf(false) }
         var cursorCovered by remember { mutableStateOf(false) }
+        var inResultsScene by remember { mutableStateOf(false) }
         var visible by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
@@ -81,7 +83,11 @@ fun potentialWindow(
             launch(Dispatchers.IO) {
                 while (true) {
                     focusingGame = getFocusingWindowPID() in listGamesPID()
-                    val newVisible = focusingGame && !playingGame && !cursorCovered
+                    val inResultsSceneVisible = when (onlyDisplayInResultsScene) {
+                        true -> inResultsScene
+                        else -> true
+                    }
+                    val newVisible = focusingGame && !playingGame && !cursorCovered && inResultsSceneVisible
                     if (visible != newVisible) {
                         val oldVisible = visible
                         if (!oldVisible) {
@@ -113,7 +119,11 @@ fun potentialWindow(
                 }
                 val onGameSceneExited = suspend {
                     playingGame = false
-                    val newVisible = focusingGame && !cursorCovered
+                    val inResultsSceneVisible = when (onlyDisplayInResultsScene) {
+                        true -> inResultsScene
+                        else -> true
+                    }
+                    val newVisible = focusingGame && !cursorCovered && inResultsSceneVisible
                     if (visible != newVisible) {
                         windowVisible = true
                         visible = true
@@ -145,7 +155,19 @@ fun potentialWindow(
                         println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
                     }
                 }
+                val onResultsSceneEntered = suspend {
+                    inResultsScene = true
+                    playingGame = false
+                    val newVisible = focusingGame && !cursorCovered
+                    if (visible != newVisible) {
+                        windowVisible = true
+                        visible = true
+                        window.isAlwaysOnTop = true
+                        window.toFront()
+                    }
+                }
                 val onResultsSceneExited = suspend {
+                    inResultsScene = false
                     if (playResult != null) {
                         playResult = null
                     }
@@ -206,6 +228,7 @@ fun potentialWindow(
                             when {
                                 !latestInResultsScene && currentResultsScene != 0L -> {
                                     latestInResultsScene = true
+                                    onResultsSceneEntered()
                                 }
 
                                 latestInResultsScene && currentResultsScene == 0L -> {
@@ -232,7 +255,11 @@ fun potentialWindow(
                     val cursorCoveredX = cursorPos?.first in windowPosX..(windowPosX + windowSizeWidth)
                     val cursorCoveredY = cursorPos?.second in windowPosY..(windowPosY + windowSizeHeight)
                     cursorCovered = cursorCoveredX && cursorCoveredY
-                    val newVisible = focusingGame && !playingGame && !cursorCovered
+                    val inResultsSceneVisible = when (onlyDisplayInResultsScene) {
+                        true -> inResultsScene
+                        else -> true
+                    }
+                    val newVisible = focusingGame && !playingGame && !cursorCovered && inResultsSceneVisible
                     if (visible != newVisible) {
                         val oldVisible = visible
                         if (!oldVisible) {

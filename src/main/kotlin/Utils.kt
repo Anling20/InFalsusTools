@@ -2,7 +2,10 @@ package cn.anling.inftool
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.ImageBitmap
@@ -24,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlin.math.floor
+import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -233,4 +237,69 @@ fun renderComposable(
             }
         }
     }
+}
+
+private enum class PushType {
+    Direct, Conditional, None
+}
+
+fun calcR30(histories: List<ProcessedDiveRecord>): List<ProcessedDiveRecord> {
+    val personalBest = mutableMapOf<Pair<Song, Difficult>, ProcessedDiveRecord>()
+    val r30 = mutableListOf<ProcessedDiveRecord>()
+    histories.forEach { record ->
+        val pb = personalBest[record.song to record.difficult]
+        val conditionalPush = run {
+            val cond1 = record.score >= min(98000000, pb?.score ?: -1)
+            val pushed = r30.toMutableList().also { list ->
+                list.add(record)
+                if (list.size > 30) {
+                    list.removeFirst()
+                }
+            }
+            val cond2 =
+                pushed.distinctBy { it.song to it.difficult }.size < r30.distinctBy { it.song to it.difficult }.size
+
+            when {
+                r30.distinctBy { it.song to it.difficult }.size >= 10
+                        && pushed.distinctBy { it.song to it.difficult }.size < 10 -> PushType.None
+
+                cond1 || cond2 -> PushType.Conditional
+                else -> PushType.Direct
+            }
+        }
+        if (record.score > (pb?.score ?: -1)) {
+            personalBest[record.song to record.difficult] = record
+        }
+
+        when (conditionalPush) {
+            PushType.Direct -> {
+                r30.add(record)
+                if (r30.size > 30) {
+                    r30.removeFirst()
+                }
+            }
+
+            PushType.Conditional -> {
+                when (r30.size) {
+                    in 0..29 -> r30.add(record)
+                    else -> {
+                        val minIndex = r30.indexOfFirst { it.potential < record.potential }
+                        if (minIndex != -1) {
+                            r30[minIndex] = record
+                        }
+                    }
+                }
+            }
+
+            PushType.None -> Unit
+        }
+    }
+
+    println("Recent 30: ")
+    r30.forEachIndexed { index, record ->
+        println("#$index:${record.song.name}[${record.difficult}] ${record.potential}(${record.score})")
+    }
+    println()
+
+    return r30.toList()
 }

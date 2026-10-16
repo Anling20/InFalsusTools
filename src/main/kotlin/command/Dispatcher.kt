@@ -8,8 +8,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import cn.anling.inftool.AchievementsImage
-import cn.anling.inftool.PotentialImage
 import cn.anling.inftool.Difficult
+import cn.anling.inftool.PotentialImage
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.defaultLocalizationContainers
 import cn.anling.inftool.model.GameRecordsModel
@@ -132,7 +132,8 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                             useExperimentalLevel = model.settingModel.useExperimentalLevel,
                             addressContainer = runBlocking {
                                 Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
-                            }
+                            },
+                            onlyDisplayInResultsScene = model.modulePotentialWindowModel.onlyDisplayInResultsScene,
                         )
                     }
 
