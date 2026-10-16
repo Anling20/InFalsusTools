@@ -282,8 +282,12 @@ fun calcR30(histories: List<ProcessedDiveRecord>): List<ProcessedDiveRecord> {
             PushType.Conditional -> {
                 when (r30.size) {
                     in 0..29 -> r30.add(record)
-                    else -> {
-                        val minIndex = r30.indexOfFirst { it.potential < record.potential }
+                    else if r30.any { it.potential < record.potential } -> {
+                        val minIndex = r30.mapIndexed { index, record ->
+                            index to record
+                        }.minBy {
+                            it.second.potential
+                        }.first
                         if (minIndex != -1) {
                             r30[minIndex] = record
                         }
@@ -294,12 +298,6 @@ fun calcR30(histories: List<ProcessedDiveRecord>): List<ProcessedDiveRecord> {
             PushType.None -> Unit
         }
     }
-
-    println("Recent 30: ")
-    r30.forEachIndexed { index, record ->
-        println("#$index:${record.song.name}[${record.difficult}] ${record.potential}(${record.score})")
-    }
-    println()
 
     return r30.toList()
 }
