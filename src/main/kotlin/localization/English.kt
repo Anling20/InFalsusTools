@@ -55,6 +55,9 @@ private val container = LocalizationContainer(
     "potential_algorithm.arcaea_classic" to "Arcaea Classic",
     "potential_algorithm.arcaea_classic_max" to "Arcaea Classic(Max)",
     "potential_algorithm.arcaea_classic_min" to "Arcaea Classic(Min)",
+    "potential_algorithm.pd30" to "PD30",
+    "potential_algorithm.fl30" to "FL30",
+    "potential_algorithm.sex30" to "Sex30",
 
     "song_title.alamode" to "à la mode",
     "song_title.alterededge" to "Altered Edge",

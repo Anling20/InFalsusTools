@@ -410,7 +410,10 @@ private fun Content(hazeState: HazeState) {
                                                         potential = gameRecordsModel.potential,
                                                         algorithm = model.settingModel.potentialAlgorithm,
                                                         highScores = gameRecordsModel.highScoreRecords,
-                                                        useExperimentalLevel = model.settingModel.useExperimentalLevel,
+                                                        levelMap = when (model.settingModel.useExperimentalLevel) {
+                                                            true -> model.settingModel.experimentalLevels
+                                                            else -> model.settingModel.vanillaLevels
+                                                        },
                                                         min = model.moduleAchievementsImageModel.minLevelLimit,
                                                         max = model.moduleAchievementsImageModel.maxLevelLimit,
                                                         difficulties = difficulties,

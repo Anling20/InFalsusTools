@@ -1,13 +1,15 @@
 package cn.anling.inftool.command
 
-import cn.anling.inftool.*
+import cn.anling.inftool.AchievementsImageContent
+import cn.anling.inftool.Difficult
 import cn.anling.inftool.Difficult.*
-import cn.anling.inftool.localization.Language
+import cn.anling.inftool.copyImageToClipboard
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.defaultLocalizationContainers
-import cn.anling.inftool.parser.SaveFileParser
-import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import cn.anling.inftool.potential_algorithm.inFalsusTools
+import cn.anling.inftool.model.GameRecordsModel
+import cn.anling.inftool.model.HomeModel
+import cn.anling.inftool.renderComposable
+import cn.anling.inftool.setting.createPlatformSettings
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.requireObject
@@ -20,9 +22,11 @@ import com.github.ajalt.clikt.parameters.types.double
 import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import io.github.vinceglb.filekit.ImageFormat
-import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.absolutePathString
 
 class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
     val copyToClipboard: Boolean by option(help = "复制图片到剪贴板").flag()
@@ -40,27 +44,39 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
 
     override suspend fun run() {
         val (username, save, useExperimentalLevel) = commandContext
-        val algorithm = PotentialAlgorithm.inFalsusTools
-        val data = SaveFileParser.parse(PlatformFile(save))
-        val highScores = data.toDiveRecordList().map { record ->
-            record.process(
-                highScores = data.highScores.map { it.toDiveRecord() },
-                histories = data.history.map { it.toDiveRecord() },
-                algorithm = algorithm,
-                useExperimentalLevel = useExperimentalLevel,
-            )
-        }
-        val histories = data.history.map { record ->
-            record.toDiveRecord().process(
-                highScores = data.highScores.map { it.toDiveRecord() },
-                histories = data.history.map { it.toDiveRecord() },
-                algorithm = algorithm,
-                useExperimentalLevel = useExperimentalLevel,
-            )
-        }
-        val potential = algorithm.calcPotential(highScores, histories)
 
-        context(LocalizationContext(Language.English, defaultLocalizationContainers)) {
+        val model = HomeModel(
+            settings = createPlatformSettings(),
+            initialSaveFile = run {
+                val userHome = System.getProperty("user.home")
+                val root = Path.of(userHome, "AppData", "LocalLow", "lowiro", "infalsus")
+                Files.list(root).use { steamIdDirs ->
+                    steamIdDirs
+                        .filter { Files.isDirectory(it) }
+                        .map { it.resolve("release/savestate_V3.sav") }
+                        .filter { Files.isRegularFile(it) }
+                        .toList()
+                        .first()
+                        .absolutePathString()
+                }
+            },
+        )
+        val gameRecordsModel = GameRecordsModel().apply {
+            update(
+                saveFile = model.settingModel.saveFile,
+                algorithm = model.settingModel.potentialAlgorithm,
+                levelMap = when (model.settingModel.useExperimentalLevel) {
+                    true -> model.settingModel.experimentalLevels
+                    else -> model.settingModel.vanillaLevels
+                },
+            )
+        }
+        val localizationContext = LocalizationContext(
+            language = model.settingModel.language,
+            containers = defaultLocalizationContainers,
+        )
+
+        context(model, gameRecordsModel, localizationContext) {
             renderComposable(
                 onRendered = { imageBitmap ->
                     if (copyToClipboard) {
@@ -80,11 +96,14 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
             ) {
                 AchievementsImageContent(
                     useNeoCard = false,
-                    username = username,
-                    potential = potential,
-                    algorithm = algorithm,
-                    highScores = highScores,
-                    useExperimentalLevel = useExperimentalLevel,
+                    username = model.settingModel.username,
+                    potential = gameRecordsModel.potential,
+                    algorithm = model.settingModel.potentialAlgorithm,
+                    highScores = gameRecordsModel.highScoreRecords,
+                    levelMap = when (model.settingModel.useExperimentalLevel) {
+                        true -> model.settingModel.experimentalLevels
+                        else -> model.settingModel.vanillaLevels
+                    },
                     min = min,
                     max = max,
                     difficulties = difficulties,

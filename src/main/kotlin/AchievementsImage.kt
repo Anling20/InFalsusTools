@@ -11,7 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.isCtrlPressed
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -29,6 +32,8 @@ import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.Song
 import cn.anling.inftool.song.Songs
 import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
@@ -48,7 +53,7 @@ fun AchievementsImage(
     potential: Double,
     algorithm: PotentialAlgorithm,
     highScores: List<ProcessedDiveRecord>,
-    useExperimentalLevel: Boolean,
+    levelMap: LevelMap,
     min: Double?,
     max: Double?,
     difficulties: List<Difficult>,
@@ -82,7 +87,7 @@ fun AchievementsImage(
                         potential = potential,
                         algorithm = algorithm,
                         highScores = highScores,
-                        useExperimentalLevel = useExperimentalLevel,
+                        levelMap = levelMap,
                         min = min,
                         max = max,
                         difficulties = difficulties,
@@ -119,7 +124,7 @@ fun AchievementsImageContent(
     potential: Double,
     algorithm: PotentialAlgorithm,
     highScores: List<ProcessedDiveRecord>,
-    useExperimentalLevel: Boolean,
+    levelMap: LevelMap,
     min: Double?,
     max: Double?,
     difficulties: List<Difficult>,
@@ -143,48 +148,44 @@ fun AchievementsImageContent(
                     algorithm = algorithm,
                 )
 
-                val groupedData = Songs.entries.flatMap { song ->
-                    listOf(
-                        AhvData(
-                            song = song,
-                            difficult = MIN,
-                            diveRecord = highScores.find { it.song == song && it.difficult == MIN }
-                        ),
-                        AhvData(
-                            song = song,
-                            difficult = EVO,
-                            diveRecord = highScores.find { it.song == song && it.difficult == EVO }
-                        ),
-                        AhvData(
-                            song = song,
-                            difficult = ULT,
-                            diveRecord = highScores.find { it.song == song && it.difficult == ULT }
-                        ),
-                        AhvData(
-                            song = song,
-                            difficult = FBD,
-                            diveRecord = highScores.find { it.song == song && it.difficult == FBD }
-                        ),
-                    )
-                }.filter {
-                    difficulties.isEmpty() || it.difficult in difficulties
-                }.groupBy { ahvData ->
-                    when (ahvData.difficult) {
-                        MIN -> ahvData.song.minimal
-                        EVO -> ahvData.song.evolved
-                        ULT -> ahvData.song.ultimate
-                        FBD -> ahvData.song.forbidden
-                    }.let {
-                        when (useExperimentalLevel) {
-                            true -> it
-                            else -> it.toInt().toDouble()
-                        }
+                val groupedData = Songs.entries
+                    .flatMap { song ->
+                        listOf(
+                            AhvData(
+                                song = song,
+                                difficult = MIN,
+                                diveRecord = highScores.find { it.song == song && it.difficult == MIN }
+                            ),
+                            AhvData(
+                                song = song,
+                                difficult = EVO,
+                                diveRecord = highScores.find { it.song == song && it.difficult == EVO }
+                            ),
+                            AhvData(
+                                song = song,
+                                difficult = ULT,
+                                diveRecord = highScores.find { it.song == song && it.difficult == ULT }
+                            ),
+                            AhvData(
+                                song = song,
+                                difficult = FBD,
+                                diveRecord = highScores.find { it.song == song && it.difficult == FBD }
+                            ),
+                        )
                     }
-                }.filterKeys {
-                    min == null || it >= min
-                }.filterKeys {
-                    max == null || it <= max
-                }
+                    .filter { difficulties.isEmpty() || it.difficult in difficulties }
+                    .groupBy { ahvData ->
+                        levelMap[ahvData.song.id]?.run {
+                            when (ahvData.difficult) {
+                                MIN -> minimal
+                                EVO -> evolved
+                                ULT -> ultimate
+                                FBD -> forbidden
+                            }
+                        } ?: 0.0
+                    }
+                    .filterKeys { min == null || it >= min }
+                    .filterKeys { max == null || it <= max }
                 Content(
                     groupedData = groupedData,
                     useNeoCard = useNeoCard,
@@ -330,46 +331,46 @@ private fun Content(
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                     maxItemsInEachRow = 5,
                 ) {
-                    groupedData[level]!!.sortedByDescending {
-                        it.diveRecord?.potential ?: 0.0
-                    }.forEach { (song, difficult, diveRecord) ->
-                        val clearType = diveRecord?.clearType ?: None
-                        val titleKey = "song_title.${song.name}"
-                        val image = song.name
-                        val score = diveRecord?.score ?: 0
-                        val potential = diveRecord?.potential ?: 0.0
-                        val grading = diveRecord?.grading
-                        when (useNeoCard) {
-                            true -> DiveCard(
-                                clearType = clearType,
-                                difficult = difficult,
-                                level = level,
-                                titleKey = titleKey,
-                                position = null,
-                                image = image,
-                                score = score,
-                                potential = potential,
-                                grading = grading,
-                                judgement = diveRecord?.judgement
-                            )
+                    groupedData[level]!!
+                        .sortedByDescending { it.diveRecord?.potential ?: 0.0 }
+                        .forEach { (song, difficult, diveRecord) ->
+                            val clearType = diveRecord?.clearType ?: None
+                            val titleKey = "song_title.${song.name}"
+                            val image = song.name
+                            val score = diveRecord?.score ?: 0
+                            val potential = diveRecord?.potential ?: 0.0
+                            val grading = diveRecord?.grading
+                            when (useNeoCard) {
+                                true -> DiveCard(
+                                    clearType = clearType,
+                                    difficult = difficult,
+                                    level = level,
+                                    titleKey = titleKey,
+                                    position = null,
+                                    image = image,
+                                    score = score,
+                                    potential = potential,
+                                    grading = grading,
+                                    judgement = diveRecord?.judgement
+                                )
 
-                            else -> SongCard(
-                                clearType = clearType,
-                                grading = grading,
-                                difficult = difficult,
-                                level = level,
-                                titleKey = titleKey,
-                                position = null,
-                                image = image,
-                                score = score,
-                                potential = potential,
-                                exactPlus = diveRecord?.judgement?.exactPlus,
-                                exact = diveRecord?.judgement?.exact,
-                                near = diveRecord?.judgement?.near,
-                                `break` = diveRecord?.judgement?.`break`,
-                            )
+                                else -> SongCard(
+                                    clearType = clearType,
+                                    grading = grading,
+                                    difficult = difficult,
+                                    level = level,
+                                    titleKey = titleKey,
+                                    position = null,
+                                    image = image,
+                                    score = score,
+                                    potential = potential,
+                                    exactPlus = diveRecord?.judgement?.exactPlus,
+                                    exact = diveRecord?.judgement?.exact,
+                                    near = diveRecord?.judgement?.near,
+                                    `break` = diveRecord?.judgement?.`break`,
+                                )
+                            }
                         }
-                    }
                 }
             }
         }

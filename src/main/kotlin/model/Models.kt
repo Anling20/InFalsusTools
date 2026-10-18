@@ -6,16 +6,21 @@ import cn.anling.inftool.localization.Language
 import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.setting.toComposeStated
+import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.selectLevel
 import com.russhwolf.settings.*
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.readString
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 
 class GameRecordsModel {
     val highScoreRecords = mutableStateListOf<ProcessedDiveRecord>()
     val historyRecords = mutableStateListOf<ProcessedDiveRecord>()
     var potential by mutableDoubleStateOf(0.0)
 
-    suspend fun update(saveFile: PlatformFile, algorithm: PotentialAlgorithm, useExperimentalLevel: Boolean) {
+    suspend fun update(saveFile: PlatformFile, algorithm: PotentialAlgorithm, levelMap: LevelMap) {
         val parsedData = SaveFileParser.parse(saveFile)
         highScoreRecords.clear()
         highScoreRecords.addAll(
@@ -24,20 +29,22 @@ class GameRecordsModel {
                     highScores = parsedData.highScores.map { it.toDiveRecord() },
                     histories = parsedData.history.map { it.toDiveRecord() },
                     algorithm = algorithm,
-                    useExperimentalLevel = useExperimentalLevel,
+                    level = levelMap.selectLevel(record),
                 )
             }
         )
         historyRecords.clear()
         historyRecords.addAll(
-            parsedData.history.map { record ->
-                record.toDiveRecord().process(
-                    highScores = parsedData.highScores.map { it.toDiveRecord() },
-                    histories = parsedData.history.map { it.toDiveRecord() },
-                    algorithm = algorithm,
-                    useExperimentalLevel = useExperimentalLevel,
-                )
-            }
+            parsedData.history
+                .map { it.toDiveRecord() }
+                .map { record ->
+                    record.process(
+                        highScores = parsedData.highScores.map { it.toDiveRecord() },
+                        histories = parsedData.history.map { it.toDiveRecord() },
+                        algorithm = algorithm,
+                        level = levelMap.selectLevel(record),
+                    )
+                }
         )
         potential = algorithm.calcPotential(highScoreRecords, historyRecords)
     }
@@ -109,6 +116,15 @@ class SettingModel(
         }
 
     var useExperimentalLevel by settings.boolean("Setting.useExperimentalLevel", false).toComposeStated()
+
+    val vanillaLevels: LevelMap = runBlocking {
+        Json.decodeFromString(PlatformFile("config/levels/vanilla.json").readString())
+    }
+
+    val experimentalLevels: LevelMap = runBlocking {
+        Json.decodeFromString(PlatformFile("config/levels/experimental.json").readString())
+    }
+
     private var potentialAlgorithmIndex by settings.int("Setting.potentialAlgorithm", 0).toComposeStated()
     var potentialAlgorithm
         get() = PotentialAlgorithm.entries[potentialAlgorithmIndex]

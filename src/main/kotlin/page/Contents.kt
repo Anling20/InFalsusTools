@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.folder_open
-import cn.anling.inftool.ClearType
 import cn.anling.inftool.DiveCardFlat
 import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.component.ClickableTextField
@@ -465,7 +464,7 @@ fun ModulePlayHistoriesContent(records: List<ProcessedDiveRecord>) {
     ) {
         items(records.reversed()) { record ->
             DiveCardFlat(
-                clearType = record.clearType ?: ClearType.None,
+                clearType = record.clearType,
                 image = record.song.name,
                 difficult = record.difficult,
                 level = record.level,
@@ -530,7 +529,10 @@ fun SettingContent() {
                         gameRecordsModel.update(
                             saveFile = model.saveFile,
                             algorithm = model.potentialAlgorithm,
-                            useExperimentalLevel = model.useExperimentalLevel,
+                            levelMap = when (model.useExperimentalLevel) {
+                                true -> model.experimentalLevels
+                                else -> model.vanillaLevels
+                            },
                         )
                     }
                 }
@@ -551,7 +553,10 @@ fun SettingContent() {
                         gameRecordsModel.update(
                             saveFile = model.saveFile,
                             algorithm = model.potentialAlgorithm,
-                            useExperimentalLevel = model.useExperimentalLevel,
+                            levelMap = when (model.useExperimentalLevel) {
+                                true -> model.experimentalLevels
+                                else -> model.vanillaLevels
+                            },
                         )
                     }
                 },
@@ -591,7 +596,10 @@ fun SettingContent() {
                                     gameRecordsModel.update(
                                         saveFile = model.saveFile,
                                         algorithm = model.potentialAlgorithm,
-                                        useExperimentalLevel = model.useExperimentalLevel,
+                                        levelMap = when (model.useExperimentalLevel) {
+                                            true -> model.experimentalLevels
+                                            else -> model.vanillaLevels
+                                        },
                                     )
                                 }
                             },

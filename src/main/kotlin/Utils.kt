@@ -14,10 +14,11 @@ import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.window.singleWindowApplication
-import cn.anling.inftool.Difficult.*
+import cn.anling.inftool.parser.ParsedJudgementTypeCount
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.parser.ParsedSave
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.Song
 import cn.anling.inftool.song.Songs
 import cn.anling.inftool.theme.AppTheme
 import io.github.vinceglb.filekit.PlatformFile
@@ -31,63 +32,36 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
 
-fun ParsedSave.toDiveRecordList(): List<DiveRecord> = highScores.map { highScoreRecord ->
-    val result = history.findLast { historyRecord ->
-        historyRecord.songId == highScoreRecord.songId &&
-                historyRecord.difficultyIndex == highScoreRecord.difficultyIndex &&
-                historyRecord.score == highScoreRecord.score
-    }
-    if (result == null) {
-        println("Play history not found: ${highScoreRecord.baseName}(songId:${highScoreRecord.songId}, difficultyIndex:${highScoreRecord.difficultyIndex}, score:${highScoreRecord.score})")
-    }
-    highScoreRecord to result
-}.map { (highScoreRecord, historyRecord) ->
-    DiveRecord(
-        id = highScoreRecord.songId,
-        name = highScoreRecord.baseName,
-        difficult = Difficult.entries[highScoreRecord.difficultyIndex],
-        score = highScoreRecord.score,
-        clearType = historyRecord?.run { ClearType.entries[resultClear] },
-        diveValue = historyRecord?.paceValue,
-        judgement = historyRecord?.run {
-            CountContainer(
-                maxLink = maxCombo,
-                tap = JudgementCount(
-                    exactPlus = counts.tap.shiny,
-                    exactEarly = counts.tap.perfectEarly,
-                    exactLate = counts.tap.perfectLate,
-                    nearEarly = counts.tap.nearEarly,
-                    nearLate = counts.tap.nearLate,
-                    `break` = counts.tap.miss,
-                ),
-                hold = JudgementCount(
-                    exactPlus = counts.hold.shiny,
-                    exactEarly = counts.hold.perfectEarly,
-                    exactLate = counts.hold.perfectLate,
-                    nearEarly = counts.hold.nearEarly,
-                    nearLate = counts.hold.nearLate,
-                    `break` = counts.hold.miss,
-                ),
-                field = JudgementCount(
-                    exactPlus = counts.skyArea.shiny,
-                    exactEarly = counts.skyArea.perfectEarly,
-                    exactLate = counts.skyArea.perfectLate,
-                    nearEarly = counts.skyArea.nearEarly,
-                    nearLate = counts.skyArea.nearLate,
-                    `break` = counts.skyArea.miss,
-                ),
-                flick = JudgementCount(
-                    exactPlus = counts.flick.shiny,
-                    exactEarly = counts.flick.perfectEarly,
-                    exactLate = counts.flick.perfectLate,
-                    nearEarly = counts.flick.nearEarly,
-                    nearLate = counts.flick.nearLate,
-                    `break` = counts.flick.miss,
+fun ParsedSave.toDiveRecordList(): List<DiveRecord> =
+    highScores
+        .map { highScoreRecord ->
+            val result = history
+                .findLast { historyRecord ->
+                    and(
+                        historyRecord.songId == highScoreRecord.songId,
+                        historyRecord.difficultyIndex == highScoreRecord.difficultyIndex,
+                        historyRecord.score == highScoreRecord.score,
+                    )
+                }
+                ?: error("Play history not found: ${highScoreRecord.baseName}(songId:${highScoreRecord.songId}, difficultyIndex:${highScoreRecord.difficultyIndex}, score:${highScoreRecord.score})")
+            highScoreRecord to result
+        }.map { (highScore, history) ->
+            DiveRecord(
+                id = highScore.songId,
+                name = highScore.baseName,
+                difficult = Difficult.entries[highScore.difficultyIndex],
+                score = highScore.score,
+                clearType = ClearType.entries[history.resultClear],
+                diveValue = history.paceValue,
+                judgement = CountContainer(
+                    maxLink = history.maxCombo,
+                    tap = history.counts.tap.toJudgementCount(),
+                    hold = history.counts.hold.toJudgementCount(),
+                    field = history.counts.skyArea.toJudgementCount(),
+                    flick = history.counts.flick.toJudgementCount(),
                 ),
             )
-        },
-    )
-}
+        }
 
 fun ParsedRecord.toDiveRecord(): DiveRecord = DiveRecord(
     id = songId,
@@ -98,69 +72,33 @@ fun ParsedRecord.toDiveRecord(): DiveRecord = DiveRecord(
     diveValue = paceValue,
     judgement = CountContainer(
         maxLink = maxCombo,
-        tap = JudgementCount(
-            exactPlus = counts.tap.shiny,
-            exactEarly = counts.tap.perfectEarly,
-            exactLate = counts.tap.perfectLate,
-            nearEarly = counts.tap.nearEarly,
-            nearLate = counts.tap.nearLate,
-            `break` = counts.tap.miss,
-        ),
-        hold = JudgementCount(
-            exactPlus = counts.hold.shiny,
-            exactEarly = counts.hold.perfectEarly,
-            exactLate = counts.hold.perfectLate,
-            nearEarly = counts.hold.nearEarly,
-            nearLate = counts.hold.nearLate,
-            `break` = counts.hold.miss,
-        ),
-        field = JudgementCount(
-            exactPlus = counts.skyArea.shiny,
-            exactEarly = counts.skyArea.perfectEarly,
-            exactLate = counts.skyArea.perfectLate,
-            nearEarly = counts.skyArea.nearEarly,
-            nearLate = counts.skyArea.nearLate,
-            `break` = counts.skyArea.miss,
-        ),
-        flick = JudgementCount(
-            exactPlus = counts.flick.shiny,
-            exactEarly = counts.flick.perfectEarly,
-            exactLate = counts.flick.perfectLate,
-            nearEarly = counts.flick.nearEarly,
-            nearLate = counts.flick.nearLate,
-            `break` = counts.flick.miss,
-        ),
+        tap = counts.tap.toJudgementCount(),
+        hold = counts.hold.toJudgementCount(),
+        field = counts.skyArea.toJudgementCount(),
+        flick = counts.flick.toJudgementCount(),
     ),
+)
+
+fun ParsedJudgementTypeCount.toJudgementCount(): JudgementCount = JudgementCount(
+    exactPlus = shiny,
+    exactEarly = perfectEarly,
+    exactLate = perfectLate,
+    nearEarly = nearEarly,
+    nearLate = nearLate,
+    `break` = miss,
 )
 
 fun DiveRecord.process(
     highScores: List<DiveRecord>,
     histories: List<DiveRecord>,
     algorithm: PotentialAlgorithm,
-    useExperimentalLevel: Boolean,
+    level: Double,
 ): ProcessedDiveRecord {
-    val song = Songs.entries.firstOrNull { it.id == id } ?: Song(
-        id = id,
-        name = name,
-        minimal = 1.0,
-        evolved = 1.0,
-        ultimate = 1.0,
-        forbidden = 1.0,
-    )
+    val song = Songs.entries
+        .firstOrNull { it.id == id }
+        ?: Song(id, name)
 
-    val level = when (difficult) {
-        MIN -> song.minimal
-        EVO -> song.evolved
-        ULT -> song.ultimate
-        FBD -> song.forbidden
-    }.let {
-        when (useExperimentalLevel) {
-            true -> it
-            else -> it.toInt().toDouble()
-        }
-    }
-
-    val potential = algorithm.calcPlayPotential(highScores, histories, this, useExperimentalLevel)
+    val potential = algorithm.calcPlayPotential(highScores, histories, this, level)
 
     val grading = when (score) {
         in 0..<80000000 -> Grading.D
@@ -301,3 +239,9 @@ fun calcR30(histories: List<ProcessedDiveRecord>): List<ProcessedDiveRecord> {
 
     return r30.toList()
 }
+
+fun and(vararg conditions: Boolean): Boolean =
+    conditions.all { it }
+
+fun or(vararg conditions: Boolean): Boolean =
+    conditions.any { it }

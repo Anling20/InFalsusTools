@@ -13,6 +13,7 @@ import cn.anling.inftool.*
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.LevelMap
 import io.github.vinceglb.filekit.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -31,7 +32,7 @@ fun potentialWindow(
     potential: Double,
     saveFile: PlatformFile,
     algorithm: PotentialAlgorithm,
-    useExperimentalLevel: Boolean,
+    levelMap: LevelMap,
     addressContainer: AddressContainer,
     onlyDisplayInResultsScene: Boolean,
     pollInterval: Duration = 500.milliseconds,
@@ -137,7 +138,7 @@ fun potentialWindow(
                         histories = model.historyRecords,
                     )
 
-                    model.update(saveFile, algorithm, useExperimentalLevel)
+                    model.update(saveFile, algorithm, levelMap)
 
                     val newPtt = algorithm.calcPotential(
                         highScores = model.highScoreRecords,

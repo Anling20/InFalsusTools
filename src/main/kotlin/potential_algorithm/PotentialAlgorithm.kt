@@ -8,7 +8,7 @@ sealed class PotentialAlgorithm(val i18nKey: String) {
         highScores: List<DiveRecord>,
         histories: List<DiveRecord>,
         playRecord: DiveRecord,
-        useExperimentalLevel: Boolean,
+        level: Double,
     ): Double
 
     abstract fun calcPotential(
@@ -30,6 +30,9 @@ sealed class PotentialAlgorithm(val i18nKey: String) {
             PotentialAlgorithm.arcaeaClassic,
             PotentialAlgorithm.arcaeaClassicMax,
             PotentialAlgorithm.arcaeaClassicMin,
+            PotentialAlgorithm.pd30,
+            PotentialAlgorithm.fl30,
+            PotentialAlgorithm.sex30,
         )
     }
 }

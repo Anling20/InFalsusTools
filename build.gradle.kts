@@ -115,9 +115,9 @@ tasks.withType<JavaExec>().configureEach {
 tasks.register<Copy>("copyExtraResources") {
     description = "Copy extra resources"
 
-    from("extraResources")
+    from("config")
 
-    into(layout.buildDirectory.dir("compose/binaries/main-release/app/In Falsus Tools"))
+    into(layout.buildDirectory.dir("compose/binaries/main-release/app/In Falsus Tools/config"))
 }
 
 afterEvaluate {

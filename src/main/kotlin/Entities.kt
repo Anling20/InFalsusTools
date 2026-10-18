@@ -1,5 +1,7 @@
 package cn.anling.inftool
 
+import cn.anling.inftool.song.Song
+
 enum class Difficult {
     MIN, EVO, ULT, FBD
 }
@@ -12,22 +14,13 @@ enum class Grading {
     EXPlus, EX, AA, A, B, C, D
 }
 
-data class Song(
-    val id: Int,
-    val name: String,
-    val minimal: Double,
-    val evolved: Double,
-    val ultimate: Double,
-    val forbidden: Double,
-)
-
 data class ProcessedDiveRecord(
     val song: Song,
     val difficult: Difficult,
     val score: Long,
-    val clearType: ClearType?,
-    val diveValue: Int?,
-    val judgement: CountContainer?,
+    val clearType: ClearType,
+    val diveValue: Int,
+    val judgement: CountContainer,
     val potential: Double,
     val grading: Grading,
     val level: Double,
@@ -39,9 +32,9 @@ data class DiveRecord(
     val name: String,
     val difficult: Difficult,
     val score: Long,
-    val clearType: ClearType?,
-    val diveValue: Int?,
-    val judgement: CountContainer?,
+    val clearType: ClearType,
+    val diveValue: Int,
+    val judgement: CountContainer,
 )
 
 data class CountContainer(

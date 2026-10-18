@@ -56,7 +56,10 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                         update(
                             saveFile = model.settingModel.saveFile,
                             algorithm = model.settingModel.potentialAlgorithm,
-                            useExperimentalLevel = model.settingModel.useExperimentalLevel,
+                            levelMap = when (model.settingModel.useExperimentalLevel) {
+                                true -> model.settingModel.experimentalLevels
+                                else -> model.settingModel.vanillaLevels
+                            },
                         )
                     }
                 }
@@ -75,7 +78,10 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                     potential = gameRecordsModel.potential,
                     saveFile = model.settingModel.saveFile,
                     algorithm = model.settingModel.potentialAlgorithm,
-                    useExperimentalLevel = model.settingModel.useExperimentalLevel,
+                    levelMap = when (model.settingModel.useExperimentalLevel) {
+                        true -> model.settingModel.experimentalLevels
+                        else -> model.settingModel.vanillaLevels
+                    },
                     addressContainer = runBlocking {
                         Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
                     },
