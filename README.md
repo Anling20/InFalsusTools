@@ -33,6 +33,14 @@
 - 当使用 `In Falsus Tools` 算法时, r10 视为 b10
 - 当使用 `In Falsus Tools(Recent 10)` 算法时, r10 算法与 `Arcaea Classic` 一致
 
+### 工具算法
+
+单曲潜力值计算与 `In Falsus Tools` 一致
+
+- `PD 30` 仅将 `Perfect Dive` 游玩结果加入 b30 列表
+- `FL 30` 仅将 `Full Link` 游玩结果加入 b30 列表
+- `Sex 30` 仅将 `1 near`/`1 break` 游玩结果加入 b30 列表
+
 ## In Falsus Rating
 
 该算法为插件 [In Falsus Rating](https://github.com/ATres001/InFalsusRating) 所使用的潜力值计算法<br>
