@@ -49,7 +49,7 @@ object InFalsusRatingPotentialAlgorithm : PotentialAlgorithm("potential_algorith
             .take(30)
         val b6ptt = b30ptt.take(6)
         val b1ptt = b30ptt.take(1)
-        return (b30ptt + b6ptt + b1ptt + b1ptt).average()
+        return (b30ptt + b6ptt + b1ptt + b1ptt).sum() / 38
     }
 
     override fun contents(

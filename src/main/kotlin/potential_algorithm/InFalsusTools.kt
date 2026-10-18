@@ -36,7 +36,7 @@ object InFalsusToolsPotentialAlgorithm : PotentialAlgorithm("potential_algorithm
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(30)
-        return (b30ptt + b30ptt.take(10)).average()
+        return (b30ptt + b30ptt.take(10)).sum() / 40
     }
 
     override fun contents(
@@ -80,7 +80,7 @@ object InFalsusToolsRecent10PotentialAlgorithm : PotentialAlgorithm("potential_a
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(10)
-        return (b30ptt + r10ptt).average()
+        return (b30ptt + r10ptt).sum() / 40
     }
 
     override fun contents(

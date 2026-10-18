@@ -44,7 +44,7 @@ object ArcaeaClassicPotentialAlgorithm : PotentialAlgorithm("potential_algorithm
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(10)
-        return (b30ptt + r10ptt).average()
+        return (b30ptt + r10ptt).sum() / 40
     }
 
     override fun contents(
@@ -88,7 +88,7 @@ object ArcaeaClassicMaxPotentialAlgorithm : PotentialAlgorithm("potential_algori
             .map { it.potential }
             .take(30)
         val r10ptt = b30ptt.take(10)
-        return (b30ptt + r10ptt).average()
+        return (b30ptt + r10ptt).sum() / 40
     }
 
     override fun contents(
@@ -128,7 +128,7 @@ object ArcaeaClassicMinPotentialAlgorithm : PotentialAlgorithm("potential_algori
             .map { it.potential }
             .take(30)
         val r10ptt = emptyList<Double>()
-        return (b30ptt + r10ptt).average()
+        return (b30ptt + r10ptt).sum() / 40
     }
 
     override fun contents(

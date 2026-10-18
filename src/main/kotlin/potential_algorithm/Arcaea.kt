@@ -40,7 +40,7 @@ object ArcaeaPotentialAlgorithm : PotentialAlgorithm("potential_algorithm.arcaea
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(50)
-        return (b50ptt + b50ptt.take(10)).average()
+        return (b50ptt + b50ptt.take(10)).sum() / 60
     }
 
     override fun contents(

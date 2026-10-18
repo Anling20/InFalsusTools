@@ -36,7 +36,7 @@ object PD30PotentialAlgorithm : PotentialAlgorithm("potential_algorithm.pd30") {
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(30)
-        return (p30ptt + p30ptt.take(10)).average()
+        return (p30ptt + p30ptt.take(10)).sum() / 40
     }
 
     override fun contents(
@@ -75,7 +75,7 @@ object FL30PotentialAlgorithm : PotentialAlgorithm("potential_algorithm.fl30") {
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(30)
-        return (p30ptt + p30ptt.take(10)).average()
+        return (p30ptt + p30ptt.take(10)).sum() / 40
     }
 
     override fun contents(
@@ -118,7 +118,7 @@ object Sex30PotentialAlgorithm : PotentialAlgorithm("potential_algorithm.sex30")
             }.sortedByDescending { it.potential }
             .map { it.potential }
             .take(30)
-        return (p30ptt + p30ptt.take(10)).average()
+        return (p30ptt + p30ptt.take(10)).sum() / 40
     }
 
     override fun contents(
