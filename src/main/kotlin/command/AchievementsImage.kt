@@ -1,14 +1,11 @@
 package cn.anling.inftool.command
 
-import cn.anling.inftool.AchievementsImageContent
-import cn.anling.inftool.Difficult
+import cn.anling.inftool.*
 import cn.anling.inftool.Difficult.*
-import cn.anling.inftool.copyImageToClipboard
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.defaultLocalizationContainers
 import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.HomeModel
-import cn.anling.inftool.renderComposable
 import cn.anling.inftool.setting.createPlatformSettings
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
@@ -99,7 +96,7 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
                     username = model.settingModel.username,
                     potential = gameRecordsModel.potential,
                     algorithm = model.settingModel.potentialAlgorithm,
-                    highScores = gameRecordsModel.highScoreRecords,
+                    highScores = gameRecordsModel.historyRecords.findHighScores(),
                     levelMap = when (model.settingModel.useExperimentalLevel) {
                         true -> model.settingModel.experimentalLevels
                         else -> model.settingModel.vanillaLevels

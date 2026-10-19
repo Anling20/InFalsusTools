@@ -3,12 +3,12 @@
 import cn.anling.inftool.ClearType.*
 import cn.anling.inftool.DiveRecord
 import cn.anling.inftool.ProcessedDiveRecord
+import cn.anling.inftool.findHighScores
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import kotlin.math.max
 
 object : PotentialAlgorithm("Arcaea") {
     override fun calcPlayPotential(
-        highScores: List<DiveRecord>,
         histories: List<DiveRecord>,
         playRecord: DiveRecord,
         level: Double,
@@ -31,10 +31,10 @@ object : PotentialAlgorithm("Arcaea") {
     }
 
     override fun calcPotential(
-        highScores: List<ProcessedDiveRecord>,
         histories: List<ProcessedDiveRecord>,
     ): Double {
-        val b50ptt = highScores
+        val b50ptt = histories
+            .findHighScores()
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(50)
@@ -42,10 +42,10 @@ object : PotentialAlgorithm("Arcaea") {
     }
 
     override fun contents(
-        highScores: List<ProcessedDiveRecord>,
         histories: List<ProcessedDiveRecord>,
     ): Map<String, List<ProcessedDiveRecord>> {
-        val b50 = highScores
+        val b50 = histories
+            .findHighScores()
             .sortedByDescending { it.potential }
             .take(50)
         return mapOf(

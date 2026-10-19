@@ -10,6 +10,7 @@ import androidx.compose.ui.window.rememberWindowState
 import cn.anling.inftool.AchievementsImage
 import cn.anling.inftool.Difficult
 import cn.anling.inftool.PotentialImage
+import cn.anling.inftool.findHighScores
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.defaultLocalizationContainers
 import cn.anling.inftool.model.GameRecordsModel
@@ -157,7 +158,6 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                                 potential = gameRecordsModel.potential,
                                 algorithm = model.settingModel.potentialAlgorithm,
                                 contents = model.settingModel.potentialAlgorithm.contents(
-                                    highScores = gameRecordsModel.highScoreRecords,
                                     histories = gameRecordsModel.historyRecords,
                                 ),
                             )
@@ -189,7 +189,7 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                                 username = model.settingModel.username,
                                 potential = gameRecordsModel.potential,
                                 algorithm = model.settingModel.potentialAlgorithm,
-                                highScores = gameRecordsModel.highScoreRecords,
+                                highScores = gameRecordsModel.historyRecords.findHighScores(),
                                 levelMap = when (model.settingModel.useExperimentalLevel) {
                                     true -> model.settingModel.experimentalLevels
                                     else -> model.settingModel.vanillaLevels

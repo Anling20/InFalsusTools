@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.*
@@ -16,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.infalsustools.generated.resources.Res
@@ -30,6 +30,7 @@ import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.*
 import cn.anling.inftool.parser.ImageGenerationType
+import cn.anling.inftool.unfocusOnPressEnter
 import io.github.vinceglb.filekit.*
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
@@ -44,6 +45,7 @@ fun ColumnScope.ModulePotentialWindowContent(
     started: Boolean,
     onSwitchStarted: () -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
@@ -54,24 +56,27 @@ fun ColumnScope.ModulePotentialWindowContent(
         TextField(
             state = state,
             label = { Text(i18n("module.potential_window.scale")) },
-            inputTransformation = InputTransformation {
-                toString().toFloatOrNull()?.let {
-                    when (it > 0) {
-                        true -> it
-                        else -> null
-                    }
-                } ?: revertAllChanges()
-            },
             lineLimits = TextFieldLineLimits.SingleLine,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
-            modifier = Modifier.onFocusChanged { focusState ->
-                if (!focusState.isFocused) {
-                    model.scale = state.text.toString().toFloat()
-                }
-            },
+            modifier = Modifier
+                .unfocusOnPressEnter(focusManager)
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        val value = state.text.toString().toFloatOrNull()?.let {
+                            when (it > 0) {
+                                true -> it
+                                else -> null
+                            }
+                        }
+                        when (value) {
+                            null -> state.edit { replace(0, length, model.scale.toString()) }
+                            else -> model.scale = value
+                        }
+                    }
+                },
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -151,6 +156,7 @@ fun ColumnScope.ModulePotentialImageContent(
     onOpenPreview: () -> Unit,
     onGenerate: (ImageGenerationType) -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
@@ -161,23 +167,27 @@ fun ColumnScope.ModulePotentialImageContent(
         TextField(
             state = state,
             label = { Text(i18n("module.potential_image.quality")) },
-            inputTransformation = InputTransformation {
-                toString().toIntOrNull()?.let {
-                    if (it !in 1..100) {
-                        replace(0, length, it.coerceIn(1, 100).toString())
-                    }
-                } ?: revertAllChanges()
-            },
             lineLimits = TextFieldLineLimits.SingleLine,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
-            modifier = Modifier.onFocusChanged { focusState ->
-                if (!focusState.isFocused) {
-                    model.quality = state.text.toString().toInt()
-                }
-            },
+            modifier = Modifier
+                .unfocusOnPressEnter(focusManager)
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        val value = state.text.toString().toIntOrNull()?.let {
+                            when (it !in 1..100) {
+                                true -> null
+                                else -> it
+                            }
+                        }
+                        when (value) {
+                            null -> state.edit { replace(0, length, model.quality.toString()) }
+                            else -> model.quality = value
+                        }
+                    }
+                },
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -251,6 +261,7 @@ fun ColumnScope.ModuleAchievementsImageContent(
     onOpenPreview: () -> Unit,
     onGenerate: (ImageGenerationType) -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
@@ -263,65 +274,77 @@ fun ColumnScope.ModuleAchievementsImageContent(
         TextField(
             state = qualityState,
             label = { Text(i18n("module.achievements_image.quality")) },
-            inputTransformation = InputTransformation {
-                toString().toIntOrNull()?.let {
-                    if (it !in 1..100) {
-                        replace(0, length, it.coerceIn(1, 100).toString())
-                    }
-                } ?: revertAllChanges()
-            },
             lineLimits = TextFieldLineLimits.SingleLine,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
-            modifier = Modifier.onFocusChanged { focusState ->
-                if (!focusState.isFocused) {
-                    model.quality = qualityState.text.toString().toInt()
-                }
-            },
+            modifier = Modifier
+                .unfocusOnPressEnter(focusManager)
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        val value = qualityState.text.toString().toIntOrNull()?.let {
+                            when (it !in 1..100) {
+                                true -> null
+                                else -> it
+                            }
+                        }
+                        when (value) {
+                            null -> qualityState.edit { replace(0, length, model.quality.toString()) }
+                            else -> model.quality = value
+                        }
+                    }
+                },
         )
         TextField(
             state = minState,
             label = { Text(i18n("module.achievements_image.minimal_level_limit")) },
-            inputTransformation = InputTransformation {
-                toString().toDoubleOrNull()?.let {
-                    if (it !in 1.0..model.maxLevelLimit) {
-                        replace(0, length, it.coerceIn(1.0, model.maxLevelLimit).toString())
-                    }
-                } ?: revertAllChanges()
-            },
             lineLimits = TextFieldLineLimits.SingleLine,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
-            modifier = Modifier.onFocusChanged { focusState ->
-                if (!focusState.isFocused) {
-                    model.minLevelLimit = minState.text.toString().toDouble()
-                }
-            },
+            modifier = Modifier
+                .unfocusOnPressEnter(focusManager)
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        val value = minState.text.toString().toDoubleOrNull()?.let {
+                            when (it !in 0.0..model.maxLevelLimit) {
+                                true -> null
+                                else -> it
+                            }
+                        }
+                        when (value) {
+                            null -> minState.edit { replace(0, length, model.minLevelLimit.toString()) }
+                            else -> model.minLevelLimit = value
+                        }
+                    }
+                },
         )
         TextField(
             state = maxState,
             label = { Text(i18n("module.achievements_image.maximum_level_limit")) },
-            inputTransformation = InputTransformation {
-                toString().toDoubleOrNull()?.let {
-                    if (it !in model.minLevelLimit..15.0) {
-                        replace(0, length, it.coerceIn(model.minLevelLimit, 15.0).toString())
-                    }
-                } ?: revertAllChanges()
-            },
             lineLimits = TextFieldLineLimits.SingleLine,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
-            modifier = Modifier.onFocusChanged { focusState ->
-                if (!focusState.isFocused) {
-                    model.maxLevelLimit = maxState.text.toString().toDouble()
-                }
-            },
+            modifier = Modifier
+                .unfocusOnPressEnter(focusManager)
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        val value = maxState.text.toString().toDoubleOrNull()?.let {
+                            when (it < model.minLevelLimit) {
+                                true -> null
+                                else -> it
+                            }
+                        }
+                        when (value) {
+                            null -> maxState.edit { replace(0, length, model.maxLevelLimit.toString()) }
+                            else -> model.maxLevelLimit = value
+                        }
+                    }
+                },
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(64.dp),
@@ -479,6 +502,7 @@ fun ModulePlayHistoriesContent(records: List<ProcessedDiveRecord>) {
 context(model: SettingModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
 fun SettingContent() {
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier.fillMaxSize(),
@@ -492,11 +516,13 @@ fun SettingContent() {
                 focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
-            modifier = Modifier.onFocusChanged { focusState ->
-                if (!focusState.isFocused) {
-                    model.username = state.text.toString()
-                }
-            },
+            modifier = Modifier
+                .unfocusOnPressEnter(focusManager)
+                .onFocusChanged { focusState ->
+                    if (!focusState.isFocused) {
+                        model.username = state.text.toString()
+                    }
+                },
         )
         ClickableTextField(
             value = model.saveFile.absolutePath(),

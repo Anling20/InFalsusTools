@@ -124,39 +124,6 @@ fun potentialWindow(
                         window.isAlwaysOnTop = true
                         window.toFront()
                     }
-
-
-
-                    val oldHistories = gameRecordsModel.historyRecords.toList()
-                    val oldPtt = model.potentialAlgorithm.calcPotential(
-                        highScores = gameRecordsModel.highScoreRecords,
-                        histories = gameRecordsModel.historyRecords,
-                    )
-
-                    gameRecordsModel.update(
-                        saveFile = model.saveFile,
-                        algorithm = model.potentialAlgorithm,
-                        levelMap = when (model.useExperimentalLevel) {
-                            true -> model.experimentalLevels
-                            else -> model.vanillaLevels
-                        },
-                    )
-
-                    val newPtt = model.potentialAlgorithm.calcPotential(
-                        highScores = gameRecordsModel.highScoreRecords,
-                        histories = gameRecordsModel.historyRecords,
-                    )
-                    val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
-
-                    if (gameRecordsModel.historyRecords.lastOrNull() != oldHistories.lastOrNull() || deltaPtt > 0.0) {
-                        val recent = gameRecordsModel.historyRecords.last()
-                        playResult = PlayResult(
-                            level = recent.level,
-                            potential = recent.potential,
-                            additionPotential = deltaPtt
-                        )
-                        println("Play result: ${recent.potential}, potential change: $oldPtt -> $newPtt, delta: $deltaPtt")
-                    }
                 }
                 val onResultsSceneEntered = suspend {
                     inResultsScene = true
@@ -171,9 +138,6 @@ fun potentialWindow(
                 }
                 val onResultsSceneExited = suspend {
                     inResultsScene = false
-                    if (playResult != null) {
-                        playResult = null
-                    }
                 }
                 val processMemoryMap = mutableMapOf<Long, ProcessMemory>()
                 var latestFocusingGame: Long? = null
@@ -278,6 +242,33 @@ fun potentialWindow(
                     }
                     delay(100.milliseconds)
                 }
+            }
+        }
+
+        LaunchedEffect(inResultsScene) {
+            when (inResultsScene) {
+                true -> {
+                    gameRecordsModel.update(
+                        saveFile = model.saveFile,
+                        algorithm = model.potentialAlgorithm,
+                        levelMap = when (model.useExperimentalLevel) {
+                            true -> model.experimentalLevels
+                            else -> model.vanillaLevels
+                        },
+                    )
+
+                    val oldPtt = model.potentialAlgorithm.calcPotential(gameRecordsModel.historyRecords.dropLast(1))
+                    val newPtt = gameRecordsModel.potential
+                    val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
+                    val recent = gameRecordsModel.historyRecords.last()
+                    playResult = PlayResult(
+                        level = recent.level,
+                        potential = recent.potential,
+                        additionPotential = deltaPtt
+                    )
+                }
+
+                else -> playResult = null
             }
         }
 

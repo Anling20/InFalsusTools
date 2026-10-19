@@ -89,7 +89,6 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
                     potential = gameRecordsModel.potential,
                     algorithm = model.settingModel.potentialAlgorithm,
                     contents = model.settingModel.potentialAlgorithm.contents(
-                        highScores = gameRecordsModel.highScoreRecords,
                         histories = gameRecordsModel.historyRecords,
                     ),
                 )

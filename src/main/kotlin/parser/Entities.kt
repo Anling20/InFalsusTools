@@ -1,10 +1,5 @@
 package cn.anling.inftool.parser
 
-data class ParsedSave(
-    val history: List<ParsedRecord>,
-    val highScores: List<ParsedRecord>,
-)
-
 data class ParsedRecord(
     val songId: Int,
     val baseName: String,

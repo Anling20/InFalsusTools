@@ -3,7 +3,7 @@ package cn.anling.inftool.model
 import androidx.compose.runtime.*
 import cn.anling.inftool.*
 import cn.anling.inftool.localization.Language
-import cn.anling.inftool.parser.SaveFileParser
+import cn.anling.inftool.parser.HistoryParser
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.potential_algorithm.script.PotentialAlgorithmScriptLoader
 import cn.anling.inftool.setting.toComposeStated
@@ -15,37 +15,24 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
 class GameRecordsModel {
-    val highScoreRecords = mutableStateListOf<ProcessedDiveRecord>()
     val historyRecords = mutableStateListOf<ProcessedDiveRecord>()
     var potential by mutableDoubleStateOf(0.0)
 
     suspend fun update(saveFile: PlatformFile, algorithm: PotentialAlgorithm, levelMap: LevelMap) {
-        val parsedData = SaveFileParser.parse(saveFile)
-        highScoreRecords.clear()
-        highScoreRecords.addAll(
-            parsedData.toDiveRecordList().map { record ->
-                record.process(
-                    highScores = parsedData.highScores.map { it.toDiveRecord() },
-                    histories = parsedData.history.map { it.toDiveRecord() },
-                    algorithm = algorithm,
-                    level = levelMap.selectLevel(record),
-                )
-            }
-        )
+        val histories = HistoryParser.parse(saveFile.readBytesWhenAvailable())
         historyRecords.clear()
         historyRecords.addAll(
-            parsedData.history
+            histories
                 .map { it.toDiveRecord() }
                 .map { record ->
                     record.process(
-                        highScores = parsedData.highScores.map { it.toDiveRecord() },
-                        histories = parsedData.history.map { it.toDiveRecord() },
+                        histories = histories.map { it.toDiveRecord() },
                         algorithm = algorithm,
                         level = levelMap.selectLevel(record),
                     )
                 }
         )
-        potential = algorithm.calcPotential(highScoreRecords, historyRecords)
+        potential = algorithm.calcPotential(historyRecords)
     }
 }
 

@@ -8,15 +8,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.window.singleWindowApplication
 import cn.anling.inftool.parser.ParsedJudgementTypeCount
 import cn.anling.inftool.parser.ParsedRecord
-import cn.anling.inftool.parser.ParsedSave
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.song.Song
 import cn.anling.inftool.song.Songs
@@ -31,37 +32,6 @@ import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.milliseconds
-
-fun ParsedSave.toDiveRecordList(): List<DiveRecord> =
-    highScores
-        .map { highScoreRecord ->
-            val result = history
-                .findLast { historyRecord ->
-                    and(
-                        historyRecord.songId == highScoreRecord.songId,
-                        historyRecord.difficultyIndex == highScoreRecord.difficultyIndex,
-                        historyRecord.score == highScoreRecord.score,
-                    )
-                }
-                ?: error("Play history not found: ${highScoreRecord.baseName}(songId:${highScoreRecord.songId}, difficultyIndex:${highScoreRecord.difficultyIndex}, score:${highScoreRecord.score})")
-            highScoreRecord to result
-        }.map { (highScore, history) ->
-            DiveRecord(
-                id = highScore.songId,
-                name = highScore.baseName,
-                difficult = Difficult.entries[highScore.difficultyIndex],
-                score = highScore.score,
-                clearType = ClearType.entries[history.resultClear],
-                diveValue = history.paceValue,
-                judgement = CountContainer(
-                    maxLink = history.maxCombo,
-                    tap = history.counts.tap.toJudgementCount(),
-                    hold = history.counts.hold.toJudgementCount(),
-                    field = history.counts.skyArea.toJudgementCount(),
-                    flick = history.counts.flick.toJudgementCount(),
-                ),
-            )
-        }
 
 fun ParsedRecord.toDiveRecord(): DiveRecord = DiveRecord(
     id = songId,
@@ -89,7 +59,6 @@ fun ParsedJudgementTypeCount.toJudgementCount(): JudgementCount = JudgementCount
 )
 
 fun DiveRecord.process(
-    highScores: List<DiveRecord>,
     histories: List<DiveRecord>,
     algorithm: PotentialAlgorithm,
     level: Double,
@@ -98,7 +67,7 @@ fun DiveRecord.process(
         .firstOrNull { it.id == id }
         ?: Song(id, name)
 
-    val potential = algorithm.calcPlayPotential(highScores, histories, this, level)
+    val potential = algorithm.calcPlayPotential(histories, this, level)
 
     val grading = when (score) {
         in 0..<80000000 -> Grading.D
@@ -245,3 +214,21 @@ fun and(vararg conditions: Boolean): Boolean =
 
 fun or(vararg conditions: Boolean): Boolean =
     conditions.any { it }
+
+fun Modifier.unfocusOnPressEnter(focusManager: FocusManager): Modifier =
+    onKeyEvent { event ->
+        when (event.type == KeyEventType.KeyUp && (event.key == Key.Enter || event.key == Key.NumPadEnter)) {
+            true -> {
+                focusManager.clearFocus()
+                true
+            }
+
+            else -> false
+        }
+    }
+
+fun List<ProcessedDiveRecord>.findHighScores(): List<ProcessedDiveRecord> = this
+    .groupBy { it.song to it.difficult }
+    .mapValues { (_, value) -> value.maxBy { it.potential } }
+    .values
+    .toList()

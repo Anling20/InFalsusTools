@@ -314,7 +314,6 @@ private fun Content(hazeState: HazeState) {
                                             lock.withLock {
                                                 model.waiting = true
                                                 val contents = model.settingModel.potentialAlgorithm.contents(
-                                                    highScores = gameRecordsModel.highScoreRecords,
                                                     histories = gameRecordsModel.historyRecords,
                                                 )
 
@@ -409,7 +408,7 @@ private fun Content(hazeState: HazeState) {
                                                         username = model.settingModel.username,
                                                         potential = gameRecordsModel.potential,
                                                         algorithm = model.settingModel.potentialAlgorithm,
-                                                        highScores = gameRecordsModel.highScoreRecords,
+                                                        highScores = gameRecordsModel.historyRecords.findHighScores(),
                                                         levelMap = when (model.settingModel.useExperimentalLevel) {
                                                             true -> model.settingModel.experimentalLevels
                                                             else -> model.settingModel.vanillaLevels

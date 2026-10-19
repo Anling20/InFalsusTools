@@ -1,5 +1,7 @@
 package cn.anling.inftool.parser
 
+import cn.anling.inftool.and
+
 private data class HistoryArray(
     val start: Int,
     val length: Int,
@@ -34,9 +36,46 @@ object HistoryParser {
     }
 
     private fun find(data: ByteArray): HistoryArray? {
-        // 对应 Python find_records(data)
-        val records = HighScoresParser.find(data)
-            ?.second
+        var best: List<RecordLocation>? = null
+        for (start in 0 until (data.size - 16).coerceAtLeast(0)) {
+            if (start + 1 >= data.size) {
+                continue
+            }
+
+            elementAt(data, start)
+                ?: continue
+
+            val records = ArrayList<RecordLocation>()
+            var position = start
+
+            while (true) {
+                val current = elementAt(data, position)
+                    ?: break
+
+                records += current
+                position = current.payloadOffset + RECORD_PAYLOAD
+            }
+
+            if (records.size < 3) {
+                continue
+            }
+
+            if (start < 4) {
+                continue
+            }
+
+            val count = BinaryReader(data).i32(start - 4)
+
+            if (count != records.size) {
+                continue
+            }
+
+            if (best == null || records.size > best.size) {
+                best = records
+            }
+        }
+
+        val records = best
             ?: return null
 
         if (records.isEmpty()) return null
@@ -87,6 +126,47 @@ object HistoryParser {
         )
     }
 
+    private fun elementAt(
+        data: ByteArray,
+        offset: Int,
+    ): RecordLocation? {
+        if (offset + 1 >= data.size) {
+            return null
+        }
+
+        val name = MemoryPack.stringAt(data, offset + 1)
+            ?: return null
+
+        val payloadOffset = offset + 1 + 8 + name.length
+
+        if (payloadOffset + RECORD_PAYLOAD > data.size) {
+            return null
+        }
+
+        val reader = BinaryReader(data)
+        val songId1 = reader.u16(payloadOffset)
+        val difficulty1 = reader.u8(payloadOffset + 2)
+        val songId2 = reader.u16(payloadOffset + 3)
+        val difficulty2 = reader.u8(payloadOffset + 5)
+
+        if (songId1 != songId2) {
+            return null
+        }
+
+        if (difficulty1 != difficulty2) {
+            return null
+        }
+
+        if (difficulty1 !in DIFFICULTY_FLAGS) {
+            return null
+        }
+
+        return RecordLocation(
+            name = name,
+            payloadOffset = payloadOffset,
+        )
+    }
+
     private fun emptySlot(
         data: ByteArray,
         offset: Int,
@@ -120,10 +200,12 @@ object HistoryParser {
         val clear = reader.u8(offset + 4)
         val score = reader.i64(offset + 0x50)
 
-        return songId in 1..4096 &&
-                difficulty in DIFFICULTY_FLAGS &&
-                lamp <= 2 &&
-                clear <= 4 &&
-                score in 0 until 1_000_000_000L
+        return and(
+            songId in 1..4096,
+            difficulty in DIFFICULTY_FLAGS,
+            lamp <= 2,
+            clear <= 4,
+            score in 0 until 1_000_000_000L,
+        )
     }
 }
