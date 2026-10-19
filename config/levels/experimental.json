@@ -57,13 +57,13 @@
     "minimal": 3.0,
     "evolved": 6.0,
     "ultimate": 10.5,
-    "forbidden": 12.2
+    "forbidden": 12.3
   },
   "13": {
     "minimal": 3.0,
     "evolved": 6.0,
     "ultimate": 9.3,
-    "forbidden": 12.3
+    "forbidden": 12.2
   },
   "14": {
     "minimal": 4.0,
@@ -229,7 +229,7 @@
   },
   "41": {
     "minimal": 6.0,
-    "evolved": 9.8,
+    "evolved": 10.0,
     "ultimate": 12.6,
     "forbidden": 14.5
   },
@@ -307,7 +307,7 @@
   },
   "54": {
     "minimal": 6.0,
-    "evolved": 9.9,
+    "evolved": 10.0,
     "ultimate": 12.8,
     "forbidden": 15.0
   },
@@ -369,7 +369,7 @@
     "minimal": 1.0,
     "evolved": 4.0,
     "ultimate": 8.0,
-    "forbidden": 10.0
+    "forbidden": 9.5
   },
   "65": {
     "minimal": 3.0,
@@ -440,7 +440,7 @@
   "88": {
     "minimal": 3.0,
     "evolved": 6.0,
-    "ultimate": 9.4,
+    "ultimate": 9.3,
     "forbidden": 12.4
   },
   "89": {
