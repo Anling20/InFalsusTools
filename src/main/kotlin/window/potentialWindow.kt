@@ -124,6 +124,28 @@ fun potentialWindow(
                         window.isAlwaysOnTop = true
                         window.toFront()
                     }
+
+
+                    if (inResultsScene && playResult == null) {
+                        gameRecordsModel.update(
+                            saveFile = model.saveFile,
+                            algorithm = model.potentialAlgorithm,
+                            levelMap = when (model.useExperimentalLevel) {
+                                true -> model.experimentalLevels
+                                else -> model.vanillaLevels
+                            },
+                        )
+
+                        val oldPtt = model.potentialAlgorithm.calcPotential(gameRecordsModel.historyRecords.dropLast(1))
+                        val newPtt = gameRecordsModel.potential
+                        val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
+                        val recent = gameRecordsModel.historyRecords.last()
+                        playResult = PlayResult(
+                            level = recent.level,
+                            potential = recent.potential,
+                            additionPotential = deltaPtt
+                        )
+                    }
                 }
                 val onResultsSceneEntered = suspend {
                     inResultsScene = true
@@ -246,7 +268,7 @@ fun potentialWindow(
         }
 
         LaunchedEffect(inResultsScene) {
-            when (inResultsScene) {
+            when (inResultsScene && playResult == null) {
                 true -> {
                     gameRecordsModel.update(
                         saveFile = model.saveFile,
