@@ -33,8 +33,8 @@ object : PotentialAlgorithm("In Falsus Tools(Recent 10)") {
             .take(30)
         val r30 = calcR30(histories)
         val r10ptt = r30
-            .distinctBy { it.song to it.difficult }
             .sortedByDescending { it.potential }
+            .distinctBy { it.song to it.difficult }
             .map { it.potential }
             .take(10)
         return (b30ptt + r10ptt).sum() / 40
@@ -49,8 +49,8 @@ object : PotentialAlgorithm("In Falsus Tools(Recent 10)") {
             .take(30)
         val r30 = calcR30(histories)
         val r10 = r30
-            .distinctBy { it.song to it.difficult }
             .sortedByDescending { it.potential }
+            .distinctBy { it.song to it.difficult }
             .take(10)
         return mapOf(
             "Best 30" to b30,
