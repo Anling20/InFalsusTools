@@ -126,7 +126,7 @@ fun potentialWindow(
                     }
 
 
-                    if (inResultsScene && playResult == null) {
+                    if (inResultsScene) {
                         gameRecordsModel.update(
                             saveFile = model.saveFile,
                             algorithm = model.potentialAlgorithm,
@@ -268,7 +268,7 @@ fun potentialWindow(
         }
 
         LaunchedEffect(inResultsScene) {
-            when (inResultsScene && playResult == null) {
+            when (inResultsScene) {
                 true -> {
                     gameRecordsModel.update(
                         saveFile = model.saveFile,
