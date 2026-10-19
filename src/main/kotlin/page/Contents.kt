@@ -30,14 +30,10 @@ import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.*
 import cn.anling.inftool.parser.ImageGenerationType
-import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.absolutePath
+import io.github.vinceglb.filekit.*
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
-import io.github.vinceglb.filekit.exists
-import io.github.vinceglb.filekit.parent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -538,6 +534,42 @@ fun SettingContent() {
                 }
             },
         )
+        ClickableTextField(
+            value = model.potentialAlgorithmFile.absolutePath(),
+            label = { Text(i18n("setting.potential_algorithm")) },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(Res.drawable.folder_open),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            },
+            singleLine = true,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
+                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
+            ),
+            onClick = {
+                val file = FileKit.openFilePicker(
+                    type = FileKitType.File("potential.kts"),
+                    mode = FileKitMode.Single,
+                    directory = getWorkingFolder() / "config/potential_algorithms",
+                )
+                if (file != null) {
+                    model.potentialAlgorithmFile = file
+                    scope.launch(Dispatchers.IO) {
+                        gameRecordsModel.update(
+                            saveFile = model.saveFile,
+                            algorithm = model.potentialAlgorithm,
+                            levelMap = when (model.useExperimentalLevel) {
+                                true -> model.experimentalLevels
+                                else -> model.vanillaLevels
+                            },
+                        )
+                    }
+                }
+            },
+        )
         Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -561,52 +593,6 @@ fun SettingContent() {
                     }
                 },
             )
-        }
-        run {
-            var expanded by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-            ) {
-                TextField(
-                    value = i18n(model.potentialAlgorithm.i18nKey),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(i18n("setting.potential_algorithm")) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                        unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-                    ),
-                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                ) {
-                    PotentialAlgorithm.entries.forEach { item ->
-                        DropdownMenuItem(
-                            text = { Text(i18n(item.i18nKey)) },
-                            onClick = {
-                                expanded = false
-                                model.potentialAlgorithm = item
-                                scope.launch(Dispatchers.IO) {
-                                    gameRecordsModel.update(
-                                        saveFile = model.saveFile,
-                                        algorithm = model.potentialAlgorithm,
-                                        levelMap = when (model.useExperimentalLevel) {
-                                            true -> model.experimentalLevels
-                                            else -> model.vanillaLevels
-                                        },
-                                    )
-                                }
-                            },
-                        )
-                    }
-                }
-            }
         }
         run {
             var expanded by remember { mutableStateOf(false) }

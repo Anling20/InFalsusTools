@@ -15,7 +15,7 @@
 
 若有需要/提供数据, 请前往 [在线定数表](https://www.kdocs.cn/l/cocUhcII8C6N) 查看, 考虑到权限控制关闭编辑申请权, 请通过评论的方式像我们提供您的名称与定数
 
-# 潜力值
+# 潜力值算法
 
 ## In Falsus Tools
 
@@ -107,8 +107,11 @@ Kotlin Multiplatform 配置保存读取
 [FileKit](https://github.com/vinceglb/FileKit)<br>
 Kotlin/Compose Multiplatform 文件操作(读写, 选取/保存)
 
+[Kotlin Scripting](https://github.com/Kotlin/KEEP/blob/main/proposals/KEEP-0075-scripting-support.md)<br>
+Kotlin 脚本, 用于实现自定义潜力值算法脚本
+
 [github-workflows-kt](https://github.com/typesafegithub/github-workflows-kt)<br>
-Kotlin Script GitHub Actions 工作流文件生成
+Kotlin Scripting GitHub Actions 工作流文件生成
 
 # 特别感谢
 

@@ -275,7 +275,7 @@ private fun Title(
                 text = buildString {
                     append(i18n("submodule.achievements_image.potential_algorithm"))
                     append(": ")
-                    append(i18n(algorithm.i18nKey))
+                    append(algorithm.name)
                 },
                 color = Color.White,
                 fontSize = 36.sp,

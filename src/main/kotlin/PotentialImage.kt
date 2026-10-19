@@ -213,7 +213,7 @@ private fun Title(
                 text = buildString {
                     append(i18n("submodule.achievements_image.potential_algorithm"))
                     append(": ")
-                    append(i18n(algorithm.i18nKey))
+                    append(algorithm.name)
                 },
                 color = Color.White,
                 fontSize = 36.sp,
@@ -262,7 +262,7 @@ private fun Content(
                         val grading = record.grading
                         when (useNeoCard) {
                             true -> DiveCard(
-                                clearType = clearType ?: ClearType.None,
+                                clearType = clearType,
                                 difficult = difficult,
                                 level = level,
                                 titleKey = titleKey,
@@ -275,7 +275,7 @@ private fun Content(
                             )
 
                             else -> SongCard(
-                                clearType = clearType ?: ClearType.None,
+                                clearType = clearType,
                                 grading = grading,
                                 difficult = difficult,
                                 level = level,
@@ -284,10 +284,10 @@ private fun Content(
                                 image = image,
                                 score = score,
                                 potential = potential,
-                                exactPlus = record.judgement?.exactPlus,
-                                exact = record.judgement?.exact,
-                                near = record.judgement?.near,
-                                `break` = record.judgement?.`break`,
+                                exactPlus = record.judgement.exactPlus,
+                                exact = record.judgement.exact,
+                                near = record.judgement.near,
+                                `break` = record.judgement.`break`,
                             )
                         }
                     }

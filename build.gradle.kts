@@ -62,6 +62,8 @@ kotlin {
             implementation("com.russhwolf:multiplatform-settings:1.3.0")
             implementation("io.github.vinceglb:filekit-core:0.16.0")
             implementation("io.github.vinceglb:filekit-dialogs-compose:0.16.0")
+
+            implementation("org.jetbrains.kotlin:kotlin-scripting-common:2.4.21")
         }
 
         jvmMain.dependencies {
@@ -70,6 +72,9 @@ kotlin {
             }
 
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.0")
+
+            implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.21")
+            implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.4.21")
         }
     }
 }
@@ -89,6 +94,7 @@ compose.desktop {
             packageName = "In Falsus Tools"
             packageVersion = "1.0.0"
             jvmArgs("-Dfile.encoding=UTF-8")
+            includeAllModules = true
 
             linux {
                 modules("jdk.security.auth")
@@ -97,6 +103,7 @@ compose.desktop {
 
         buildTypes.release.proguard {
             configurationFiles.from(project.file("src/main@jvm/rules.pro"))
+            optimize.set(false)
         }
     }
 }
@@ -117,11 +124,22 @@ tasks.register<Copy>("copyExtraResources") {
 
     from("config")
 
+    into(layout.buildDirectory.dir("compose/binaries/main/app/In Falsus Tools/config"))
+}
+
+tasks.register<Copy>("copyExtraResourcesRelease") {
+    description = "Copy extra resources"
+
+    from("config")
+
     into(layout.buildDirectory.dir("compose/binaries/main-release/app/In Falsus Tools/config"))
 }
 
 afterEvaluate {
-    tasks.named("packageReleaseAppImage") {
+    tasks.named("packageAppImage") {
         finalizedBy("copyExtraResources")
+    }
+    tasks.named("packageReleaseAppImage") {
+        finalizedBy("copyExtraResourcesRelease")
     }
 }

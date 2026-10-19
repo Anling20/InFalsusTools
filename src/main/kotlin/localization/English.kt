@@ -48,17 +48,6 @@ private val container = LocalizationContainer(
     "component.dive_card.early" to "Early",
     "component.dive_card.late" to "Late",
 
-    "potential_algorithm.in_falsus_tools" to "In Falsus Tools",
-    "potential_algorithm.in_falsus_tools_recent10" to "In Falsus Tools(Recent 10)",
-    "potential_algorithm.in_falsus_rating" to "In Falsus Rating",
-    "potential_algorithm.arcaea" to "Arcaea",
-    "potential_algorithm.arcaea_classic" to "Arcaea Classic",
-    "potential_algorithm.arcaea_classic_max" to "Arcaea Classic(Max)",
-    "potential_algorithm.arcaea_classic_min" to "Arcaea Classic(Min)",
-    "potential_algorithm.pd30" to "PD 30",
-    "potential_algorithm.fl30" to "FL 30",
-    "potential_algorithm.sex30" to "Sex 30",
-
     "song_title.alamode" to "à la mode",
     "song_title.alterededge" to "Altered Edge",
     "song_title.bethere" to "Be There",

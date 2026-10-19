@@ -66,9 +66,17 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
 
         if (currentContext.invokedSubcommand == null) {
             application {
+                val settings = createPlatformSettings()
+
+                runCatching {
+                    if (settings.getIntOrNull("Setting.potentialAlgorithm") != null) {
+                        settings.remove("Setting.potentialAlgorithm")
+                    }
+                }
+
                 val model = remember(Unit) {
                     HomeModel(
-                        settings = createPlatformSettings(),
+                        settings = settings,
                         initialSaveFile = run {
                             val userHome = System.getProperty("user.home")
                             val root = Path.of(userHome, "AppData", "LocalLow", "lowiro", "infalsus")
@@ -125,22 +133,16 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                     }
 
                     if (model.startedPotentialWindow) {
-                        potentialWindow(
-                            onCloseRequest = { model.startedPotentialWindow = false },
-                            scale = model.modulePotentialWindowModel.scale,
-                            username = model.settingModel.username,
-                            potential = gameRecordsModel.potential,
-                            saveFile = model.settingModel.saveFile,
-                            algorithm = model.settingModel.potentialAlgorithm,
-                            levelMap = when (model.settingModel.useExperimentalLevel) {
-                                true -> model.settingModel.experimentalLevels
-                                else -> model.settingModel.vanillaLevels
-                            },
-                            addressContainer = runBlocking {
-                                Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
-                            },
-                            onlyDisplayInResultsScene = model.modulePotentialWindowModel.onlyDisplayInResultsScene,
-                        )
+                        context(model.settingModel) {
+                            potentialWindow(
+                                onCloseRequest = { model.startedPotentialWindow = false },
+                                scale = model.modulePotentialWindowModel.scale,
+                                addressContainer = runBlocking {
+                                    Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
+                                },
+                                onlyDisplayInResultsScene = model.modulePotentialWindowModel.onlyDisplayInResultsScene,
+                            )
+                        }
                     }
 
                     if (model.displayingB30Preview) {

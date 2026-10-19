@@ -5,13 +5,12 @@ import cn.anling.inftool.*
 import cn.anling.inftool.localization.Language
 import cn.anling.inftool.parser.SaveFileParser
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.potential_algorithm.script.PotentialAlgorithmScriptLoader
 import cn.anling.inftool.setting.toComposeStated
 import cn.anling.inftool.song.LevelMap
 import cn.anling.inftool.song.selectLevel
 import com.russhwolf.settings.*
-import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.absolutePath
-import io.github.vinceglb.filekit.readString
+import io.github.vinceglb.filekit.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 
@@ -79,7 +78,12 @@ class ModulePotentialWindowModel(settings: Settings) {
         defaultValue = "config/address.json",
     ).toComposeStated()
     var addressFile
-        get() = PlatformFile(addressFilePath)
+        get() = PlatformFile(addressFilePath).let {
+            when (it.exists() && it.isRegularFile()) {
+                true -> it
+                else -> PlatformFile("config/address.json")
+            }
+        }
         set(value) {
             addressFilePath = value.absolutePath()
         }
@@ -125,12 +129,24 @@ class SettingModel(
         Json.decodeFromString(PlatformFile("config/levels/experimental.json").readString())
     }
 
-    private var potentialAlgorithmIndex by settings.int("Setting.potentialAlgorithm", 0).toComposeStated()
-    var potentialAlgorithm
-        get() = PotentialAlgorithm.entries[potentialAlgorithmIndex]
-        set(value) {
-            potentialAlgorithmIndex = PotentialAlgorithm.entries.indexOf(value)
+    private var potentialAlgorithmPath by settings.string(
+        key = "Setting.potentialAlgorithm",
+        defaultValue = "config/potential_algorithms/In Falsus Tools.potential.kts",
+    ).toComposeStated()
+    var potentialAlgorithmFile
+        get() = PlatformFile(potentialAlgorithmPath).let {
+            when (it.exists() && it.isRegularFile()) {
+                true -> it
+                else -> PlatformFile("config/potential_algorithms/In Falsus Tools.potential.kts")
+            }
         }
+        set(value) {
+            potentialAlgorithmPath = value.absolutePath()
+            potentialAlgorithm = PotentialAlgorithmScriptLoader.load(value)
+        }
+
+    var potentialAlgorithm by mutableStateOf(PotentialAlgorithmScriptLoader.load(potentialAlgorithmFile))
+        private set
 
     private var languageIndex by settings.int("Setting.language", 1).toComposeStated()
     var language

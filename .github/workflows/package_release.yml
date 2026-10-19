@@ -32,37 +32,13 @@ jobs:
         ./gradlew :generateActualResourceCollectorsForJvmMain
         ./gradlew :assembleJvmMainResources
     - id: 'step-4'
-      name: 'package windows-uberjar-amd64'
-      run: './gradlew :packageReleaseUberJarForCurrentOS'
+      name: 'package windows-portable-amd64'
+      run: './gradlew :packageAppImage'
     - id: 'step-5'
       uses: 'actions/upload-artifact@v7'
       with:
-        name: 'InFalsusTools-windows-uberjar-amd64'
-        path: 'build/compose/jars/*'
-    - id: 'step-6'
-      name: 'package windows-portable-amd64'
-      run: './gradlew :packageReleaseAppImage'
-    - id: 'step-7'
-      uses: 'actions/upload-artifact@v7'
-      with:
         name: 'InFalsusTools-windows-portable-amd64'
-        path: 'build/compose/binaries/main-release/app/*'
-    - id: 'step-8'
-      name: 'package windows-installer-msi-amd64'
-      run: './gradlew :packageReleaseMsi'
-    - id: 'step-9'
-      uses: 'actions/upload-artifact@v7'
-      with:
-        name: 'InFalsusTools-windows-installer-msi-amd64'
-        path: 'build/compose/binaries/main-release/msi/*'
-    - id: 'step-10'
-      name: 'package windows-installer-exe-amd64'
-      run: './gradlew :packageReleaseExe'
-    - id: 'step-11'
-      uses: 'actions/upload-artifact@v7'
-      with:
-        name: 'InFalsusTools-windows-installer-exe-amd64'
-        path: 'build/compose/binaries/main-release/exe/*'
+        path: 'build/compose/binaries/main/app/*'
   package-windows-aarch64:
     runs-on: 'windows-11-arm'
     permissions:
@@ -87,34 +63,10 @@ jobs:
         ./gradlew :generateActualResourceCollectorsForJvmMain
         ./gradlew :assembleJvmMainResources
     - id: 'step-4'
-      name: 'package windows-uberjar-aarch64'
-      run: './gradlew :packageReleaseUberJarForCurrentOS'
+      name: 'package windows-portable-aarch64'
+      run: './gradlew :packageAppImage'
     - id: 'step-5'
       uses: 'actions/upload-artifact@v7'
       with:
-        name: 'InFalsusTools-windows-uberjar-aarch64'
-        path: 'build/compose/jars/*'
-    - id: 'step-6'
-      name: 'package windows-portable-aarch64'
-      run: './gradlew :packageReleaseAppImage'
-    - id: 'step-7'
-      uses: 'actions/upload-artifact@v7'
-      with:
         name: 'InFalsusTools-windows-portable-aarch64'
-        path: 'build/compose/binaries/main-release/app/*'
-    - id: 'step-8'
-      name: 'package windows-installer-msi-aarch64'
-      run: './gradlew :packageReleaseMsi'
-    - id: 'step-9'
-      uses: 'actions/upload-artifact@v7'
-      with:
-        name: 'InFalsusTools-windows-installer-msi-aarch64'
-        path: 'build/compose/binaries/main-release/msi/*'
-    - id: 'step-10'
-      name: 'package windows-installer-exe-aarch64'
-      run: './gradlew :packageReleaseExe'
-    - id: 'step-11'
-      uses: 'actions/upload-artifact@v7'
-      with:
-        name: 'InFalsusTools-windows-installer-exe-aarch64'
-        path: 'build/compose/binaries/main-release/exe/*'
+        path: 'build/compose/binaries/main/app/*'

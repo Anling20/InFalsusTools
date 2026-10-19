@@ -29,10 +29,10 @@ val content: WorkflowBuilder.() -> Unit = {
 		system = "windows",
 		arch = "amd64",
 		publishes = listOf(
-			"uberjar" to "UberJarForCurrentOS" to "jars",
-			"portable" to "AppImage" to "binaries/main-release/app",
-			"installer-msi" to "Msi" to "binaries/main-release/msi",
-			"installer-exe" to "Exe" to "binaries/main-release/exe",
+//			"uberjar" to "UberJarForCurrentOS" to "jars",
+			"portable" to "AppImage" to "binaries/main/app",
+//			"installer-msi" to "Msi" to "binaries/main-release/msi",
+//			"installer-exe" to "Exe" to "binaries/main-release/exe",
 		),
 	)
 	publish(
@@ -40,10 +40,10 @@ val content: WorkflowBuilder.() -> Unit = {
 		system = "windows",
 		arch = "aarch64",
 		publishes = listOf(
-			"uberjar" to "UberJarForCurrentOS" to "jars",
-			"portable" to "AppImage" to "binaries/main-release/app",
-			"installer-msi" to "Msi" to "binaries/main-release/msi",
-			"installer-exe" to "Exe" to "binaries/main-release/exe",
+//			"uberjar" to "UberJarForCurrentOS" to "jars",
+			"portable" to "AppImage" to "binaries/main/app",
+//			"installer-msi" to "Msi" to "binaries/main-release/msi",
+//			"installer-exe" to "Exe" to "binaries/main-release/exe",
 		),
 	)
 	/*publish(
@@ -151,7 +151,7 @@ fun WorkflowBuilder.publish(runsOn: RunnerType, system: String, arch: String, pu
 fun JobBuilder<JobOutputs.EMPTY>.publish(name: String, task: String, path: String) {
 	run(
 		name = "package $name",
-		command = "./gradlew :packageRelease$task",
+		command = "./gradlew :package$task",
 	)
 	uses(
 		action = UploadArtifact(

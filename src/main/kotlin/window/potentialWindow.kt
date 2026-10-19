@@ -12,9 +12,7 @@ import androidx.compose.ui.window.rememberWindowState
 import cn.anling.inftool.*
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.model.GameRecordsModel
-import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import cn.anling.inftool.song.LevelMap
-import io.github.vinceglb.filekit.PlatformFile
+import cn.anling.inftool.model.SettingModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -24,15 +22,10 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val animationTime = 50
 
 @Composable
-context(model: GameRecordsModel, _: LocalizationContext)
+context(model: SettingModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
 fun potentialWindow(
     onCloseRequest: () -> Unit,
     scale: Float,
-    username: String,
-    potential: Double,
-    saveFile: PlatformFile,
-    algorithm: PotentialAlgorithm,
-    levelMap: LevelMap,
     addressContainer: AddressContainer,
     onlyDisplayInResultsScene: Boolean,
     pollInterval: Duration = 500.milliseconds,
@@ -132,22 +125,31 @@ fun potentialWindow(
                         window.toFront()
                     }
 
-                    val oldHistories = model.historyRecords.toList()
-                    val oldPtt = algorithm.calcPotential(
-                        highScores = model.highScoreRecords,
-                        histories = model.historyRecords,
+
+
+                    val oldHistories = gameRecordsModel.historyRecords.toList()
+                    val oldPtt = model.potentialAlgorithm.calcPotential(
+                        highScores = gameRecordsModel.highScoreRecords,
+                        histories = gameRecordsModel.historyRecords,
                     )
 
-                    model.update(saveFile, algorithm, levelMap)
+                    gameRecordsModel.update(
+                        saveFile = model.saveFile,
+                        algorithm = model.potentialAlgorithm,
+                        levelMap = when (model.useExperimentalLevel) {
+                            true -> model.experimentalLevels
+                            else -> model.vanillaLevels
+                        },
+                    )
 
-                    val newPtt = algorithm.calcPotential(
-                        highScores = model.highScoreRecords,
-                        histories = model.historyRecords,
+                    val newPtt = model.potentialAlgorithm.calcPotential(
+                        highScores = gameRecordsModel.highScoreRecords,
+                        histories = gameRecordsModel.historyRecords,
                     )
                     val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
 
-                    if (model.historyRecords.lastOrNull() != oldHistories.lastOrNull() || deltaPtt > 0.0) {
-                        val recent = model.historyRecords.last()
+                    if (gameRecordsModel.historyRecords.lastOrNull() != oldHistories.lastOrNull() || deltaPtt > 0.0) {
+                        val recent = gameRecordsModel.historyRecords.last()
                         playResult = PlayResult(
                             level = recent.level,
                             potential = recent.potential,
@@ -286,8 +288,8 @@ fun potentialWindow(
         ) {
             FloatingWindow(
                 scale = scale,
-                username = username,
-                potential = potential.floor(3),
+                username = model.username,
+                potential = gameRecordsModel.potential.floor(3),
                 playResult = playResult,
             )
         }

@@ -1,13 +1,11 @@
-package cn.anling.inftool.potential_algorithm
+#!/usr/bin/env kotlin
 
 import cn.anling.inftool.DiveRecord
 import cn.anling.inftool.ProcessedDiveRecord
+import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import kotlin.math.floor
 
-val PotentialAlgorithm.Companion.inFalsusRating
-    get() = InFalsusRatingPotentialAlgorithm
-
-object InFalsusRatingPotentialAlgorithm : PotentialAlgorithm("potential_algorithm.in_falsus_rating") {
+object : PotentialAlgorithm("In Falsus Rating") {
     override fun calcPlayPotential(
         highScores: List<DiveRecord>,
         histories: List<DiveRecord>,

@@ -1,14 +1,12 @@
-package cn.anling.inftool.potential_algorithm
+#!/usr/bin/env kotlin
 
 import cn.anling.inftool.ClearType.*
 import cn.anling.inftool.DiveRecord
 import cn.anling.inftool.ProcessedDiveRecord
+import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import kotlin.math.max
 
-val PotentialAlgorithm.Companion.arcaea
-    get() = ArcaeaPotentialAlgorithm
-
-object ArcaeaPotentialAlgorithm : PotentialAlgorithm("potential_algorithm.arcaea") {
+object : PotentialAlgorithm("Arcaea") {
     override fun calcPlayPotential(
         highScores: List<DiveRecord>,
         histories: List<DiveRecord>,

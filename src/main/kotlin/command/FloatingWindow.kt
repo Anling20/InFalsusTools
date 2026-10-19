@@ -71,22 +71,16 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                 )
             }
             context(model, gameRecordsModel, localizationContext) {
-                potentialWindow(
-                    onCloseRequest = ::exitApplication,
-                    scale = scale,
-                    username = model.settingModel.username,
-                    potential = gameRecordsModel.potential,
-                    saveFile = model.settingModel.saveFile,
-                    algorithm = model.settingModel.potentialAlgorithm,
-                    levelMap = when (model.settingModel.useExperimentalLevel) {
-                        true -> model.settingModel.experimentalLevels
-                        else -> model.settingModel.vanillaLevels
-                    },
-                    addressContainer = runBlocking {
-                        Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
-                    },
-                    onlyDisplayInResultsScene = model.modulePotentialWindowModel.onlyDisplayInResultsScene,
-                )
+                context(model.settingModel) {
+                    potentialWindow(
+                        onCloseRequest = ::exitApplication,
+                        scale = scale,
+                        addressContainer = runBlocking {
+                            Json.decodeFromString(model.modulePotentialWindowModel.addressFile.readString())
+                        },
+                        onlyDisplayInResultsScene = model.modulePotentialWindowModel.onlyDisplayInResultsScene,
+                    )
+                }
             }
         }
     }
