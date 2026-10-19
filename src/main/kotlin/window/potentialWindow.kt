@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private const val animationTime = 50
 
@@ -124,28 +125,6 @@ fun potentialWindow(
                         window.isAlwaysOnTop = true
                         window.toFront()
                     }
-
-
-                    if (inResultsScene && playResult == null) {
-                        gameRecordsModel.update(
-                            saveFile = model.saveFile,
-                            algorithm = model.potentialAlgorithm,
-                            levelMap = when (model.useExperimentalLevel) {
-                                true -> model.experimentalLevels
-                                else -> model.vanillaLevels
-                            },
-                        )
-
-                        val oldPtt = model.potentialAlgorithm.calcPotential(gameRecordsModel.historyRecords.dropLast(1))
-                        val newPtt = gameRecordsModel.potential
-                        val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
-                        val recent = gameRecordsModel.historyRecords.last()
-                        playResult = PlayResult(
-                            level = recent.level,
-                            potential = recent.potential,
-                            additionPotential = deltaPtt
-                        )
-                    }
                 }
                 val onResultsSceneEntered = suspend {
                     inResultsScene = true
@@ -157,9 +136,30 @@ fun potentialWindow(
                         window.isAlwaysOnTop = true
                         window.toFront()
                     }
+
+                    delay(1.seconds)
+                    gameRecordsModel.update(
+                        saveFile = model.saveFile,
+                        algorithm = model.potentialAlgorithm,
+                        levelMap = when (model.useExperimentalLevel) {
+                            true -> model.experimentalLevels
+                            else -> model.vanillaLevels
+                        },
+                    )
+
+                    val oldPtt = model.potentialAlgorithm.calcPotential(gameRecordsModel.historyRecords.dropLast(1))
+                    val newPtt = gameRecordsModel.potential
+                    val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
+                    val recent = gameRecordsModel.historyRecords.last()
+                    playResult = PlayResult(
+                        level = recent.level,
+                        potential = recent.potential,
+                        additionPotential = deltaPtt,
+                    )
                 }
                 val onResultsSceneExited = suspend {
                     inResultsScene = false
+                    playResult = null
                 }
                 val processMemoryMap = mutableMapOf<Long, ProcessMemory>()
                 var latestFocusingGame: Long? = null
@@ -264,33 +264,6 @@ fun potentialWindow(
                     }
                     delay(100.milliseconds)
                 }
-            }
-        }
-
-        LaunchedEffect(inResultsScene) {
-            when (inResultsScene && playResult == null) {
-                true -> {
-                    gameRecordsModel.update(
-                        saveFile = model.saveFile,
-                        algorithm = model.potentialAlgorithm,
-                        levelMap = when (model.useExperimentalLevel) {
-                            true -> model.experimentalLevels
-                            else -> model.vanillaLevels
-                        },
-                    )
-
-                    val oldPtt = model.potentialAlgorithm.calcPotential(gameRecordsModel.historyRecords.dropLast(1))
-                    val newPtt = gameRecordsModel.potential
-                    val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)
-                    val recent = gameRecordsModel.historyRecords.last()
-                    playResult = PlayResult(
-                        level = recent.level,
-                        potential = recent.potential,
-                        additionPotential = deltaPtt
-                    )
-                }
-
-                else -> playResult = null
             }
         }
 
