@@ -1,23 +1,24 @@
 #!/usr/bin/env kotlin
 
-import cn.anling.inftool.ClearType
 import cn.anling.inftool.DiveRecord
 import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.findHighScores
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import kotlin.math.pow
+import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.selectLevel
+import kotlin.math.max
 
-object : PotentialAlgorithm("FL 30") {
+object : PotentialAlgorithm("Arcaea Classic(Min)") {
     override fun calcPlayPotential(
         histories: List<DiveRecord>,
+        levelMap: LevelMap,
         playRecord: DiveRecord,
-        level: Double,
     ): Double {
+        val level = levelMap.selectLevel(playRecord)
         val potential = when (playRecord.score) {
-            in 0..<95000000 -> level * (playRecord.score / 95000000.0).pow(10)
-            in 95000000..<98000000 -> level + ((playRecord.score - 95000000) / 3000000.0)
+            in 0..<98000000 -> max(0.0, level + ((playRecord.score - 95000000) / 3000000.0))
             in 98000000..<100000000 -> level + 1 + ((playRecord.score - 98000000) / 2000000.0)
-            else -> level + 2.1
+            else -> level + 2
         }
 
         return potential
@@ -25,26 +26,29 @@ object : PotentialAlgorithm("FL 30") {
 
     override fun calcPotential(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Double {
-        val p30ptt = histories
+        val b30ptt = histories
             .findHighScores()
-            .filter { it.clearType == ClearType.FullLink }
             .sortedByDescending { it.potential }
             .map { it.potential }
             .take(30)
-        return (p30ptt + p30ptt.take(10)).sum() / 40
+        val r10ptt = emptyList<Double>()
+        return (b30ptt + r10ptt).sum() / 40
     }
 
     override fun contents(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Map<String, List<ProcessedDiveRecord>> {
-        val p30 = histories
+        val b30 = histories
             .findHighScores()
-            .filter { it.clearType == ClearType.FullLink }
             .sortedByDescending { it.potential }
             .take(30)
+        val r10 = emptyList<ProcessedDiveRecord>()
         return mapOf(
-            "Full Link 30" to p30,
+            "Best 30" to b30,
+            "Recent top 10" to r10,
         )
     }
 }

@@ -19,8 +19,10 @@ import androidx.compose.ui.window.singleWindowApplication
 import cn.anling.inftool.parser.ParsedJudgementTypeCount
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.LevelMap
 import cn.anling.inftool.song.Song
 import cn.anling.inftool.song.Songs
+import cn.anling.inftool.song.selectLevel
 import cn.anling.inftool.theme.AppTheme
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
@@ -60,14 +62,14 @@ fun ParsedJudgementTypeCount.toJudgementCount(): JudgementCount = JudgementCount
 
 fun DiveRecord.process(
     histories: List<DiveRecord>,
+    levelMap: LevelMap,
     algorithm: PotentialAlgorithm,
-    level: Double,
 ): ProcessedDiveRecord {
     val song = Songs.entries
         .firstOrNull { it.id == id }
         ?: Song(id, name)
 
-    val potential = algorithm.calcPlayPotential(histories, this, level)
+    val potential = algorithm.calcPlayPotential(histories, levelMap, this)
 
     val grading = when (score) {
         in 0..<80000000 -> Grading.D
@@ -88,7 +90,7 @@ fun DiveRecord.process(
         judgement = judgement,
         potential = potential,
         grading = grading,
-        level = level,
+        level = levelMap.selectLevel(this),
         raw = this,
     )
 }

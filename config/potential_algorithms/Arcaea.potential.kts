@@ -5,13 +5,15 @@ import cn.anling.inftool.DiveRecord
 import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.findHighScores
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.selectLevel
 import kotlin.math.max
 
 object : PotentialAlgorithm("Arcaea") {
     override fun calcPlayPotential(
         histories: List<DiveRecord>,
+        levelMap: LevelMap,
         playRecord: DiveRecord,
-        level: Double,
     ): Double {
         val clearAddition = when (playRecord.clearType) {
             PerfectDive -> 0.2
@@ -21,6 +23,7 @@ object : PotentialAlgorithm("Arcaea") {
             None -> 0.0
         }
 
+        val level = levelMap.selectLevel(playRecord)
         val potential = when (playRecord.score) {
             in 0..<98000000 -> max(0.0, level + ((playRecord.score - 95000000) / 3000000.0) + clearAddition)
             in 98000000..<100000000 -> level + 1 + ((playRecord.score - 98000000) / 2000000.0) + clearAddition
@@ -32,6 +35,7 @@ object : PotentialAlgorithm("Arcaea") {
 
     override fun calcPotential(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Double {
         val b50ptt = histories
             .findHighScores()
@@ -43,6 +47,7 @@ object : PotentialAlgorithm("Arcaea") {
 
     override fun contents(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Map<String, List<ProcessedDiveRecord>> {
         val b50 = histories
             .findHighScores()

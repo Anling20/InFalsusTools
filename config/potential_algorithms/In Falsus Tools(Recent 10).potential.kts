@@ -5,14 +5,17 @@ import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.calcR30
 import cn.anling.inftool.findHighScores
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.selectLevel
 import kotlin.math.pow
 
 object : PotentialAlgorithm("In Falsus Tools(Recent 10)") {
     override fun calcPlayPotential(
         histories: List<DiveRecord>,
+        levelMap: LevelMap,
         playRecord: DiveRecord,
-        level: Double,
     ): Double {
+        val level = levelMap.selectLevel(playRecord)
         val potential = when (playRecord.score) {
             in 0..<95000000 -> level * (playRecord.score / 95000000.0).pow(10)
             in 95000000..<98000000 -> level + ((playRecord.score - 95000000) / 3000000.0)
@@ -25,6 +28,7 @@ object : PotentialAlgorithm("In Falsus Tools(Recent 10)") {
 
     override fun calcPotential(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Double {
         val b30ptt = histories
             .findHighScores()
@@ -42,6 +46,7 @@ object : PotentialAlgorithm("In Falsus Tools(Recent 10)") {
 
     override fun contents(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Map<String, List<ProcessedDiveRecord>> {
         val b30 = histories
             .findHighScores()

@@ -67,6 +67,16 @@ data class CountContainer(
 
     val `break`: Int =
         tap.`break` + hold.`break` + field.`break` + flick.`break`
+
+    companion object {
+        val empty = CountContainer(
+            maxLink = 0,
+            tap = JudgementCount.empty,
+            hold = JudgementCount.empty,
+            field = JudgementCount.empty,
+            flick = JudgementCount.empty,
+        )
+    }
 }
 
 data class JudgementCount(
@@ -76,7 +86,18 @@ data class JudgementCount(
     val nearEarly: Int,
     val nearLate: Int,
     val `break`: Int,
-)
+) {
+    companion object {
+        val empty = JudgementCount(
+            exactPlus = 0,
+            exactEarly = 0,
+            exactLate = 0,
+            nearEarly = 0,
+            nearLate = 0,
+            `break` = 0,
+        )
+    }
+}
 
 data class WindowTranslation(
     val position: Pair<Int, Int>,

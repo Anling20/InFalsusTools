@@ -4,15 +4,17 @@ import cn.anling.inftool.DiveRecord
 import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.findHighScores
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.selectLevel
 import kotlin.math.floor
 
 object : PotentialAlgorithm("In Falsus Rating") {
     override fun calcPlayPotential(
         histories: List<DiveRecord>,
+        levelMap: LevelMap,
         playRecord: DiveRecord,
-        level: Double,
     ): Double {
-        val baseRating = level + run {
+        val baseRating = levelMap.selectLevel(playRecord) + run {
             val baseScore = 95000000.0
             val rangeForMax = 5000000.0
             val maxBonus = 2.0
@@ -39,6 +41,7 @@ object : PotentialAlgorithm("In Falsus Rating") {
 
     override fun calcPotential(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Double {
         val b30ptt = histories
             .findHighScores()
@@ -52,6 +55,7 @@ object : PotentialAlgorithm("In Falsus Rating") {
 
     override fun contents(
         histories: List<ProcessedDiveRecord>,
+        levelMap: LevelMap,
     ): Map<String, List<ProcessedDiveRecord>> {
         val b30 = histories
             .findHighScores()

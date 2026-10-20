@@ -17,36 +17,43 @@ object PotentialAlgorithmScriptLoader {
     private val compilationConfiguration =
         createJvmCompilationConfigurationFromTemplate<PotentialAlgorithmScript>()
 
-    fun load(file: PlatformFile): PotentialAlgorithm {
-        val result = host.eval(
-            script = StringScriptSource(
-                source = runBlocking { file.readString() },
-                name = file.name,
-            ),
-            compilationConfiguration = compilationConfiguration,
-            evaluationConfiguration = null,
-        )
+    fun load(file: PlatformFile): PotentialAlgorithm? {
+        return runCatching {
+            val result = host.eval(
+                script = StringScriptSource(
+                    source = runBlocking { file.readString() },
+                    name = file.name,
+                ),
+                compilationConfiguration = compilationConfiguration,
+                evaluationConfiguration = null,
+            )
 
-        result.reports
-            .filter { it.severity >= ScriptDiagnostic.Severity.ERROR }
-            .forEach { diagnostic ->
-                System.err.println(
-                    "${file.name}:${diagnostic.location?.start?.line}: " +
-                            diagnostic.message
-                )
-                diagnostic.exception?.printStackTrace()
+            result.reports
+                .filter { it.severity >= ScriptDiagnostic.Severity.ERROR }
+                .forEach { diagnostic ->
+                    System.err.println(
+                        "${file.name}:${diagnostic.location?.start?.line}: " +
+                                diagnostic.message
+                    )
+                    diagnostic.exception?.printStackTrace()
+                }
+
+            val evaluationResult = result.valueOrThrow()
+
+            val algorithm = when (val returnValue = evaluationResult.returnValue) {
+                is ResultValue.Value -> returnValue.value
+                is ResultValue.Unit -> null
+                is ResultValue.Error -> throw returnValue.error
+                ResultValue.NotEvaluated -> error("Not evaluated")
             }
 
-        val evaluationResult = result.valueOrThrow()
-
-        val algorithm = when (val returnValue = evaluationResult.returnValue) {
-            is ResultValue.Value -> returnValue.value
-            is ResultValue.Unit -> null
-            is ResultValue.Error -> throw returnValue.error
-            ResultValue.NotEvaluated -> error("Not evaluated")
+            algorithm as? PotentialAlgorithm
+                ?: error("Script must return an instance of PotentialAlgorithm")
+        }.getOrElse { throwable ->
+            println(throwable.localizedMessage)
+            throwable.printStackTrace()
+            null
         }
 
-        return algorithm as? PotentialAlgorithm
-            ?: error("Script must return an instance of PotentialAlgorithm")
     }
 }

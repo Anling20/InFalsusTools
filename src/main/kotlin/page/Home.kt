@@ -315,6 +315,10 @@ private fun Content(hazeState: HazeState) {
                                                 model.waiting = true
                                                 val contents = model.settingModel.potentialAlgorithm.contents(
                                                     histories = gameRecordsModel.historyRecords,
+                                                    levelMap = when (model.settingModel.useExperimentalLevel) {
+                                                        true -> model.settingModel.experimentalLevels
+                                                        else -> model.settingModel.vanillaLevels
+                                                    },
                                                 )
 
                                                 renderComposable(

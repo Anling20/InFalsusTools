@@ -8,7 +8,6 @@ import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.potential_algorithm.script.PotentialAlgorithmScriptLoader
 import cn.anling.inftool.setting.toComposeStated
 import cn.anling.inftool.song.LevelMap
-import cn.anling.inftool.song.selectLevel
 import com.russhwolf.settings.*
 import io.github.vinceglb.filekit.*
 import kotlinx.coroutines.runBlocking
@@ -27,12 +26,12 @@ class GameRecordsModel {
                 .map { record ->
                     record.process(
                         histories = histories.map { it.toDiveRecord() },
+                        levelMap = levelMap,
                         algorithm = algorithm,
-                        level = levelMap.selectLevel(record),
                     )
                 }
         )
-        potential = algorithm.calcPotential(historyRecords)
+        potential = algorithm.calcPotential(historyRecords, levelMap)
     }
 }
 
@@ -129,10 +128,13 @@ class SettingModel(
         }
         set(value) {
             potentialAlgorithmPath = value.absolutePath()
-            potentialAlgorithm = PotentialAlgorithmScriptLoader.load(value)
+            potentialAlgorithm = PotentialAlgorithmScriptLoader.load(value) ?: PotentialAlgorithm.Empty
         }
 
-    var potentialAlgorithm by mutableStateOf(PotentialAlgorithmScriptLoader.load(potentialAlgorithmFile))
+    var potentialAlgorithm by mutableStateOf(
+        PotentialAlgorithmScriptLoader.load(potentialAlgorithmFile)
+            ?: PotentialAlgorithm.Empty
+    )
         private set
 
     private var languageIndex by settings.int("Setting.language", 1).toComposeStated()
