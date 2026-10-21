@@ -92,7 +92,7 @@ fun ColumnScope.ModulePotentialWindowContent(
         }
         ClickableTextField(
             value = model.addressFile.absolutePath(),
-            label = { Text(i18n("module.potential_window.address_file_path")) },
+            label = { Text(i18n("module.potential_window.address_file")) },
             trailingIcon = {
                 Icon(
                     painter = painterResource(Res.drawable.folder_open),
@@ -106,15 +106,15 @@ fun ColumnScope.ModulePotentialWindowContent(
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
             onClick = {
-                val parent = model.addressFile.parent()
-                val directory = when {
-                    parent?.exists() == true -> parent
-                    else -> getWorkingFolder()
-                }
                 val file = FileKit.openFilePicker(
                     type = FileKitType.File("json"),
                     mode = FileKitMode.Single,
-                    directory = directory,
+                    directory = model.addressFile.parent().let {
+                        when {
+                            it != null && it.exists() && it.isDirectory() -> it
+                            else -> getWorkingFolder() / "config"
+                        }
+                    },
                 )
                 if (file != null) {
                     model.addressFile = file
@@ -526,7 +526,7 @@ fun SettingContent() {
         )
         ClickableTextField(
             value = model.saveFile.absolutePath(),
-            label = { Text(i18n("setting.save_file_path")) },
+            label = { Text(i18n("setting.save_file")) },
             trailingIcon = {
                 Icon(
                     painter = painterResource(Res.drawable.folder_open),
@@ -543,7 +543,12 @@ fun SettingContent() {
                 val file = FileKit.openFilePicker(
                     type = FileKitType.File("sav"),
                     mode = FileKitMode.Single,
-                    directory = model.saveFile.parent()!!,
+                    directory = model.saveFile.parent().let {
+                        when {
+                            it != null && it.exists() && it.isDirectory() -> it
+                            else -> getWorkingFolder()
+                        }
+                    },
                 )
                 if (file != null) {
                     model.saveFile = file
@@ -551,10 +556,45 @@ fun SettingContent() {
                         gameRecordsModel.update(
                             saveFile = model.saveFile,
                             algorithm = model.potentialAlgorithm,
-                            levelMap = when (model.useExperimentalLevel) {
-                                true -> model.experimentalLevels
-                                else -> model.vanillaLevels
-                            },
+                            levelMap = model.levelMap,
+                        )
+                    }
+                }
+            },
+        )
+        ClickableTextField(
+            value = model.levelMapFile.absolutePath(),
+            label = { Text(i18n("setting.level_file")) },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(Res.drawable.folder_open),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            },
+            singleLine = true,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
+                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
+            ),
+            onClick = {
+                val file = FileKit.openFilePicker(
+                    type = FileKitType.File("json"),
+                    mode = FileKitMode.Single,
+                    directory = model.levelMapFile.parent().let {
+                        when {
+                            it != null && it.exists() && it.isDirectory() -> it
+                            else -> getWorkingFolder() / "config/levels"
+                        }
+                    },
+                )
+                if (file != null) {
+                    model.levelMapFile = file
+                    scope.launch(Dispatchers.IO) {
+                        gameRecordsModel.update(
+                            saveFile = model.saveFile,
+                            algorithm = model.potentialAlgorithm,
+                            levelMap = model.levelMap,
                         )
                     }
                 }
@@ -562,7 +602,7 @@ fun SettingContent() {
         )
         ClickableTextField(
             value = model.potentialAlgorithmFile.absolutePath(),
-            label = { Text(i18n("setting.potential_algorithm")) },
+            label = { Text(i18n("setting.potential_algorithm_file")) },
             trailingIcon = {
                 Icon(
                     painter = painterResource(Res.drawable.folder_open),
@@ -579,7 +619,12 @@ fun SettingContent() {
                 val file = FileKit.openFilePicker(
                     type = FileKitType.File("potential.kts"),
                     mode = FileKitMode.Single,
-                    directory = getWorkingFolder() / "config/potential_algorithms",
+                    directory = model.potentialAlgorithmFile.parent().let {
+                        when {
+                            it != null && it.exists() && it.isDirectory() -> it
+                            else -> getWorkingFolder() / "config/potential_algorithm"
+                        }
+                    },
                 )
                 if (file != null) {
                     model.potentialAlgorithmFile = file
@@ -587,39 +632,12 @@ fun SettingContent() {
                         gameRecordsModel.update(
                             saveFile = model.saveFile,
                             algorithm = model.potentialAlgorithm,
-                            levelMap = when (model.useExperimentalLevel) {
-                                true -> model.experimentalLevels
-                                else -> model.vanillaLevels
-                            },
+                            levelMap = model.levelMap,
                         )
                     }
                 }
             },
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = i18n("setting.use_experimental_level"),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Checkbox(
-                checked = model.useExperimentalLevel,
-                onCheckedChange = {
-                    model.useExperimentalLevel = it
-                    scope.launch(Dispatchers.IO) {
-                        gameRecordsModel.update(
-                            saveFile = model.saveFile,
-                            algorithm = model.potentialAlgorithm,
-                            levelMap = when (model.useExperimentalLevel) {
-                                true -> model.experimentalLevels
-                                else -> model.vanillaLevels
-                            },
-                        )
-                    }
-                },
-            )
-        }
         run {
             var expanded by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(

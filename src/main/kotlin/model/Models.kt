@@ -63,7 +63,7 @@ class ModulePotentialWindowModel(settings: Settings) {
         key = "PotentialWindow.addressFile",
         defaultValue = "config/address.json",
     ).toComposeStated()
-    var addressFile
+    var addressFile: PlatformFile
         get() = PlatformFile(addressFilePath).let {
             when (it.exists() && it.isRegularFile()) {
                 true -> it
@@ -99,27 +99,36 @@ class SettingModel(
 ) {
     var username by settings.string("Setting.username", "Player").toComposeStated()
     private var saveFilePath by settings.string("Setting.saveFile", initialSaveFile).toComposeStated()
-    var saveFile
+    var saveFile: PlatformFile
         get() = PlatformFile(saveFilePath)
         set(value) {
             saveFilePath = value.absolutePath()
         }
 
-    var useExperimentalLevel by settings.boolean("Setting.useExperimentalLevel", false).toComposeStated()
+    private var levelMapPath by settings.string("Setting.levelMapPath", "config/levels/vanilla.json").toComposeStated()
+    var levelMapFile: PlatformFile
+        get() = PlatformFile(levelMapPath).let {
+            when (it.exists() && it.isRegularFile()) {
+                true -> it
+                else -> PlatformFile("config/levels/vanilla.json")
+            }
+        }
+        set(value) {
+            levelMapPath = value.absolutePath()
+        }
 
-    val vanillaLevels: LevelMap = runBlocking {
-        Json.decodeFromString(PlatformFile("config/levels/vanilla.json").readString())
-    }
-
-    val experimentalLevels: LevelMap = runBlocking {
-        Json.decodeFromString(PlatformFile("config/levels/experimental.json").readString())
-    }
+    val levelMap: LevelMap
+        get() = runBlocking {
+            runCatching {
+                Json.decodeFromString<LevelMap>(levelMapFile.readString())
+            }.getOrNull() ?: emptyMap()
+        }
 
     private var potentialAlgorithmPath by settings.string(
         key = "Setting.potentialAlgorithm",
         defaultValue = "config/potential_algorithms/In Falsus Tools.potential.kts",
     ).toComposeStated()
-    var potentialAlgorithmFile
+    var potentialAlgorithmFile: PlatformFile
         get() = PlatformFile(potentialAlgorithmPath).let {
             when (it.exists() && it.isRegularFile()) {
                 true -> it
@@ -131,14 +140,14 @@ class SettingModel(
             potentialAlgorithm = PotentialAlgorithmScriptLoader.load(value) ?: PotentialAlgorithm.Empty
         }
 
-    var potentialAlgorithm by mutableStateOf(
+    var potentialAlgorithm: PotentialAlgorithm by mutableStateOf(
         PotentialAlgorithmScriptLoader.load(potentialAlgorithmFile)
             ?: PotentialAlgorithm.Empty
     )
         private set
 
     private var languageIndex by settings.int("Setting.language", 1).toComposeStated()
-    var language
+    var language: Language
         get() = Language.entries[languageIndex]
         set(value) {
             languageIndex = value.ordinal

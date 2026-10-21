@@ -62,10 +62,7 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
             update(
                 saveFile = model.settingModel.saveFile,
                 algorithm = model.settingModel.potentialAlgorithm,
-                levelMap = when (model.settingModel.useExperimentalLevel) {
-                    true -> model.settingModel.experimentalLevels
-                    else -> model.settingModel.vanillaLevels
-                },
+                levelMap = model.settingModel.levelMap,
             )
         }
         val localizationContext = LocalizationContext(
@@ -97,10 +94,7 @@ class AchievementsImageCommand : SuspendingCliktCommand("achievements") {
                     potential = gameRecordsModel.potential,
                     algorithm = model.settingModel.potentialAlgorithm,
                     highScores = gameRecordsModel.historyRecords.findHighScores(),
-                    levelMap = when (model.settingModel.useExperimentalLevel) {
-                        true -> model.settingModel.experimentalLevels
-                        else -> model.settingModel.vanillaLevels
-                    },
+                    levelMap = model.settingModel.levelMap,
                     min = min,
                     max = max,
                     difficulties = difficulties,

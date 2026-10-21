@@ -99,10 +99,7 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                             update(
                                 saveFile = model.settingModel.saveFile,
                                 algorithm = model.settingModel.potentialAlgorithm,
-                                levelMap = when (model.settingModel.useExperimentalLevel) {
-                                    true -> model.settingModel.experimentalLevels
-                                    else -> model.settingModel.vanillaLevels
-                                },
+                                levelMap = model.settingModel.levelMap,
                             )
                         }
                     }
@@ -159,10 +156,7 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                                 algorithm = model.settingModel.potentialAlgorithm,
                                 contents = model.settingModel.potentialAlgorithm.contents(
                                     histories = gameRecordsModel.historyRecords,
-                                    levelMap = when (model.settingModel.useExperimentalLevel) {
-                                        true -> model.settingModel.experimentalLevels
-                                        else -> model.settingModel.vanillaLevels
-                                    },
+                                    levelMap = model.settingModel.levelMap,
                                 ),
                             )
                         }
@@ -194,10 +188,7 @@ class DispatcherCommand : SuspendingCliktCommand("\"In Falsus Tools\"") {
                                 potential = gameRecordsModel.potential,
                                 algorithm = model.settingModel.potentialAlgorithm,
                                 highScores = gameRecordsModel.historyRecords.findHighScores(),
-                                levelMap = when (model.settingModel.useExperimentalLevel) {
-                                    true -> model.settingModel.experimentalLevels
-                                    else -> model.settingModel.vanillaLevels
-                                },
+                                levelMap = model.settingModel.levelMap,
                                 min = model.moduleAchievementsImageModel.minLevelLimit,
                                 max = model.moduleAchievementsImageModel.maxLevelLimit,
                                 difficulties = difficulties,

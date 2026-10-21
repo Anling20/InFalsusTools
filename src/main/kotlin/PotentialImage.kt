@@ -251,7 +251,7 @@ private fun Content(
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                     maxItemsInEachRow = 5,
                 ) {
-                    records.sortedByDescending { it.potential }.forEachIndexed { index, record ->
+                    records.forEachIndexed { index, record ->
                         val clearType = record.clearType
                         val difficult = record.difficult
                         val level = record.level

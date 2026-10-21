@@ -56,10 +56,7 @@ class FloatingWindowCommand : SuspendingCliktCommand("FloatingWindow") {
                         update(
                             saveFile = model.settingModel.saveFile,
                             algorithm = model.settingModel.potentialAlgorithm,
-                            levelMap = when (model.settingModel.useExperimentalLevel) {
-                                true -> model.settingModel.experimentalLevels
-                                else -> model.settingModel.vanillaLevels
-                            },
+                            levelMap = model.settingModel.levelMap,
                         )
                     }
                 }

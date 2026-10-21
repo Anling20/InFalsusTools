@@ -147,7 +147,7 @@
     "minimal": 4.0,
     "evolved": 7.0,
     "ultimate": 11.5,
-    "forbidden": 13.4
+    "forbidden": 13.5
   },
   "28": {
     "minimal": 2.0,
@@ -399,7 +399,7 @@
     "minimal": 4.0,
     "evolved": 7.0,
     "ultimate": 10.4,
-    "forbidden": 13.0
+    "forbidden": 13.1
   },
   "72": {
     "minimal": 3.0,
@@ -417,7 +417,7 @@
     "minimal": 5.0,
     "evolved": 8.0,
     "ultimate": 11.8,
-    "forbidden": 14.2
+    "forbidden": 14.3
   },
   "84": {
     "minimal": 1.0,

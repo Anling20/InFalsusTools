@@ -315,10 +315,7 @@ private fun Content(hazeState: HazeState) {
                                                 model.waiting = true
                                                 val contents = model.settingModel.potentialAlgorithm.contents(
                                                     histories = gameRecordsModel.historyRecords,
-                                                    levelMap = when (model.settingModel.useExperimentalLevel) {
-                                                        true -> model.settingModel.experimentalLevels
-                                                        else -> model.settingModel.vanillaLevels
-                                                    },
+                                                    levelMap = model.settingModel.levelMap,
                                                 )
 
                                                 renderComposable(
@@ -413,10 +410,7 @@ private fun Content(hazeState: HazeState) {
                                                         potential = gameRecordsModel.potential,
                                                         algorithm = model.settingModel.potentialAlgorithm,
                                                         highScores = gameRecordsModel.historyRecords.findHighScores(),
-                                                        levelMap = when (model.settingModel.useExperimentalLevel) {
-                                                            true -> model.settingModel.experimentalLevels
-                                                            else -> model.settingModel.vanillaLevels
-                                                        },
+                                                        levelMap = model.settingModel.levelMap,
                                                         min = model.moduleAchievementsImageModel.minLevelLimit,
                                                         max = model.moduleAchievementsImageModel.maxLevelLimit,
                                                         difficulties = difficulties,

@@ -14,7 +14,7 @@ private val container = LocalizationContainer(
 
     "module.potential_window.scale" to "Scale",
     "module.potential_window.only_display_in_results_scene" to "Only display in results scene",
-    "module.potential_window.address_file_path" to "Address file path",
+    "module.potential_window.address_file" to "Address file",
     "module.potential_window.stop" to "Stop",
     "module.potential_window.start" to "Start",
 
@@ -34,9 +34,9 @@ private val container = LocalizationContainer(
     "module.achievements_image.generate_to_clipboard" to "Generate to clipboard",
 
     "setting.username" to "Username",
-    "setting.save_file_path" to "Save file path",
-    "setting.use_experimental_level" to "Use experimental level",
-    "setting.potential_algorithm" to "Potential algorithm",
+    "setting.save_file" to "Save file",
+    "setting.level_file" to "Level file",
+    "setting.potential_algorithm_file" to "Potential algorithm file",
     "setting.language" to "Language",
 
     "submodule.potential_window.play_potential" to "Play potential",

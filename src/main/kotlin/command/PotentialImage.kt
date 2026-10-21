@@ -55,10 +55,7 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
             update(
                 saveFile = model.settingModel.saveFile,
                 algorithm = model.settingModel.potentialAlgorithm,
-                levelMap = when (model.settingModel.useExperimentalLevel) {
-                    true -> model.settingModel.experimentalLevels
-                    else -> model.settingModel.vanillaLevels
-                },
+                levelMap = model.settingModel.levelMap,
             )
         }
         val localizationContext = LocalizationContext(
@@ -90,10 +87,7 @@ class PotentialImageCommand : SuspendingCliktCommand("potential") {
                     algorithm = model.settingModel.potentialAlgorithm,
                     contents = model.settingModel.potentialAlgorithm.contents(
                         histories = gameRecordsModel.historyRecords,
-                        levelMap = when (model.settingModel.useExperimentalLevel) {
-                            true -> model.settingModel.experimentalLevels
-                            else -> model.settingModel.vanillaLevels
-                        },
+                        levelMap = model.settingModel.levelMap,
                     ),
                 )
             }

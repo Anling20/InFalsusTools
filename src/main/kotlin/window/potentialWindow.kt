@@ -141,18 +141,12 @@ fun potentialWindow(
                     gameRecordsModel.update(
                         saveFile = model.saveFile,
                         algorithm = model.potentialAlgorithm,
-                        levelMap = when (model.useExperimentalLevel) {
-                            true -> model.experimentalLevels
-                            else -> model.vanillaLevels
-                        },
+                        levelMap = model.levelMap,
                     )
 
                     val oldPtt = model.potentialAlgorithm.calcPotential(
                         histories = gameRecordsModel.historyRecords.dropLast(1),
-                        levelMap = when (model.useExperimentalLevel) {
-                            true -> model.experimentalLevels
-                            else -> model.vanillaLevels
-                        },
+                        levelMap = model.levelMap,
                     )
                     val newPtt = gameRecordsModel.potential
                     val deltaPtt = newPtt.floor(3) - oldPtt.floor(3)

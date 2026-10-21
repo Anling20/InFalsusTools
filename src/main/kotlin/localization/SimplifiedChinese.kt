@@ -12,7 +12,7 @@ private val container = LocalizationContainer(
 
     "module.potential_window.scale" to "缩放",
     "module.potential_window.only_display_in_results_scene" to "仅在结算场景显示",
-    "module.potential_window.address_file_path" to "地址文件路径",
+    "module.potential_window.address_file" to "地址文件",
     "module.potential_window.stop" to "停止",
     "module.potential_window.start" to "启动",
 
@@ -32,9 +32,9 @@ private val container = LocalizationContainer(
     "module.achievements_image.generate_to_clipboard" to "生成到剪切板",
 
     "setting.username" to "用户名",
-    "setting.save_file_path" to "存档文件路径",
-    "setting.use_experimental_level" to "使用实验性定数",
-    "setting.potential_algorithm" to "潜力值算法",
+    "setting.save_file" to "存档文件",
+    "setting.level_file" to "定数文件",
+    "setting.potential_algorithm_file" to "潜力值算法文件",
     "setting.language" to "语言",
 
     "submodule.potential_window.play_potential" to "游玩潜力值",
