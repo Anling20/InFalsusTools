@@ -70,6 +70,11 @@ object Songs {
     val rainshower = Song(70, "rainshower")
     val albedo = Song(72, "albedo")
     val neonvision = Song(73, "neonvision")
+    val disruptorarray = Song(77, "disruptorarray")
+    val kuukansouzou = Song(78, "kuukansouzou")
+    val megameteor = Song(79, "megameteor")
+    val technopolis = Song(80, "technopolis")
+    val yumenohajimari = Song(81, "yumenohajimari")
     val kuukaku = Song(82, "kuukaku")
     val monitoring = Song(84, "monitoring")
     val roki = Song(86, "roki")
@@ -118,6 +123,11 @@ object Songs {
         moonsliders,
         mydeadlysins,
         neonvision,
+        disruptorarray,
+        kuukansouzou,
+        megameteor,
+        technopolis,
+        yumenohajimari,
         newvision,
         noctidea,
         nowiknow,

@@ -413,6 +413,36 @@
     "ultimate": 9.4,
     "forbidden": 11.8
   },
+  "77": {
+    "minimal": 5.0,
+    "evolved": 8.0,
+    "ultimate": 11.0,
+    "forbidden": 14.0
+  },
+  "78": {
+    "minimal": 3.0,
+    "evolved": 6.0,
+    "ultimate": 10.0,
+    "forbidden": 12.0
+  },
+  "79": {
+    "minimal": 4.0,
+    "evolved": 7.0,
+    "ultimate": 10.0,
+    "forbidden": 13.0
+  },
+  "80": {
+    "minimal": 2.0,
+    "evolved": 5.0,
+    "ultimate": 9.0,
+    "forbidden": 13.0
+  },
+  "81": {
+    "minimal": 2.0,
+    "evolved": 5.0,
+    "ultimate": 8.0,
+    "forbidden": 10.0
+  },
   "82": {
     "minimal": 5.0,
     "evolved": 8.0,

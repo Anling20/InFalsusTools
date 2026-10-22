@@ -51,6 +51,7 @@ private val container = LocalizationContainer(
     "song_title.sunanokioku" to "砂の記憶",
     "song_title.worldender" to "魔王",
     "song_title.rainshower" to "驟雨の狭間",
+    "song_title.kuukansouzou" to "空間創造理論",
     "song_title.kuukaku" to "空殻",
     "song_title.monitoring" to "モニタリング",
     "song_title.roki" to "ロキ",

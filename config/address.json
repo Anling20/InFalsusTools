@@ -1,14 +1,14 @@
 {
   "gameScene": {
-    "classRVA": "0x31A87B8",
+    "classRVA": "0x31A9158",
     "staticFieldsOffset": "0xB8",
     "instanceReferenceOffset": "0x00"
   },
   "resultsScene": {
-    "classRVA": "0x317AD10"
+    "classRVA": "0x317B710"
   },
   "resultsSceneManager": {
-    "classRVA": "0x31BC340",
+    "classRVA": "0x31BC998",
     "staticFieldsOffset": "0xB8",
     "instanceReferenceOffset": "0x10",
     "array1Offset": "0x30",
