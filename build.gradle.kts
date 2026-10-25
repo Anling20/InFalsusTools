@@ -114,6 +114,20 @@ nucleus.application {
         compressionLevel = CompressionLevel.Ultra
 
         windows {
+            dirChooser = true
+
+            nsis {
+                oneClick = false
+                allowElevation = true
+                allowToChangeInstallationDirectory = true
+                multiLanguageInstaller = true
+                installerLanguages = listOf("en_US", "zh_CN", "zh_TW")
+            }
+
+            msi {
+                oneClick = false
+            }
+
             portable {
                 compressionLevel = CompressionLevel.Normal
             }

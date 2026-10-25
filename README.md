@@ -31,7 +31,7 @@
 由于游戏内不提供官方细分定数, 通过采集社区数据取平均值(7舍8入)的方式设定一套定数<br>
 若要在 `In Falsus Tools` 内使用社区定数, 请前往设置页面修改 `定数表`<br>
 
-若有需要查看, 请前往 [在线定数表](https://www.kdocs.cn/l/cocUhcII8C6N)<br>
+若有需要查看, 请前往 [在线定数表](https://www.kdocs.cn/l/cheDPToKxD5B)<br>
 若需要提供数据, 请前往 [收集表](https://f.wps.cn/g/WFFMWvS5)
 
 # 潜力值算法

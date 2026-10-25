@@ -495,7 +495,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 1.0,
             evolved = 5.0,
             ultimate = 9.3,
-            forbidden = 11.4,
+            forbidden = 11.5,
         ),
         3 to SongConstant(
             minimal = 2.0,
@@ -519,11 +519,11 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 2.0,
             evolved = 5.0,
             ultimate = 10.1,
-            forbidden = 11.2,
+            forbidden = 11.1,
         ),
         8 to SongConstant(
             minimal = 6.0,
-            evolved = 9.9,
+            evolved = 9.8,
             ultimate = 12.1,
             forbidden = 14.6,
         ),
@@ -542,7 +542,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         11 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.1,
+            ultimate = 9.2,
             forbidden = 12.3,
         ),
         12 to SongConstant(
@@ -554,7 +554,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         13 to SongConstant(
             minimal = 3.0,
             evolved = 6.0,
-            ultimate = 9.3,
+            ultimate = 9.4,
             forbidden = 12.2,
         ),
         14 to SongConstant(
@@ -590,14 +590,14 @@ sealed class BuiltinConstantTable : ConstantTable() {
         19 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.8,
+            ultimate = 9.9,
             forbidden = 11.7,
         ),
         20 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.8,
-            forbidden = 11.8,
+            ultimate = 9.9,
+            forbidden = 11.7,
         ),
         21 to SongConstant(
             minimal = 2.0,
@@ -608,7 +608,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         22 to SongConstant(
             minimal = 2.0,
             evolved = 6.0,
-            ultimate = 9.6,
+            ultimate = 9.7,
             forbidden = 11.1,
         ),
         23 to SongConstant(
@@ -626,14 +626,14 @@ sealed class BuiltinConstantTable : ConstantTable() {
         25 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.4,
-            forbidden = 11.3,
+            ultimate = 9.5,
+            forbidden = 11.2,
         ),
         26 to SongConstant(
             minimal = 4.0,
             evolved = 7.0,
             ultimate = 10.7,
-            forbidden = 13.2,
+            forbidden = 13.3,
         ),
         27 to SongConstant(
             minimal = 4.0,
@@ -662,7 +662,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         31 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.0,
+            ultimate = 9.2,
             forbidden = 11.6,
         ),
         32 to SongConstant(
@@ -705,7 +705,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 3.0,
             evolved = 6.0,
             ultimate = 10.4,
-            forbidden = 12.3,
+            forbidden = 12.4,
         ),
         39 to SongConstant(
             minimal = 3.0,
@@ -721,7 +721,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         ),
         41 to SongConstant(
             minimal = 6.0,
-            evolved = 10.0,
+            evolved = 10.1,
             ultimate = 12.6,
             forbidden = 14.5,
         ),
@@ -758,7 +758,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         47 to SongConstant(
             minimal = 4.0,
             evolved = 7.0,
-            ultimate = 10.5,
+            ultimate = 10.4,
             forbidden = 12.3,
         ),
         48 to SongConstant(
@@ -861,13 +861,13 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 1.0,
             evolved = 4.0,
             ultimate = 8.0,
-            forbidden = 9.5,
+            forbidden = 9.4,
         ),
         65 to SongConstant(
             minimal = 3.0,
             evolved = 6.0,
             ultimate = 9.2,
-            forbidden = 10.0,
+            forbidden = 10.1,
         ),
         67 to SongConstant(
             minimal = 3.0,
@@ -908,32 +908,32 @@ sealed class BuiltinConstantTable : ConstantTable() {
         77 to SongConstant(
             minimal = 5.0,
             evolved = 8.0,
-            ultimate = 11.0,
+            ultimate = 11.3,
             forbidden = 14.0,
         ),
         78 to SongConstant(
             minimal = 3.0,
             evolved = 6.0,
-            ultimate = 10.0,
-            forbidden = 12.9,
+            ultimate = 10.7,
+            forbidden = 13.2,
         ),
         79 to SongConstant(
             minimal = 4.0,
             evolved = 7.0,
-            ultimate = 10.0,
-            forbidden = 13.6,
+            ultimate = 10.1,
+            forbidden = 13.7,
         ),
         80 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.0,
-            forbidden = 13.2,
+            ultimate = 8.9,
+            forbidden = 13.1,
         ),
         81 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
             ultimate = 8.0,
-            forbidden = 10.0,
+            forbidden = 10.8,
         ),
         82 to SongConstant(
             minimal = 5.0,
@@ -945,7 +945,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 1.0,
             evolved = 4.0,
             ultimate = 8.0,
-            forbidden = 11.1,
+            forbidden = 11.2,
         ),
         86 to SongConstant(
             minimal = 4.0,
@@ -957,7 +957,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 2.0,
             evolved = 5.0,
             ultimate = 8.0,
-            forbidden = 11.2,
+            forbidden = 11.1,
         ),
         88 to SongConstant(
             minimal = 3.0,
@@ -968,7 +968,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         89 to SongConstant(
             minimal = 4.0,
             evolved = 7.0,
-            ultimate = 10.3,
+            ultimate = 10.4,
             forbidden = 12.7,
         ),
     )
