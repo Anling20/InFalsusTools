@@ -4,8 +4,27 @@
 
 # 快速开始
 
-从 [Actions](https://github.com/Anling20/InFalsusTools/actions) 下载最新自动构建包(如果你不知道 UberJar 是什么, 请不要下它), 或是从 [QQ群](https://qm.qq.com/q/ndmzU21OyA) 下载手动构建包<br>
-如果下载非安装版, 解压到任意位置后直接双击主程序运行即可, 无需对游戏进行任何补丁操作
+从 [Actions](https://github.com/Anling20/InFalsusTools/actions) 下载最新自动构建包<br>
+
+## 分发类型
+
+如果你不知道你在使用什么操作系统, 请选择 {os} 处为 win 且 {arch} 处为 x64 的文件<br>
+如果你在使用 Windows 且不清楚你的处理器架构, 请选择 {arch} 处为 x64 的文件<br>
+如果你在使用 MacOS 且不清楚你的处理器架构, 请选择 {arch} 处为 arm64 的文件<br>
+如果你在使用 Linux 且不清楚你的处理器架构, 你应该先学会用 Windows
+
+- in-falsus-tools-{version}-{os}-{arch}.exe: 使用 Electron Builder 分发的安装程序
+- in-falsus-tools-{version}-{os}-{arch}-nsis.exe: 标准的 Windows 安装程序
+- in-falsus-tools-{version}-{os}-{arch}.msi: 用于企业部署的 Windows 安装程序
+- in-falsus-tools-{version}-{os}-{arch}-portable.exe: 无需安装的 Windows 单可执行文件
+- in-falsus-tools-{version}-{os}-{arch}.dmg: macOS 安装程序
+- in-falsus-tools-{version}-{os}-{arch}.deb: 适用于 Debian 系 Linux 发行版的安装程序
+- in-falsus-tools-{version}-{os}-{arch}.rpm: 适用于 Red Hat Package Manager 的 Linux 安装程序
+- in-falsus-tools-{version}-{os}-{arch}.pacman: 适用于 Arch Linux 系 Linux 发行版的安装程序
+- in-falsus-tools-{version}-{os}-{arch}.AppImage/appimage: 无需安装的 Linux 单可执行文件
+- in-falsus-tools-{version}-{os}-{arch}.zip: 无需安装的解压式文件
+- in-falsus-tools-{version}-{os}-{arch}.tar.gz: 无需安装的解压式文件
+- in-falsus-tools-{version}-{os}-{arch}.7z: 无需安装的解压式文件
 
 # 社区定数
 
