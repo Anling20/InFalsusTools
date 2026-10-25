@@ -16,6 +16,7 @@ jobs:
       GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       VERSION: '${{ github.ref_name }}'
       CHANNEL: 'alpha'
+      TAG: '0.0.1'
       RELEASE_TYPE: 'prerelease'
     strategy:
       fail-fast: false

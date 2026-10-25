@@ -46,6 +46,7 @@ workflow(
 			"GITHUB_TOKEN" to expr { secrets.GITHUB_TOKEN },
 			"VERSION" to expr { github.ref_name },
 			"CHANNEL" to "alpha",
+			"TAG" to "0.0.1",
 			"RELEASE_TYPE" to "prerelease",
 		),
 		_customArguments = mapOf(
