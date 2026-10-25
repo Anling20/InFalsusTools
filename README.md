@@ -9,11 +9,11 @@
 
 # 社区定数
 
-由于游戏内不提供官方细分定数, 通过采集社区数据取平均值的方式设定一套定数<br>
-若要在 `In Falsus Tools` 内使用社区定数, 请前往设置页面开启 `使用实验性定数`<br>
-注意: 启用实验性定数会一同修改潜力值计算, 开关实验性定数的潜力值间会有较大差距
+由于游戏内不提供官方细分定数, 通过采集社区数据取平均值(7舍8入)的方式设定一套定数<br>
+若要在 `In Falsus Tools` 内使用社区定数, 请前往设置页面修改 `定数表`<br>
 
-若有需要/提供数据, 请前往 [在线定数表](https://www.kdocs.cn/l/cocUhcII8C6N) 查看, 考虑到权限控制关闭编辑申请权, 请通过评论的方式像我们提供您的名称与定数
+若有需要查看, 请前往 [在线定数表](https://www.kdocs.cn/l/cocUhcII8C6N)<br>
+若需要提供数据, 请前往 [收集表](https://f.wps.cn/g/WFFMWvS5)
 
 # 潜力值算法
 
@@ -33,11 +33,6 @@
 - 当使用 `In Falsus Tools` 算法时, r10 视为 b10
 - 当使用 `In Falsus Tools(Recent 10)` 算法时, r10 算法与 `Arcaea Classic` 一致
 
-## In Falsus Rating
-
-该算法为插件 [In Falsus Rating](https://github.com/ATres001/InFalsusRating) 所使用的潜力值计算法<br>
-请参考 [评级公式](https://github.com/ATres001/InFalsusRating#%E8%AF%84%E7%BA%A7%E5%85%AC%E5%BC%8F)
-
 ## Arcaea
 
 该算法为游戏 [Arcaea](https://arcaea.lowiro.com) 所使用的潜力值计算法<br>
@@ -50,10 +45,6 @@
 
 - 当使用 `Arcaea Classic(Max)` 算法时, r10 视为 b10
 - 当使用 `Arcaea Classic(Min)` 算法时, r10 视为空集合
-
-## 其他算法
-
-[查看此处](./potential_algorithms)
 
 # 疑难解答
 
@@ -88,11 +79,11 @@
 [Compose Multiplatform](https://kotlinlang.org/compose-multiplatform/)<br>
 Kotlin Multiplatform 声明式 UI 框架
 
+[Nucleus](https://github.com/NucleusFramework/Nucleus)<br>
+Compose Desktop 框架, 提供基于 Rust Tao 的窗口层, 使用 Electron Builder 的丰富打包格式, 全局快捷键及自动更新
+
 [kotlinx-serialization](https://github.com/kotlin/kotlinx.serialization)<br>
 Kotlin Multiplatform 序列化, 用于 JSON 文件解析
-
-[clikt](https://github.com/ajalt/clikt)<br>
-Kotlin Multiplatform 命令行参数解析
 
 [haze](https://github.com/chrisbanes/haze)<br>
 Compose Multiplatform 背景模糊
@@ -102,9 +93,6 @@ Kotlin Multiplatform 配置保存读取
 
 [FileKit](https://github.com/vinceglb/FileKit)<br>
 Kotlin/Compose Multiplatform 文件操作(读写, 选取/保存)
-
-[Kotlin Scripting](https://github.com/Kotlin/KEEP/blob/main/proposals/KEEP-0075-scripting-support.md)<br>
-Kotlin 脚本, 用于实现自定义潜力值算法脚本
 
 [github-workflows-kt](https://github.com/typesafegithub/github-workflows-kt)<br>
 Kotlin Scripting GitHub Actions 工作流文件生成

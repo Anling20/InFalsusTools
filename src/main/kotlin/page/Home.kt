@@ -37,6 +37,7 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.blur.material3.Material3
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import dev.nucleusframework.window.windowDragArea
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.absolutePath
@@ -47,7 +48,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -55,11 +55,9 @@ context(model: HomeModel, _: GameRecordsModel, _: LocalizationContext)
 fun Home(
     onMinimum: () -> Unit,
     onQuit: () -> Unit,
-    windowDraggableArea: @Composable (@Composable () -> Unit) -> Unit,
 ) {
     AppTheme(false) {
         Surface(
-            shape = RoundedCornerShape(24.dp),
             color = MaterialTheme.colorScheme.background,
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -81,13 +79,11 @@ fun Home(
                         .fillMaxSize()
                         .hazeSource(waitingHazeState),
                 ) {
-                    windowDraggableArea {
-                        TopBar(
-                            hazeState = hazeState,
-                            onMinimum = onMinimum,
-                            onQuit = onQuit,
-                        )
-                    }
+                    TopBar(
+                        hazeState = hazeState,
+                        onMinimum = onMinimum,
+                        onQuit = onQuit,
+                    )
                     ContentContainer(
                         hazeState = hazeState,
                         destination = model.destination,
@@ -154,6 +150,7 @@ private fun TopBar(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .windowDragArea()
             .hazeBlur(
                 input = HazeInput.Sources(hazeState),
                 style = HazeBlurStyle.Material3 {
@@ -315,41 +312,50 @@ private fun Content(hazeState: HazeState) {
                                                 model.waiting = true
                                                 val contents = model.settingModel.potentialAlgorithm.contents(
                                                     histories = gameRecordsModel.historyRecords,
-                                                    levelMap = model.settingModel.levelMap,
+                                                    constantTable = model.settingModel.constantTable,
                                                 )
+                                                model.renderRequestChannel.send(
+                                                    RenderRequest(
+                                                        onRendered = { imageBitmap ->
+                                                            scope.launch(Dispatchers.IO) {
+                                                                runCatching {
+                                                                    when (type) {
+                                                                        File -> FileKit.openFileSaver(
+                                                                            suggestedName = "Potential",
+                                                                            defaultExtension = ".jpg",
+                                                                            allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                                        )?.let { file ->
+                                                                            val byteArray =
+                                                                                imageBitmap.encodeToByteArray(
+                                                                                    format = ImageFormat.JPEG,
+                                                                                    quality = model.modulePotentialImageModel.quality,
+                                                                                )
+                                                                            file.write(byteArray)
+                                                                            println("Potential generated to ${file.absolutePath()}")
+                                                                        }
 
-                                                renderComposable(
-                                                    onRendered = { imageBitmap ->
-                                                        when (type) {
-                                                            File -> FileKit.openFileSaver(
-                                                                suggestedName = "Potential",
-                                                                defaultExtension = ".jpg",
-                                                                allowedExtensions = setOf(".jpg", ".jpeg"),
-                                                            )?.let { file ->
-                                                                val byteArray = imageBitmap.encodeToByteArray(
-                                                                    format = ImageFormat.JPEG,
-                                                                    quality = model.modulePotentialImageModel.quality,
-                                                                )
-                                                                file.write(byteArray)
-                                                                println("Potential generated to ${file.absolutePath()}")
+                                                                        Clipboard -> {
+                                                                            copyImageToClipboard(imageBitmap)
+                                                                            println("Potential generated to clipboard")
+                                                                        }
+                                                                    }
+                                                                }.onFailure {
+                                                                    println("Error: ${it.message}")
+                                                                    it.printStackTrace()
+                                                                }
+                                                                model.waiting = false
                                                             }
-
-                                                            Clipboard -> {
-                                                                copyImageToClipboard(imageBitmap)
-                                                                println("Potential generated to clipboard")
-                                                            }
-                                                        }
+                                                        },
+                                                    ) {
+                                                        PotentialImageContent(
+                                                            useNeoCard = model.modulePotentialImageModel.useNeoCard,
+                                                            username = model.settingModel.username,
+                                                            potential = gameRecordsModel.potential,
+                                                            algorithm = model.settingModel.potentialAlgorithm,
+                                                            contents = contents,
+                                                        )
                                                     }
-                                                ) {
-                                                    PotentialImageContent(
-                                                        useNeoCard = model.modulePotentialImageModel.useNeoCard,
-                                                        username = model.settingModel.username,
-                                                        potential = gameRecordsModel.potential,
-                                                        algorithm = model.settingModel.potentialAlgorithm,
-                                                        contents = contents,
-                                                    )
-                                                }
-                                                model.waiting = false
+                                                )
                                             }
                                         }
                                     },
@@ -379,44 +385,55 @@ private fun Content(hazeState: HazeState) {
                                                         add(Difficult.FBD)
                                                     }
                                                 }
-                                                renderComposable(
-                                                    onRendered = { imageBitmap ->
-                                                        when (type) {
-                                                            File -> withContext(Dispatchers.Main) {
-                                                                FileKit.openFileSaver(
-                                                                    suggestedName = "Achievements",
-                                                                    defaultExtension = ".jpg",
-                                                                    allowedExtensions = setOf(".jpg", ".jpeg"),
-                                                                )?.let { file ->
-                                                                    val byteArray = imageBitmap.encodeToByteArray(
-                                                                        format = ImageFormat.JPEG,
-                                                                        quality = model.moduleAchievementsImageModel.quality,
-                                                                    )
-                                                                    file.write(byteArray)
-                                                                    println("Achievements generated to ${file.absolutePath()}")
-                                                                }
-                                                            }
+                                                model.renderRequestChannel.send(
+                                                    RenderRequest(
+                                                        onRendered = { imageBitmap ->
+                                                            scope.launch(Dispatchers.IO) {
+                                                                runCatching {
+                                                                    when (type) {
+                                                                        File -> FileKit.openFileSaver(
+                                                                            suggestedName = "Achievements",
+                                                                            defaultExtension = ".jpg",
+                                                                            allowedExtensions = setOf(
+                                                                                ".jpg",
+                                                                                ".jpeg"
+                                                                            ),
+                                                                        )?.let { file ->
+                                                                            val byteArray =
+                                                                                imageBitmap.encodeToByteArray(
+                                                                                    format = ImageFormat.JPEG,
+                                                                                    quality = model.moduleAchievementsImageModel.quality,
+                                                                                )
+                                                                            file.write(byteArray)
+                                                                            println("Achievements generated to ${file.absolutePath()}")
+                                                                        }
 
-                                                            Clipboard -> {
-                                                                copyImageToClipboard(imageBitmap)
-                                                                println("Achievements generated to clipboard")
+                                                                        Clipboard -> {
+                                                                            copyImageToClipboard(imageBitmap)
+                                                                            println("Achievements generated to clipboard")
+                                                                        }
+                                                                    }
+                                                                }.onFailure {
+                                                                    println("Error: ${it.message}")
+                                                                    it.printStackTrace()
+                                                                }
+                                                                model.waiting = false
                                                             }
-                                                        }
+                                                        },
+                                                    ) {
+                                                        AchievementsImageContent(
+                                                            useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
+                                                            username = model.settingModel.username,
+                                                            potential = gameRecordsModel.potential,
+                                                            algorithm = model.settingModel.potentialAlgorithm,
+                                                            highScores = gameRecordsModel.historyRecords.findHighScores(),
+                                                            levelMap = model.settingModel.constantTable,
+                                                            min = model.moduleAchievementsImageModel.minLevelLimit,
+                                                            max = model.moduleAchievementsImageModel.maxLevelLimit,
+                                                            difficulties = difficulties,
+                                                        )
                                                     }
-                                                ) {
-                                                    AchievementsImageContent(
-                                                        useNeoCard = model.moduleAchievementsImageModel.useNeoCard,
-                                                        username = model.settingModel.username,
-                                                        potential = gameRecordsModel.potential,
-                                                        algorithm = model.settingModel.potentialAlgorithm,
-                                                        highScores = gameRecordsModel.historyRecords.findHighScores(),
-                                                        levelMap = model.settingModel.levelMap,
-                                                        min = model.moduleAchievementsImageModel.minLevelLimit,
-                                                        max = model.moduleAchievementsImageModel.maxLevelLimit,
-                                                        difficulties = difficulties,
-                                                    )
-                                                }
-                                                model.waiting = false
+                                                )
                                             }
                                         }
                                     },

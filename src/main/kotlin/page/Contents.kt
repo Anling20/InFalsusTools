@@ -10,7 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,13 +24,16 @@ import cn.anling.infalsustools.generated.resources.folder_open
 import cn.anling.inftool.DiveCardFlat
 import cn.anling.inftool.ProcessedDiveRecord
 import cn.anling.inftool.component.ClickableTextField
-import cn.anling.inftool.getWorkingFolder
+import cn.anling.inftool.component.DropdownMenu
 import cn.anling.inftool.localization.Language
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.*
 import cn.anling.inftool.parser.ImageGenerationType
+import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
+import cn.anling.inftool.song.BuiltinConstantTable
+import cn.anling.inftool.song.ExternalConstantTable
 import cn.anling.inftool.unfocusOnPressEnter
 import io.github.vinceglb.filekit.*
 import io.github.vinceglb.filekit.dialogs.FileKitMode
@@ -37,6 +41,7 @@ import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -46,6 +51,7 @@ fun ColumnScope.ModulePotentialWindowContent(
     onSwitchStarted: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
@@ -90,37 +96,49 @@ fun ColumnScope.ModulePotentialWindowContent(
                 onCheckedChange = { model.onlyDisplayInResultsScene = it },
             )
         }
-        ClickableTextField(
-            value = model.addressFile.absolutePath(),
-            label = { Text(i18n("module.potential_window.address_file")) },
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(Res.drawable.folder_open),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            },
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            onClick = {
-                val file = FileKit.openFilePicker(
-                    type = FileKitType.File("json"),
-                    mode = FileKitMode.Single,
-                    directory = model.addressFile.parent().let {
-                        when {
-                            it != null && it.exists() && it.isDirectory() -> it
-                            else -> getWorkingFolder() / "config"
-                        }
-                    },
-                )
-                if (file != null) {
-                    model.addressFile = file
+        DropdownMenu(
+            text = run {
+                val (type, content) = model.addressContainerString.split(":", limit = 2)
+                when (type) {
+                    "builtin" -> when (content) {
+                        "default" -> i18n("module.potential_window.address_container.default")
+                        else -> error("Unknown builtin constant table: $content")
+                    }
+
+                    "file" -> buildString {
+                        append(i18n("module.potential_window.address_container.$type"))
+                        append(": ")
+                        append(content)
+                    }
+
+                    else -> error("Unknown constant table type: ${model.addressContainerString}")
                 }
             },
-        )
+            label = i18n("module.potential_window.address_container"),
+        ) { onExpandedChange ->
+            DropdownMenuItem(
+                text = { Text(i18n("module.potential_window.address_container.default")) },
+                onClick = {
+                    onExpandedChange(false)
+                    model.addressContainerString = "builtin:default"
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(i18n("module.potential_window.address_container.file")) },
+                onClick = {
+                    onExpandedChange(false)
+                    scope.launch {
+                        val file = FileKit.openFilePicker(
+                            type = FileKitType.File("json"),
+                            mode = FileKitMode.Single,
+                        )
+                        if (file != null) {
+                            model.addressContainerString = "file:" + file.absolutePath()
+                        }
+                    }
+                },
+            )
+        }
     }
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -497,7 +515,6 @@ fun ModulePlayHistoriesContent(records: List<ProcessedDiveRecord>) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 context(model: SettingModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
 fun SettingContent() {
@@ -543,10 +560,10 @@ fun SettingContent() {
                 val file = FileKit.openFilePicker(
                     type = FileKitType.File("sav"),
                     mode = FileKitMode.Single,
-                    directory = model.saveFile.parent().let {
-                        when {
-                            it != null && it.exists() && it.isDirectory() -> it
-                            else -> getWorkingFolder()
+                    directory = model.saveFile.parent()?.let {
+                        when (it.exists() && it.isDirectory()) {
+                            true -> it
+                            else -> null
                         }
                     },
                 )
@@ -556,123 +573,96 @@ fun SettingContent() {
                         gameRecordsModel.update(
                             saveFile = model.saveFile,
                             algorithm = model.potentialAlgorithm,
-                            levelMap = model.levelMap,
+                            levelMap = model.constantTable,
                         )
                     }
                 }
             },
         )
-        ClickableTextField(
-            value = model.levelMapFile.absolutePath(),
-            label = { Text(i18n("setting.level_file")) },
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(Res.drawable.folder_open),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
+        DropdownMenu(
+            text = when (model.constantTable) {
+                BuiltinConstantTable.Vanilla -> i18n("setting.constant_table.vanilla")
+                BuiltinConstantTable.Experimental -> i18n("setting.constant_table.experimental")
+                is ExternalConstantTable -> buildString {
+                    val (type, content) = model.constantTableString.split(":", limit = 2)
+                    append(i18n("setting.constant_table.$type"))
+                    append(": ")
+                    append(content)
+                }
             },
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            onClick = {
-                val file = FileKit.openFilePicker(
-                    type = FileKitType.File("json"),
-                    mode = FileKitMode.Single,
-                    directory = model.levelMapFile.parent().let {
-                        when {
-                            it != null && it.exists() && it.isDirectory() -> it
-                            else -> getWorkingFolder() / "config/levels"
+            label = i18n("setting.constant_table"),
+        ) { onExpandedChange ->
+            DropdownMenuItem(
+                text = { Text(i18n("setting.constant_table.vanilla")) },
+                onClick = {
+                    onExpandedChange(false)
+                    model.constantTableString = "builtin:vanilla"
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(i18n("setting.constant_table.experimental")) },
+                onClick = {
+                    onExpandedChange(false)
+                    model.constantTableString = "builtin:experimental"
+                },
+            )
+            DropdownMenuItem(
+                text = { Text(i18n("setting.constant_table.file")) },
+                onClick = {
+                    onExpandedChange(false)
+                    scope.launch {
+                        val file = FileKit.openFilePicker(
+                            type = FileKitType.File("json"),
+                            mode = FileKitMode.Single,
+                        )
+                        if (file != null) {
+                            model.constantTableString = "file:${file.absolutePath()}"
+                            withContext(Dispatchers.IO) {
+                                gameRecordsModel.update(
+                                    saveFile = model.saveFile,
+                                    algorithm = model.potentialAlgorithm,
+                                    levelMap = model.constantTable,
+                                )
+                            }
+                        }
+                    }
+                },
+            )
+        }
+        DropdownMenu(
+            text = model.potentialAlgorithm.name,
+            label = i18n("setting.potential_algorithm"),
+        ) { onExpandedChange ->
+            PotentialAlgorithm.builtin.forEach { algorithm ->
+                DropdownMenuItem(
+                    text = { Text(algorithm.name) },
+                    onClick = {
+                        onExpandedChange(false)
+                        model.potentialAlgorithmString = "builtin:" + algorithm.id
+                        scope.launch(Dispatchers.IO) {
+                            gameRecordsModel.update(
+                                saveFile = model.saveFile,
+                                algorithm = model.potentialAlgorithm,
+                                levelMap = model.constantTable,
+                            )
                         }
                     },
                 )
-                if (file != null) {
-                    model.levelMapFile = file
-                    scope.launch(Dispatchers.IO) {
-                        gameRecordsModel.update(
-                            saveFile = model.saveFile,
-                            algorithm = model.potentialAlgorithm,
-                            levelMap = model.levelMap,
-                        )
-                    }
-                }
-            },
-        )
-        ClickableTextField(
-            value = model.potentialAlgorithmFile.absolutePath(),
-            label = { Text(i18n("setting.potential_algorithm_file")) },
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(Res.drawable.folder_open),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            },
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            onClick = {
-                val file = FileKit.openFilePicker(
-                    type = FileKitType.File("potential.kts"),
-                    mode = FileKitMode.Single,
-                    directory = model.potentialAlgorithmFile.parent().let {
-                        when {
-                            it != null && it.exists() && it.isDirectory() -> it
-                            else -> getWorkingFolder() / "config/potential_algorithm"
-                        }
+            }
+        }
+        DropdownMenu(
+            text = model.language.displayText,
+            label = i18n("setting.language"),
+        ) { onExpandedChange ->
+            Language.entries.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item.displayText) },
+                    onClick = {
+                        onExpandedChange(false)
+                        model.language = item
+                        currentLanguage = item
                     },
                 )
-                if (file != null) {
-                    model.potentialAlgorithmFile = file
-                    scope.launch(Dispatchers.IO) {
-                        gameRecordsModel.update(
-                            saveFile = model.saveFile,
-                            algorithm = model.potentialAlgorithm,
-                            levelMap = model.levelMap,
-                        )
-                    }
-                }
-            },
-        )
-        run {
-            var expanded by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-            ) {
-                TextField(
-                    value = model.language.displayText,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(i18n("setting.language")) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                        unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-                    ),
-                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                ) {
-                    Language.entries.forEach { item ->
-                        DropdownMenuItem(
-                            text = { Text(item.displayText) },
-                            onClick = {
-                                expanded = false
-                                model.language = item
-                                currentLanguage = item
-                            },
-                        )
-                    }
-                }
             }
         }
     }

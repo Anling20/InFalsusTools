@@ -1,44 +1,30 @@
 package cn.anling.inftool.setting
 
+import cn.anling.inftool.getConfigDirectory
 import com.russhwolf.settings.PropertiesSettings
 import com.russhwolf.settings.Settings
+import io.github.vinceglb.filekit.createDirectories
+import io.github.vinceglb.filekit.div
+import io.github.vinceglb.filekit.exists
+import io.github.vinceglb.filekit.parent
 import java.nio.file.Files
-import java.nio.file.Path
-import java.util.Properties
+import java.util.*
 
-private val path = when {
-    System.getenv("APPDATA") != null -> Path.of(
-        System.getenv("APPDATA"),
-        "In Falsus Tools",
-        "config.properties",
-    )
-
-    System.getProperty("user.home") != null -> Path.of(
-        System.getProperty("user.home"),
-        ".config",
-        "In Falsus Tools",
-        "config.properties",
-    )
-
-    else -> Path.of(
-        "config",
-        "config.properties",
-    )
-}
+private val propertiesFile = getConfigDirectory() / "config.properties"
 
 actual fun createPlatformSettings(): Settings = PropertiesSettings(
     delegate = Properties().apply {
-        if (Files.exists(path)) {
-            Files.newInputStream(path).use(::load)
+        if (propertiesFile.exists()) {
+            Files.newInputStream(propertiesFile.file.toPath()).use(::load)
         }
     },
     onModify = { properties ->
-        if (Files.notExists(path)) {
-            if (Files.notExists(path.parent)) {
-                Files.createDirectories(path.parent)
+        if (!propertiesFile.exists()) {
+            if (!propertiesFile.parent()!!.exists()) {
+                propertiesFile.parent()!!.createDirectories()
             }
-            Files.createFile(path)
+            propertiesFile.file.createNewFile()
         }
-        properties.store(Files.newOutputStream(path), null)
+        properties.store(propertiesFile.file.outputStream(), null)
     }
 )

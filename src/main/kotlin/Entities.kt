@@ -1,6 +1,9 @@
 package cn.anling.inftool
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.ImageBitmap
 import cn.anling.inftool.song.Song
+import kotlinx.coroutines.CompletableDeferred
 
 enum class Difficult {
     MIN, EVO, ULT, FBD
@@ -103,3 +106,10 @@ data class WindowTranslation(
     val position: Pair<Int, Int>,
     val size: Pair<Int, Int>,
 )
+
+data class RenderRequest(
+    val onRendered: suspend (ImageBitmap) -> Unit,
+    val content: @Composable () -> Unit,
+) {
+    val finished: CompletableDeferred<Unit> = CompletableDeferred()
+}

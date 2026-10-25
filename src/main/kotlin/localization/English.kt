@@ -14,7 +14,9 @@ private val container = LocalizationContainer(
 
     "module.potential_window.scale" to "Scale",
     "module.potential_window.only_display_in_results_scene" to "Only display in results scene",
-    "module.potential_window.address_file" to "Address file",
+    "module.potential_window.address_container" to "Address container",
+    "module.potential_window.address_container.default" to "Default",
+    "module.potential_window.address_container.file" to "File",
     "module.potential_window.stop" to "Stop",
     "module.potential_window.start" to "Start",
 
@@ -35,8 +37,11 @@ private val container = LocalizationContainer(
 
     "setting.username" to "Username",
     "setting.save_file" to "Save file",
-    "setting.level_file" to "Level file",
-    "setting.potential_algorithm_file" to "Potential algorithm file",
+    "setting.constant_table" to "Constant table",
+    "setting.constant_table.vanilla" to "Vanilla",
+    "setting.constant_table.experimental" to "Experimental",
+    "setting.constant_table.file" to "File",
+    "setting.potential_algorithm" to "Potential algorithm",
     "setting.language" to "Language",
 
     "submodule.potential_window.play_potential" to "Play potential",

@@ -12,7 +12,9 @@ private val container = LocalizationContainer(
 
     "module.potential_window.scale" to "缩放",
     "module.potential_window.only_display_in_results_scene" to "仅在结算场景显示",
-    "module.potential_window.address_file" to "地址文件",
+    "module.potential_window.address_container" to "地址容器",
+    "module.potential_window.address_container.default" to "默认",
+    "module.potential_window.address_container.file" to "文件",
     "module.potential_window.stop" to "停止",
     "module.potential_window.start" to "启动",
 
@@ -33,8 +35,11 @@ private val container = LocalizationContainer(
 
     "setting.username" to "用户名",
     "setting.save_file" to "存档文件",
-    "setting.level_file" to "定数文件",
-    "setting.potential_algorithm_file" to "潜力值算法文件",
+    "setting.constant_table" to "定数表",
+    "setting.constant_table.vanilla" to "原版",
+    "setting.constant_table.experimental" to "实验性",
+    "setting.constant_table.file" to "文件",
+    "setting.potential_algorithm" to "潜力值算法",
     "setting.language" to "语言",
 
     "submodule.potential_window.play_potential" to "游玩潜力值",

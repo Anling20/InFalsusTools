@@ -1,6 +1,8 @@
 package cn.anling.inftool
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
@@ -8,16 +10,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.isCtrlPressed
-import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.style.TextAlign
@@ -32,9 +31,10 @@ import cn.anling.inftool.Difficult.*
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.ConstantTable
 import cn.anling.inftool.song.Song
 import cn.anling.inftool.song.Songs
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
 
@@ -44,7 +44,6 @@ private data class AhvData(
     val diveRecord: ProcessedDiveRecord?,
 )
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 context(_: LocalizationContext)
 fun AchievementsImage(
@@ -53,12 +52,14 @@ fun AchievementsImage(
     potential: Double,
     algorithm: PotentialAlgorithm,
     highScores: List<ProcessedDiveRecord>,
-    levelMap: LevelMap,
+    levelMap: ConstantTable,
     min: Double?,
     max: Double?,
     difficulties: List<Difficult>,
 ) {
+    val scope = rememberCoroutineScope()
     var scale by remember { mutableFloatStateOf(1.0F) }
+    val animatedScale by animateFloatAsState(scale)
     val horizontalScrollState = rememberScrollState()
     val verticalScrollState = rememberScrollState()
     Box(modifier = Modifier.fillMaxSize()) {
@@ -67,15 +68,44 @@ fun AchievementsImage(
                 .fillMaxSize()
                 .horizontalScroll(horizontalScrollState)
                 .verticalScroll(verticalScrollState)
-                .onPointerEvent(PointerEventType.Scroll) { event ->
-                    if (event.keyboardModifiers.isCtrlPressed) {
-                        val delta = event.changes.firstOrNull()?.scrollDelta?.y ?: 0F
-                        when {
-                            delta > 0 -> scale = (scale - 0.1f).coerceAtLeast(0.25f)
-                            delta < 0 -> scale = (scale + 0.1f).coerceAtMost(4.00f)
-                        }
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.first()
+                            when (event.type) {
+                                PointerEventType.Move -> {
+                                    val positionChange = change.positionChange()
+                                    if (
+                                        and(
+                                            event.keyboardModifiers.isCtrlPressed,
+                                            positionChange.x != 0F,
+                                            positionChange.y == 0F,
+                                        )
+                                    ) {
+                                        val delta = positionChange.x
+                                        when {
+                                            delta > 0 -> scale = (scale - 0.05f).coerceAtLeast(0.25f)
+                                            delta < 0 -> scale = (scale + 0.05f).coerceAtMost(4.00f)
+                                        }
+                                    }
+                                }
 
-                        event.changes.forEach { it.consume() }
+                                PointerEventType.Scroll -> {
+                                    if (event.keyboardModifiers.isShiftPressed) {
+                                        val delta = event.changes.firstOrNull()?.scrollDelta?.y ?: 0f
+                                        if (delta != 0F) {
+                                            scope.launch {
+                                                horizontalScrollState.animateScrollBy(delta * 200F)
+                                            }
+                                            event.changes.forEach { it.consume() }
+                                        }
+                                    }
+                                }
+
+                                else -> Unit
+                            }
+                        }
                     }
                 },
         ) {
@@ -96,10 +126,10 @@ fun AchievementsImage(
             ) { measurables, constraints ->
                 val content = measurables[0].measure(constraints.copy())
 
-                layout((content.width * scale).toInt(), (content.height * scale).toInt()) {
+                layout((content.width * animatedScale).toInt(), (content.height * animatedScale).toInt()) {
                     content.placeWithLayer(0, 0) {
-                        scaleX = scale
-                        scaleY = scale
+                        scaleX = animatedScale
+                        scaleY = animatedScale
                         transformOrigin = TransformOrigin(0F, 0F)
                     }
                 }
@@ -124,7 +154,7 @@ fun AchievementsImageContent(
     potential: Double,
     algorithm: PotentialAlgorithm,
     highScores: List<ProcessedDiveRecord>,
-    levelMap: LevelMap,
+    levelMap: ConstantTable,
     min: Double?,
     max: Double?,
     difficulties: List<Difficult>,

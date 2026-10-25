@@ -1,35 +1,20 @@
 package cn.anling.inftool
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.layer.drawLayer
-import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.window.singleWindowApplication
 import cn.anling.inftool.parser.ParsedJudgementTypeCount
 import cn.anling.inftool.parser.ParsedRecord
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import cn.anling.inftool.song.LevelMap
+import cn.anling.inftool.song.ConstantTable
 import cn.anling.inftool.song.Song
 import cn.anling.inftool.song.Songs
 import cn.anling.inftool.song.selectLevel
-import cn.anling.inftool.theme.AppTheme
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.readBytes
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
+import io.github.vinceglb.filekit.readString
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 import kotlin.math.floor
 import kotlin.math.min
 import kotlin.math.pow
@@ -62,7 +47,7 @@ fun ParsedJudgementTypeCount.toJudgementCount(): JudgementCount = JudgementCount
 
 fun DiveRecord.process(
     histories: List<DiveRecord>,
-    levelMap: LevelMap,
+    levelMap: ConstantTable,
     algorithm: PotentialAlgorithm,
 ): ProcessedDiveRecord {
     val song = Songs.entries
@@ -107,45 +92,6 @@ suspend fun PlatformFile.readBytesWhenAvailable(): ByteArray {
 fun Double.floor(decimalPlaces: Int): Double {
     val n = 10.0.pow(decimalPlaces)
     return floor(this * n) / n
-}
-
-fun renderComposable(
-    onRendered: suspend (ImageBitmap) -> Unit,
-    content: @Composable () -> Unit,
-) {
-    singleWindowApplication(
-        visible = false,
-        exitProcessOnExit = false,
-    ) {
-        val graphicsLayer = rememberGraphicsLayer()
-        val rendered = remember { CompletableDeferred<Unit>() }
-        Box(
-            modifier = Modifier
-                .wrapContentSize(unbounded = true)
-                .drawWithContent {
-                    graphicsLayer.record {
-                        this@drawWithContent.drawContent()
-                    }
-                    drawLayer(graphicsLayer)
-                    rendered.complete(Unit)
-                },
-        ) {
-            CompositionLocalProvider(LocalDensity provides Density(1f, 1f)) {
-                AppTheme(false) {
-                    content()
-                }
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                rendered.await()
-                val imageBitmap = graphicsLayer.toImageBitmap()
-                onRendered(imageBitmap)
-                exitApplication()
-            }
-        }
-    }
 }
 
 private enum class PushType {
@@ -234,3 +180,5 @@ fun List<ProcessedDiveRecord>.findHighScores(): List<ProcessedDiveRecord> = this
     .mapValues { (_, value) -> value.maxBy { it.potential } }
     .values
     .toList()
+
+fun PlatformFile.readStringSync(): String = runBlocking { readString() }

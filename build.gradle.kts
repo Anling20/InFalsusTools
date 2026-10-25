@@ -1,4 +1,5 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
+import dev.nucleusframework.desktop.application.dsl.*
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
@@ -6,6 +7,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.4.21"
     id("org.jetbrains.compose") version "1.12.1"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.4.21"
+    id("dev.nucleusframework") version "2.5.18"
 }
 
 group = "cn.anling"
@@ -53,17 +55,15 @@ kotlin {
             implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
             implementation("org.jetbrains.compose.components:components-resources:1.12.1")
 
+            implementation("dev.nucleusframework:nucleus.global-hotkey:2.5.18")
+
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0-RC")
 
-            implementation("com.github.ajalt.clikt:clikt:5.1.0")
-            implementation("com.github.ajalt.clikt:clikt-markdown:5.1.0")
             implementation("dev.chrisbanes.haze:haze-blur:2.0.1")
             implementation("dev.chrisbanes.haze:haze-blur-material3:2.0.1")
             implementation("com.russhwolf:multiplatform-settings:1.3.0")
             implementation("io.github.vinceglb:filekit-core:0.16.0")
             implementation("io.github.vinceglb:filekit-dialogs-compose:0.16.0")
-
-            implementation("org.jetbrains.kotlin:kotlin-scripting-common:2.4.21")
         }
 
         jvmMain.dependencies {
@@ -71,40 +71,73 @@ kotlin {
                 exclude("org.jetbrains.compose.material", "material")
             }
 
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.0")
-
-            implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.21")
-            implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:2.4.21")
+            implementation("dev.nucleusframework:nucleus.nucleus-application:2.5.18")
+            implementation("dev.nucleusframework:nucleus.decorated-window-tao:2.5.18")
+            implementation("dev.nucleusframework:nucleus.updater-runtime:2.5.18")
         }
     }
 }
 
-compose.desktop {
-    application {
-        mainClass = "MainKt"
+nucleus.application {
+    mainClass = "cn.anling.inftool.MainKt"
 
-        nativeDistributions {
-            val os = System.getProperty("os.name")
-            when {
-                os.contains("Windows") -> targetFormats(TargetFormat.Msi, TargetFormat.Exe, TargetFormat.AppImage)
-                os.contains("Linux") -> targetFormats(TargetFormat.Deb, TargetFormat.Rpm, TargetFormat.AppImage)
-                os.contains("Mac OS") -> targetFormats(TargetFormat.Dmg, TargetFormat.Pkg)
-                else -> error("Unsupported OS: $os")
-            }
-            packageName = "In Falsus Tools"
-            packageVersion = "1.0.0"
-            jvmArgs("-Dfile.encoding=UTF-8")
-            includeAllModules = true
+    nativeDistributions {
+        targetFormats(
+            // macOS
+            TargetFormat.Dmg,
+            TargetFormat.Pkg,
+            // Windows
+            TargetFormat.Exe,
+            TargetFormat.Nsis,
+            TargetFormat.Msi,
+            TargetFormat.Portable,
+//            TargetFormat.AppX,
+            // Linux
+            TargetFormat.Deb,
+            TargetFormat.Rpm,
+            TargetFormat.AppImage,
+            TargetFormat.Pacman,
+            TargetFormat.Snap,
+            TargetFormat.Flatpak,
+            // Archives
+            TargetFormat.Zip,
+            TargetFormat.Tar,
+            TargetFormat.SevenZ,
+        )
 
-            linux {
-                modules("jdk.security.auth")
+        packageName = "In Falsus Tools"
+        packageVersion = "1.0.0"
+
+        jvmArgs("-Dfile.encoding=UTF-8")
+        cleanupNativeLibs = true
+        compressionLevel = CompressionLevel.Ultra
+
+        publish {
+            publishMode = PublishMode.Always
+
+            github {
+                enabled = true
+                owner = "Anling20"
+                repo = "InFalsusTools"
+                token = System.getenv("GITHUB_TOKEN")
+                channel = ReleaseChannel.Alpha
+                releaseType = ReleaseType.Prerelease
             }
         }
 
-        buildTypes.release.proguard {
-            configurationFiles.from(project.file("src/main@jvm/rules.pro"))
-            optimize.set(false)
+        windows {
+            portable {
+                compressionLevel = CompressionLevel.Normal
+            }
         }
+    }
+
+    graalvm {
+        isEnabled = true
+    }
+
+    buildTypes.release.proguard {
+        isEnabled = false
     }
 }
 
@@ -117,29 +150,4 @@ compose.resources {
 
 tasks.withType<JavaExec>().configureEach {
     jvmArgs("--enable-native-access=ALL-UNNAMED")
-}
-
-tasks.register<Copy>("copyExtraResources") {
-    description = "Copy extra resources"
-
-    from("config")
-
-    into(layout.buildDirectory.dir("compose/binaries/main/app/In Falsus Tools/config"))
-}
-
-tasks.register<Copy>("copyExtraResourcesRelease") {
-    description = "Copy extra resources"
-
-    from("config")
-
-    into(layout.buildDirectory.dir("compose/binaries/main-release/app/In Falsus Tools/config"))
-}
-
-afterEvaluate {
-    tasks.named("packageAppImage") {
-        finalizedBy("copyExtraResources")
-    }
-    tasks.named("packageReleaseAppImage") {
-        finalizedBy("copyExtraResourcesRelease")
-    }
 }

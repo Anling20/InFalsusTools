@@ -41,15 +41,9 @@ fun FloatingWindow(
     potential: Double,
     playResult: PlayResult?,
 ) {
-    val additionPotentialFormater = remember(Unit) {
-        DecimalFormat("0.000")
-    }
-    val levelFormater = remember(Unit) {
-        DecimalFormat("0.0")
-    }
-    val potentialFormater = remember(Unit) {
-        DecimalFormat("00.0000")
-    }
+    val additionPotentialFormater = remember(Unit) { DecimalFormat("0.000") }
+    val levelFormater = remember(Unit) { DecimalFormat("0.0") }
+    val potentialFormater = remember(Unit) { DecimalFormat("00.0000") }
 
     Surface(
         color = Color.Transparent,
@@ -101,7 +95,7 @@ fun FloatingWindow(
                         color = Color.White,
                         fontSize = 24.sp,
                         maxLines = 1,
-                        style = LocalTextStyle.current.copy(fontFamily = exo2)
+                        style = LocalTextStyle.current.copy(fontFamily = exo2),
                     )
 
                     AnimatedContent(potential) {
@@ -110,7 +104,7 @@ fun FloatingWindow(
                             color = Color.White,
                             fontSize = 24.sp,
                             maxLines = 1,
-                            style = LocalTextStyle.current.copy(fontFamily = exo2)
+                            style = LocalTextStyle.current.copy(fontFamily = exo2),
                         )
                     }
 
@@ -129,7 +123,7 @@ fun FloatingWindow(
                                 },
                                 fontSize = 24.sp,
                                 maxLines = 1,
-                                style = LocalTextStyle.current.copy(fontFamily = exo2)
+                                style = LocalTextStyle.current.copy(fontFamily = exo2),
                             )
                         }
                     }
@@ -159,7 +153,7 @@ fun FloatingWindow(
                                 fontSize = 16.sp,
                                 lineHeight = 16.sp,
                                 maxLines = 1,
-                                style = LocalTextStyle.current.copy(fontFamily = notosans)
+                                style = LocalTextStyle.current.copy(fontFamily = notosans),
                             )
                             Text(
                                 text = buildString {
@@ -171,7 +165,7 @@ fun FloatingWindow(
                                 fontSize = 16.sp,
                                 lineHeight = 16.sp,
                                 maxLines = 1,
-                                style = LocalTextStyle.current.copy(fontFamily = exo2)
+                                style = LocalTextStyle.current.copy(fontFamily = exo2),
                             )
                         }
                     }

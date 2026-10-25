@@ -6,78 +6,24 @@
 @file:DependsOn("actions:checkout:v7")
 @file:DependsOn("actions:setup-java:v6")
 @file:DependsOn("actions:upload-artifact:v7")
+@file:DependsOn("actions:setup-node:v7")
 @file:DependsOn("gradle:actions__setup-gradle:v6")
+@file:DependsOn("NucleusFramework:Nucleus__.github__actions__setup-nucleus:main")
+@file:DependsOn("NucleusFramework:Nucleus__.github__actions__generate-update-yml:main")
+@file:DependsOn("NucleusFramework:Nucleus__.github__actions__publish-release:main")
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
-import io.github.typesafegithub.workflows.actions.actions.SetupJava
 import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
-import io.github.typesafegithub.workflows.actions.gradle.ActionsSetupGradle
-import io.github.typesafegithub.workflows.domain.JobOutputs
+import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsGenerateUpdateYml_Untyped
+import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsPublishRelease_Untyped
+import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsSetupNucleus_Untyped
 import io.github.typesafegithub.workflows.domain.Mode
 import io.github.typesafegithub.workflows.domain.Permission
 import io.github.typesafegithub.workflows.domain.RunnerType
 import io.github.typesafegithub.workflows.domain.triggers.Push
-import io.github.typesafegithub.workflows.domain.triggers.Release
-import io.github.typesafegithub.workflows.dsl.JobBuilder
-import io.github.typesafegithub.workflows.dsl.WorkflowBuilder
+import io.github.typesafegithub.workflows.dsl.expressions.expr
 import io.github.typesafegithub.workflows.dsl.workflow
 import io.github.typesafegithub.workflows.yaml.ConsistencyCheckJobConfig
-
-val content: WorkflowBuilder.() -> Unit = {
-	publish(
-		runsOn = RunnerType.WindowsLatest,
-		system = "windows",
-		arch = "amd64",
-		publishes = listOf(
-//			"uberjar" to "UberJarForCurrentOS" to "jars",
-			"portable" to "AppImage" to "binaries/main/app",
-//			"installer-msi" to "Msi" to "binaries/main-release/msi",
-//			"installer-exe" to "Exe" to "binaries/main-release/exe",
-		),
-	)
-	publish(
-		runsOn = RunnerType.Custom("windows-11-arm"),
-		system = "windows",
-		arch = "aarch64",
-		publishes = listOf(
-//			"uberjar" to "UberJarForCurrentOS" to "jars",
-			"portable" to "AppImage" to "binaries/main/app",
-//			"installer-msi" to "Msi" to "binaries/main-release/msi",
-//			"installer-exe" to "Exe" to "binaries/main-release/exe",
-		),
-	)
-	/*publish(
-		runsOn = RunnerType.UbuntuLatest,
-		system = "linux",
-		arch = "amd64",
-		publishes = listOf(
-			"uberjar" to "UberJarForCurrentOS" to "jars",
-			"portable" to "AppImage" to "binaries/main-release/app",
-			"installer-deb" to "Deb" to "binaries/main-release/deb",
-			"installer-rpm" to "Rpm" to "binaries/main-release/rpm",
-		),
-	)
-	publish(
-		runsOn = RunnerType.Custom("ubuntu-22.04-arm"),
-		system = "linux",
-		arch = "aarch64",
-		publishes = listOf(
-			"uberjar" to "UberJarForCurrentOS" to "jars",
-			"portable" to "AppImage" to "binaries/main-release/app",
-			"installer-deb" to "Deb" to "binaries/main-release/deb",
-			"installer-rpm" to "Rpm" to "binaries/main-release/rpm",
-		),
-	)
-	publish(
-		runsOn = RunnerType.MacosLatest,
-		system = "macos",
-		arch = "aarch64",
-		publishes = listOf(
-			"uberjar" to "UberJarForCurrentOS" to "jars",
-			"installer-dmg" to "Dmg" to "binaries/main-release/dmg",
-		),
-	)*/
-}
 
 workflow(
 	name = "Package snapshot",
@@ -89,44 +35,63 @@ workflow(
 	sourceFile = __FILE__,
 	targetFileName = "package_snapshot.yml",
 	consistencyCheckJobConfig = ConsistencyCheckJobConfig.Disabled,
-	block = content,
-)
-
-workflow(
-	name = "Package release",
-	on = listOf(
-		Release(
-			types = listOf(Release.EventType.Created),
-		),
+	permissions = mapOf(
+		Permission.Contents to Mode.Write,
 	),
-	sourceFile = __FILE__,
-	targetFileName = "package_release.yml",
-	consistencyCheckJobConfig = ConsistencyCheckJobConfig.Disabled,
-	block = content,
-)
-
-infix fun <T1, T2, T3> Pair<T1, T2>.to(third: T3): Triple<T1, T2, T3> = Triple(this.first, this.second, third)
-
-fun WorkflowBuilder.publish(runsOn: RunnerType, system: String, arch: String, publishes: List<Triple<String, String, String>>) {
+) {
 	job(
-		id = "package-$system-$arch",
-		runsOn = runsOn,
-		permissions = mapOf(
-			Permission.Contents to Mode.Read,
-			Permission.Packages to Mode.Write,
-		)
-	) {
-		uses(
-			action = Checkout(),
-		)
-		uses(
-			action = SetupJava(
-				javaVersion = "25",
-				distribution = SetupJava.Distribution.Zulu,
+		id = "package",
+		runsOn = RunnerType.Custom(expr("matrix.os")),
+		env = mapOf(
+			"GITHUB_TOKEN" to expr { secrets.GITHUB_TOKEN },
+			"VERSION" to expr { github.ref_name },
+			"CHANNEL" to "alpha",
+			"RELEASE_TYPE" to "prerelease",
+		),
+		_customArguments = mapOf(
+			"strategy" to mapOf(
+				"fail-fast" to false,
+				"matrix" to mapOf(
+					"include" to listOf(
+						/*mapOf(
+							"os" to "ubunut-latest",
+							"arch" to "amd64",
+						),
+						mapOf(
+							"os" to "ubunut-24.04-arm",
+							"arch" to "arm64",
+						),*/
+						mapOf(
+							"os" to "windows-latest",
+							"arch" to "amd64",
+						),
+						mapOf(
+							"os" to "windows-11-arm",
+							"arch" to "arm64",
+							"node-version" to "22",
+						),
+						/*mapOf(
+							"os" to "macos-latest",
+							"arch" to "arm64",
+						),
+						mapOf(
+							"os" to "macos-15-intel",
+							"arch" to "amd64",
+						),*/
+					),
+				),
 			),
-		)
+		),
+	) {
+		uses(action = Checkout())
 		uses(
-			action = ActionsSetupGradle(),
+			action = NucleusGithubActionsSetupNucleus_Untyped(
+				javaVersion_Untyped = "25",
+				flatpak_Untyped = "true",
+				snap_Untyped = "true",
+				graalvm_Untyped = "true",
+				nodeVersion_Untyped = expr("matrix.node-version || '24'"),
+			),
 		)
 		run(
 			command = """
@@ -136,27 +101,28 @@ fun WorkflowBuilder.publish(runsOn: RunnerType, system: String, arch: String, pu
 				./gradlew :generateExpectResourceCollectorsForCommonMain
 				./gradlew :generateActualResourceCollectorsForJvmMain
 				./gradlew :assembleJvmMainResources
+				./gradlew :packageReleaseDistributionForCurrentOS --stacktrace --no-daemon
 			""".trimIndent(),
 		)
-		publishes.forEach { publish ->
-			publish(
-				name = "$system-${publish.first}-$arch",
-				task = publish.second,
-				path = publish.third,
+		uses(
+			action = UploadArtifact(
+				name = "release-assets-" + expr { runner.os } + "-" + expr("matrix.arch"),
+				path = listOf("build/compose/binaries/main/**/*"),
+			),
+		)
+		uses(
+			action = NucleusGithubActionsGenerateUpdateYml_Untyped(
+				artifactsPath_Untyped = "artifacts",
+				version_Untyped = expr { env["VERSION"]!! },
+				channel_Untyped = expr { env["CHANNEL"]!! },
+			),
+		)
+		uses(
+			action = NucleusGithubActionsPublishRelease_Untyped(
+				artifactsPath_Untyped = "artifacts",
+				tag_Untyped = expr { env["TAG"]!! },
+				releaseType_Untyped = expr { env["RELEASE_TYPE"]!! },
 			)
-		}
+		)
 	}
-}
-
-fun JobBuilder<JobOutputs.EMPTY>.publish(name: String, task: String, path: String) {
-	run(
-		name = "package $name",
-		command = "./gradlew :package$task",
-	)
-	uses(
-		action = UploadArtifact(
-			name = "InFalsusTools-$name",
-			path = listOf("build/compose/$path/*"),
-		),
-	)
 }

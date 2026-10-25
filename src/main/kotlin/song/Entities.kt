@@ -8,11 +8,9 @@ data class Song(
 )
 
 @Serializable
-data class SongLevel(
+data class SongConstant(
     val minimal: Double,
     val evolved: Double,
     val ultimate: Double,
     val forbidden: Double,
 )
-
-typealias LevelMap = Map<Int, SongLevel>
