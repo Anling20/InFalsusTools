@@ -9,6 +9,7 @@
 @file:DependsOn("actions:setup-node:v7")
 @file:DependsOn("actions:download-artifact:v8")
 @file:DependsOn("gradle:actions__setup-gradle:v6")
+@file:DependsOn("NucleusFramework:Nucleus__.github__actions__validate-release-ref:main")
 @file:DependsOn("NucleusFramework:Nucleus__.github__actions__setup-nucleus:main")
 @file:DependsOn("NucleusFramework:Nucleus__.github__actions__generate-update-yml:main")
 @file:DependsOn("NucleusFramework:Nucleus__.github__actions__publish-release:main")
@@ -19,10 +20,8 @@ import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
 import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsGenerateUpdateYml_Untyped
 import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsPublishRelease_Untyped
 import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsSetupNucleus_Untyped
-import io.github.typesafegithub.workflows.domain.Mode
-import io.github.typesafegithub.workflows.domain.Permission
-import io.github.typesafegithub.workflows.domain.RunnerType
-import io.github.typesafegithub.workflows.domain.Shell
+import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsValidateReleaseRef_Untyped
+import io.github.typesafegithub.workflows.domain.*
 import io.github.typesafegithub.workflows.domain.triggers.Push
 import io.github.typesafegithub.workflows.dsl.expressions.expr
 import io.github.typesafegithub.workflows.dsl.workflow
@@ -32,19 +31,41 @@ workflow(
     name = "Package",
     on = listOf(
         Push(
+            tags = listOf("v*"),
             pathsIgnore = listOf("README.md"),
         ),
     ),
     sourceFile = __FILE__,
     targetFileName = "package.yml",
+    concurrency = Concurrency(
+        group = "release-" + expr { github.ref },
+        cancelInProgress = false
+    ),
     consistencyCheckJobConfig = ConsistencyCheckJobConfig.Disabled,
     permissions = mapOf(
         Permission.Contents to Mode.Write,
     ),
 ) {
+    val validateReleaseRef = job(
+        id = "validate-release-ref",
+        runsOn = RunnerType.Ubuntu2204,
+    ) {
+        uses(
+            action = Checkout(
+                fetchDepth = Checkout.FetchDepth.Value(0),
+            ),
+            name = "Checkout",
+        )
+        uses(
+            action = NucleusGithubActionsValidateReleaseRef_Untyped(),
+            name = "Validate release ref",
+        )
+    }
+
     val build = job(
         id = "build",
         runsOn = RunnerType.Custom(expr("matrix.os")),
+        needs = listOf(validateReleaseRef),
         _customArguments = mapOf(
             "strategy" to mapOf(
                 "fail-fast" to false,
@@ -80,7 +101,12 @@ workflow(
             ),
         ),
     ) {
-        uses(action = Checkout())
+        uses(
+            action = Checkout(
+                fetchDepth = Checkout.FetchDepth.Value(0),
+            ),
+            name = "Checkout",
+        )
         uses(
             action = NucleusGithubActionsSetupNucleus_Untyped(
                 javaVersion_Untyped = "25",
@@ -89,6 +115,7 @@ workflow(
                 graalvm_Untyped = "true",
                 nodeVersion_Untyped = expr("matrix.node-version || '24'"),
             ),
+            name = "Setup nucleus",
         )
         run(
             command = """
@@ -100,6 +127,7 @@ workflow(
 				./gradlew :assembleJvmMainResources
 				./gradlew :packageReleaseDistributionForCurrentOS --stacktrace --no-daemon
 			""".trimIndent(),
+            name = "Build",
         )
         uses(
             action = UploadArtifact(
@@ -129,7 +157,9 @@ workflow(
                     "build/compose/binaries/**/packaging-metadata.json",
                     "build/compose/binaries/sandboxed-*.zip",
                 ),
+                ifNoFilesFound = UploadArtifact.BehaviorIfNoFilesFound.Error,
             ),
+            name = "Upload artifacts",
         )
     }
 
@@ -145,12 +175,18 @@ workflow(
             "RELEASE_TYPE" to "prerelease",
         ),
     ) {
-        uses(action = Checkout())
+        uses(
+            action = Checkout(
+                fetchDepth = Checkout.FetchDepth.Value(0),
+            ),
+            name = "Checkout",
+        )
         uses(
             action = DownloadArtifact(
                 path = "artifacts",
                 pattern = "release-assets-*",
-            )
+            ),
+            name = "Download artifacts",
         )
         run(
             command = $$"""
@@ -158,6 +194,7 @@ workflow(
                 VERSION="${TAG#v}"
                 echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 			""".trimIndent(),
+            name = "Determine version",
             shell = Shell.Bash,
         )
         run(
@@ -171,6 +208,7 @@ workflow(
                 version_Untyped = expr { env["VERSION"]!! },
                 channel_Untyped = expr { env["CHANNEL"]!! },
             ),
+            name = "Generate update YML files",
         )
         run(
             command = $$"""
@@ -189,7 +227,8 @@ workflow(
                 artifactsPath_Untyped = "artifacts",
                 tag_Untyped = expr { env["TAG"]!! },
                 releaseType_Untyped = expr { env["RELEASE_TYPE"]!! },
-            )
+            ),
+            name = "Publish release",
         )
     }
 }

@@ -7,11 +7,29 @@ on:
   push:
     paths-ignore:
     - 'README.md'
+    tags:
+    - 'v*'
 permissions:
   contents: 'write'
+concurrency:
+  group: 'release-${{ github.ref }}'
+  cancel-in-progress: false
 jobs:
+  validate-release-ref:
+    runs-on: 'ubuntu-22.04'
+    steps:
+    - id: 'step-0'
+      name: 'Checkout'
+      uses: 'actions/checkout@v7'
+      with:
+        fetch-depth: '0'
+    - id: 'step-1'
+      name: 'Validate release ref'
+      uses: 'NucleusFramework/Nucleus/.github/actions/validate-release-ref@main'
   build:
     runs-on: '${{ matrix.os }}'
+    needs:
+    - 'validate-release-ref'
     strategy:
       fail-fast: false
       matrix:
@@ -23,8 +41,12 @@ jobs:
           node-version: '22'
     steps:
     - id: 'step-0'
+      name: 'Checkout'
       uses: 'actions/checkout@v7'
+      with:
+        fetch-depth: '0'
     - id: 'step-1'
+      name: 'Setup nucleus'
       uses: 'NucleusFramework/Nucleus/.github/actions/setup-nucleus@main'
       with:
         java-version: '25'
@@ -33,6 +55,7 @@ jobs:
         graalvm: 'true'
         node-version: '${{ matrix.node-version || ''24'' }}'
     - id: 'step-2'
+      name: 'Build'
       run: |-
         chmod +x ./gradlew
         ./gradlew :generateComposeResClass
@@ -42,6 +65,7 @@ jobs:
         ./gradlew :assembleJvmMainResources
         ./gradlew :packageReleaseDistributionForCurrentOS --stacktrace --no-daemon
     - id: 'step-3'
+      name: 'Upload artifacts'
       uses: 'actions/upload-artifact@v7'
       with:
         name: 'release-assets-${{ runner.os }}-${{ matrix.arch }}'
@@ -69,6 +93,7 @@ jobs:
           build/compose/binaries/**/signing-metadata.json
           build/compose/binaries/**/packaging-metadata.json
           build/compose/binaries/sandboxed-*.zip
+        if-no-files-found: 'error'
   publish:
     runs-on: 'ubuntu-22.04'
     needs:
@@ -81,13 +106,18 @@ jobs:
       RELEASE_TYPE: 'prerelease'
     steps:
     - id: 'step-0'
+      name: 'Checkout'
       uses: 'actions/checkout@v7'
+      with:
+        fetch-depth: '0'
     - id: 'step-1'
+      name: 'Download artifacts'
       uses: 'actions/download-artifact@v8'
       with:
         path: 'artifacts'
         pattern: 'release-assets-*'
     - id: 'step-2'
+      name: 'Determine version'
       shell: 'bash'
       run: |-
         set -euo pipefail
@@ -98,6 +128,7 @@ jobs:
       shell: 'bash'
       run: 'find artifacts -type f | head -100'
     - id: 'step-4'
+      name: 'Generate update YML files'
       uses: 'NucleusFramework/Nucleus/.github/actions/generate-update-yml@main'
       with:
         artifacts-path: 'artifacts'
@@ -114,6 +145,7 @@ jobs:
           echo
         done
     - id: 'step-6'
+      name: 'Publish release'
       uses: 'NucleusFramework/Nucleus/.github/actions/publish-release@main'
       with:
         artifacts-path: 'artifacts'
