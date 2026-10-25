@@ -2,7 +2,7 @@
 # If you want to modify the workflow, please change the Kotlin file and regenerate this YAML file.
 # Generated with https://github.com/typesafegithub/github-workflows-kt
 
-name: 'Package snapshot'
+name: 'Package'
 on:
   push:
     paths-ignore:
@@ -10,14 +10,10 @@ on:
 permissions:
   contents: 'write'
 jobs:
-  package:
+  build:
     runs-on: '${{ matrix.os }}'
     env:
       GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-      VERSION: '${{ github.ref_name }}'
-      CHANNEL: 'alpha'
-      TAG: '0.0.1'
-      RELEASE_TYPE: 'prerelease'
     strategy:
       fail-fast: false
       matrix:
@@ -52,13 +48,26 @@ jobs:
       with:
         name: 'release-assets-${{ runner.os }}-${{ matrix.arch }}'
         path: 'build/compose/binaries/main/**/*'
-    - id: 'step-4'
+  publish:
+    runs-on: 'ubuntu-latest'
+    env:
+      VERSION: '${{ github.ref_name }}'
+      CHANNEL: 'alpha'
+      TAG: '0.0.1'
+      RELEASE_TYPE: 'prerelease'
+    steps:
+    - id: 'step-0'
+      uses: 'actions/download-artifact@v7'
+      with:
+        path: 'artifacts'
+        pattern: 'release-assets-*'
+    - id: 'step-1'
       uses: 'NucleusFramework/Nucleus/.github/actions/generate-update-yml@main'
       with:
         artifacts-path: 'artifacts'
         version: '${{ env.VERSION }}'
         channel: '${{ env.CHANNEL }}'
-    - id: 'step-5'
+    - id: 'step-2'
       uses: 'NucleusFramework/Nucleus/.github/actions/publish-release@main'
       with:
         artifacts-path: 'artifacts'

@@ -7,12 +7,14 @@
 @file:DependsOn("actions:setup-java:v6")
 @file:DependsOn("actions:upload-artifact:v7")
 @file:DependsOn("actions:setup-node:v7")
+@file:DependsOn("actions:download-artifact:v7")
 @file:DependsOn("gradle:actions__setup-gradle:v6")
 @file:DependsOn("NucleusFramework:Nucleus__.github__actions__setup-nucleus:main")
 @file:DependsOn("NucleusFramework:Nucleus__.github__actions__generate-update-yml:main")
 @file:DependsOn("NucleusFramework:Nucleus__.github__actions__publish-release:main")
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
+import io.github.typesafegithub.workflows.actions.actions.DownloadArtifact
 import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
 import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsGenerateUpdateYml_Untyped
 import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsPublishRelease_Untyped
@@ -26,28 +28,24 @@ import io.github.typesafegithub.workflows.dsl.workflow
 import io.github.typesafegithub.workflows.yaml.ConsistencyCheckJobConfig
 
 workflow(
-	name = "Package snapshot",
+	name = "Package",
 	on = listOf(
 		Push(
 			pathsIgnore = listOf("README.md"),
 		),
 	),
 	sourceFile = __FILE__,
-	targetFileName = "package_snapshot.yml",
+	targetFileName = "package.yml",
 	consistencyCheckJobConfig = ConsistencyCheckJobConfig.Disabled,
 	permissions = mapOf(
 		Permission.Contents to Mode.Write,
 	),
 ) {
 	job(
-		id = "package",
+		id = "build",
 		runsOn = RunnerType.Custom(expr("matrix.os")),
 		env = mapOf(
 			"GITHUB_TOKEN" to expr { secrets.GITHUB_TOKEN },
-			"VERSION" to expr { github.ref_name },
-			"CHANNEL" to "alpha",
-			"TAG" to "0.0.1",
-			"RELEASE_TYPE" to "prerelease",
 		),
 		_customArguments = mapOf(
 			"strategy" to mapOf(
@@ -110,6 +108,24 @@ workflow(
 				name = "release-assets-" + expr { runner.os } + "-" + expr("matrix.arch"),
 				path = listOf("build/compose/binaries/main/**/*"),
 			),
+		)
+	}
+
+	job(
+		id = "publish",
+		runsOn = RunnerType.UbuntuLatest,
+		env = mapOf(
+			"VERSION" to expr { github.ref_name },
+			"CHANNEL" to "alpha",
+			"TAG" to "0.0.1",
+			"RELEASE_TYPE" to "prerelease",
+		),
+	) {
+		uses(
+			action = DownloadArtifact(
+				pattern = "release-assets-*",
+				path = "artifacts",
+			)
 		)
 		uses(
 			action = NucleusGithubActionsGenerateUpdateYml_Untyped(
