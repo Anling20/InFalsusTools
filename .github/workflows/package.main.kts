@@ -41,7 +41,7 @@ workflow(
 		Permission.Contents to Mode.Write,
 	),
 ) {
-	job(
+	val build = job(
 		id = "build",
 		runsOn = RunnerType.Custom(expr("matrix.os")),
 		env = mapOf(
@@ -114,6 +114,7 @@ workflow(
 	job(
 		id = "publish",
 		runsOn = RunnerType.UbuntuLatest,
+		needs = listOf(build),
 		env = mapOf(
 			"VERSION" to expr { github.ref_name },
 			"CHANNEL" to "alpha",

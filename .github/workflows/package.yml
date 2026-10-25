@@ -50,6 +50,8 @@ jobs:
         path: 'build/compose/binaries/main/**/*'
   publish:
     runs-on: 'ubuntu-latest'
+    needs:
+    - 'build'
     env:
       VERSION: '${{ github.ref_name }}'
       CHANNEL: 'alpha'
