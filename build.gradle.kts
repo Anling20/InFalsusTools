@@ -1,5 +1,6 @@
 
-import dev.nucleusframework.desktop.application.dsl.*
+import dev.nucleusframework.desktop.application.dsl.CompressionLevel
+import dev.nucleusframework.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
@@ -111,19 +112,6 @@ nucleus.application {
         jvmArgs("-Dfile.encoding=UTF-8")
         cleanupNativeLibs = true
         compressionLevel = CompressionLevel.Ultra
-
-        publish {
-            publishMode = PublishMode.Always
-
-            github {
-                enabled = true
-                owner = "Anling20"
-                repo = "InFalsusTools"
-                token = System.getenv("GITHUB_TOKEN")
-                channel = ReleaseChannel.Alpha
-                releaseType = ReleaseType.Prerelease
-            }
-        }
 
         windows {
             portable {
