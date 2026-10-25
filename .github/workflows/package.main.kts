@@ -14,10 +14,7 @@
 @file:DependsOn("NucleusFramework:Nucleus__.github__actions__publish-release:main")
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
-import io.github.typesafegithub.workflows.actions.actions.DownloadArtifact
 import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
-import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsGenerateUpdateYml_Untyped
-import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsPublishRelease_Untyped
 import io.github.typesafegithub.workflows.actions.nucleusframework.NucleusGithubActionsSetupNucleus_Untyped
 import io.github.typesafegithub.workflows.domain.Mode
 import io.github.typesafegithub.workflows.domain.Permission
@@ -106,12 +103,12 @@ workflow(
 		uses(
 			action = UploadArtifact(
 				name = "release-assets-" + expr { runner.os } + "-" + expr("matrix.arch"),
-				path = listOf("build/compose/binaries/main/**/*"),
+				path = listOf("build/compose/binaries/main-releas/**/*"),
 			),
 		)
 	}
 
-	job(
+	/*job(
 		id = "publish",
 		runsOn = RunnerType.UbuntuLatest,
 		needs = listOf(build),
@@ -142,5 +139,5 @@ workflow(
 				releaseType_Untyped = expr { env["RELEASE_TYPE"]!! },
 			)
 		)
-	}
+	}*/
 }

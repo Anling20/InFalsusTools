@@ -106,7 +106,7 @@ nucleus.application {
         )
 
         packageName = "In Falsus Tools"
-        packageVersion = "1.0.0"
+        packageVersion = "0.0.1"
 
         jvmArgs("-Dfile.encoding=UTF-8")
         cleanupNativeLibs = true

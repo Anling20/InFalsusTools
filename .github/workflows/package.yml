@@ -47,31 +47,4 @@ jobs:
       uses: 'actions/upload-artifact@v7'
       with:
         name: 'release-assets-${{ runner.os }}-${{ matrix.arch }}'
-        path: 'build/compose/binaries/main/**/*'
-  publish:
-    runs-on: 'ubuntu-latest'
-    needs:
-    - 'build'
-    env:
-      VERSION: '${{ github.ref_name }}'
-      CHANNEL: 'alpha'
-      TAG: '0.0.1'
-      RELEASE_TYPE: 'prerelease'
-    steps:
-    - id: 'step-0'
-      uses: 'actions/download-artifact@v7'
-      with:
-        path: 'artifacts'
-        pattern: 'release-assets-*'
-    - id: 'step-1'
-      uses: 'NucleusFramework/Nucleus/.github/actions/generate-update-yml@main'
-      with:
-        artifacts-path: 'artifacts'
-        version: '${{ env.VERSION }}'
-        channel: '${{ env.CHANNEL }}'
-    - id: 'step-2'
-      uses: 'NucleusFramework/Nucleus/.github/actions/publish-release@main'
-      with:
-        artifacts-path: 'artifacts'
-        tag: '${{ env.TAG }}'
-        release-type: '${{ env.RELEASE_TYPE }}'
+        path: 'build/compose/binaries/main-releas/**/*'
