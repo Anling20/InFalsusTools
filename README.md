@@ -4,7 +4,7 @@
 
 # 快速开始
 
-从 [Actions](https://github.com/Anling20/InFalsusTools/actions) 下载最新自动构建包<br>
+从 [Releases](https://github.com/Anling20/InFalsusTools/releases) 下载最新自动构建包<br>
 
 ## 分发类型
 
