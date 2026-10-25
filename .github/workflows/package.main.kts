@@ -103,7 +103,7 @@ workflow(
 		uses(
 			action = UploadArtifact(
 				name = "release-assets-" + expr { runner.os } + "-" + expr("matrix.arch"),
-				path = listOf("build/compose/binaries/main-releas/**/*"),
+				path = listOf("build/compose/binaries/main-release/**/*"),
 			),
 		)
 	}

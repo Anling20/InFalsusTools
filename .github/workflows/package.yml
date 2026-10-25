@@ -45,7 +45,7 @@ jobs:
       uses: 'actions/upload-artifact@v7'
       with:
         name: 'release-assets-${{ runner.os }}-${{ matrix.arch }}'
-        path: 'build/compose/binaries/main-releas/**/*'
+        path: 'build/compose/binaries/main-release/**/*'
   publish:
     runs-on: 'ubuntu-latest'
     needs:
