@@ -45,29 +45,88 @@ jobs:
       uses: 'actions/upload-artifact@v7'
       with:
         name: 'release-assets-${{ runner.os }}-${{ matrix.arch }}'
-        path: 'build/compose/binaries/main-release/**/*'
+        path: |-
+          !build/compose/binaries/**/app/**
+          !build/compose/binaries/**/runtime/**
+          build/compose/binaries/**/*.deb
+          build/compose/binaries/**/*.rpm
+          build/compose/binaries/**/*.asc
+          build/compose/binaries/**/*.pacman
+          build/compose/binaries/**/*.snap
+          build/compose/binaries/**/*.flatpak
+          build/compose/binaries/**/*.AppImage
+          build/compose/binaries/**/*.appimage
+          build/compose/binaries/**/*.msi
+          build/compose/binaries/**/*.exe
+          build/compose/binaries/**/*.appx
+          build/compose/binaries/**/*.7z
+          build/compose/binaries/**/*.pkg
+          build/compose/binaries/**/*.dmg
+          build/compose/binaries/**/*.zip
+          build/compose/binaries/**/*.tar
+          build/compose/binaries/**/*.tar.gz
+          build/compose/binaries/**/*.blockmap
+          build/compose/binaries/**/signing-metadata.json
+          build/compose/binaries/**/packaging-metadata.json
+          build/compose/binaries/sandboxed-*.zip
   publish:
-    runs-on: 'ubuntu-latest'
+    runs-on: 'ubuntu-22.04'
     needs:
     - 'build'
     env:
-      VERSION: '${{ github.ref_name }}'
-      CHANNEL: 'alpha'
-      TAG: '0.0.1'
-      RELEASE_TYPE: 'prerelease'
+      GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     steps:
     - id: 'step-0'
-      uses: 'actions/download-artifact@v7'
+      uses: 'actions/checkout@v7'
+    - id: 'step-1'
+      uses: 'actions/download-artifact@v8'
       with:
         path: 'artifacts'
         pattern: 'release-assets-*'
-    - id: 'step-1'
+    - id: 'step-2'
+      shell: 'bash'
+      run: |-
+        set -euo pipefail
+        TAG="${GITHUB_REF_NAME}"
+        VERSION="${TAG#v}"
+        echo "TAG=$TAG" >> "$GITHUB_ENV"
+        echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+        if [[ "$VERSION" == *"-alpha"* ]]; then
+          echo "CHANNEL=alpha" >> "$GITHUB_ENV"
+        elif [[ "$VERSION" == *"-beta"* ]]; then
+          echo "CHANNEL=beta" >> "$GITHUB_ENV"
+        else
+          echo "CHANNEL=latest" >> "$GITHUB_ENV"
+        fi
+
+        if [[ "$VERSION" == *"-alpha"* ]] || [[ "$VERSION" == *"-beta"* ]]; then
+          echo "RELEASE_TYPE=prerelease" >> "$GITHUB_ENV"
+        else
+          echo "RELEASE_TYPE=release" >> "$GITHUB_ENV"
+        fi
+    - id: 'step-3'
+      name: 'List downloaded artifacts'
+      shell: 'bash'
+      run: 'find artifacts -type f | head -100'
+    - id: 'step-4'
       uses: 'NucleusFramework/Nucleus/.github/actions/generate-update-yml@main'
       with:
         artifacts-path: 'artifacts'
         version: '${{ env.VERSION }}'
         channel: '${{ env.CHANNEL }}'
-    - id: 'step-2'
+    - id: 'step-5'
+      name: 'Show generated YML files'
+      shell: 'bash'
+      run: |-
+        echo "=== Generated update YML files ==="
+        for f in artifacts/update-yml/*.yml; do
+          echo "--- $(basename "$f") ---"
+          cat "$f"
+          echo
+        done
+    - id: 'step-6'
       uses: 'NucleusFramework/Nucleus/.github/actions/publish-release@main'
       with:
         artifacts-path: 'artifacts'

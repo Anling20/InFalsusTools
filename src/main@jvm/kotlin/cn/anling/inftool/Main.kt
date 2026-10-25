@@ -45,7 +45,9 @@ import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 
 val updater = NucleusUpdater {
-    provider = GitHubProvider("anling20", "InFalsusTools")
+    provider = GitHubProvider("Anling20", "InFalsusTools")
+    channel = "alpha"
+    allowPrerelease = true
 }
 
 private fun redirectOutput() {

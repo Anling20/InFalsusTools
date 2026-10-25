@@ -86,7 +86,7 @@ nucleus.application {
         targetFormats(
             // macOS
             TargetFormat.Dmg,
-            TargetFormat.Pkg,
+//            TargetFormat.Pkg,
             // Windows
             TargetFormat.Exe,
             TargetFormat.Nsis,
@@ -98,8 +98,8 @@ nucleus.application {
             TargetFormat.Rpm,
             TargetFormat.AppImage,
             TargetFormat.Pacman,
-            TargetFormat.Snap,
-            TargetFormat.Flatpak,
+//            TargetFormat.Snap,
+//            TargetFormat.Flatpak,
             // Archives
             TargetFormat.Zip,
             TargetFormat.Tar,
