@@ -140,6 +140,9 @@ workflow(
         env = mapOf(
             "GH_TOKEN" to expr { secrets.GITHUB_TOKEN },
             "GITHUB_TOKEN" to expr { secrets.GITHUB_TOKEN },
+            "CHANNEL" to "alpha",
+            "TAG" to "0.0.1",
+            "RELEASE_TYPE" to "prerelease",
         ),
     ) {
         uses(action = Checkout())
@@ -152,24 +155,8 @@ workflow(
         run(
             command = $$"""
                 set -euo pipefail
-                TAG="${GITHUB_REF_NAME}"
                 VERSION="${TAG#v}"
-                echo "TAG=$TAG" >> "$GITHUB_ENV"
                 echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-
-                if [[ "$VERSION" == *"-alpha"* ]]; then
-                  echo "CHANNEL=alpha" >> "$GITHUB_ENV"
-                elif [[ "$VERSION" == *"-beta"* ]]; then
-                  echo "CHANNEL=beta" >> "$GITHUB_ENV"
-                else
-                  echo "CHANNEL=latest" >> "$GITHUB_ENV"
-                fi
-
-                if [[ "$VERSION" == *"-alpha"* ]] || [[ "$VERSION" == *"-beta"* ]]; then
-                  echo "RELEASE_TYPE=prerelease" >> "$GITHUB_ENV"
-                else
-                  echo "RELEASE_TYPE=release" >> "$GITHUB_ENV"
-                fi
 			""".trimIndent(),
             shell = Shell.Bash,
         )
