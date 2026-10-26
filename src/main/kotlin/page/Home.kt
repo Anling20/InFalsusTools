@@ -303,9 +303,11 @@ fun Home(
                                                 maxLines = 1,
                                             )
                                         }
-                                        Column {
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                                        ) {
                                             LinearProgressIndicator(
-                                                progress = { updateInfo.progress },
+                                                progress = { updateInfo.percent / 100 },
                                                 modifier = Modifier.fillMaxWidth(),
                                             )
                                             Row(
@@ -320,7 +322,7 @@ fun Home(
                                                     maxLines = 1,
                                                 )
                                                 Text(
-                                                    text = "${updateInfo.progress.toInt()}%",
+                                                    text = "${updateInfo.percent.toInt()}%",
                                                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5F),
                                                     fontSize = 16.sp,
                                                     lineHeight = 20.sp,

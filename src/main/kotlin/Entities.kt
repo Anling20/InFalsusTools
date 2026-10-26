@@ -1,6 +1,9 @@
 package cn.anling.inftool
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import cn.anling.inftool.song.Song
 import kotlinx.coroutines.CompletableDeferred
@@ -126,9 +129,10 @@ sealed class UpdateInfo {
     ) : UpdateInfo()
 
     data class Downloading(
-        var downloaded: String,
         val total: String,
-        var progress: Float,
         override val onCancel: () -> Unit,
-    ) : UpdateInfo()
+    ) : UpdateInfo() {
+        var downloaded by mutableStateOf("0.00 MiB")
+        var percent by mutableStateOf(0f)
+    }
 }

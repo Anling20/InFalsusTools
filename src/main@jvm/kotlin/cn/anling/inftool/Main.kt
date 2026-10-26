@@ -181,10 +181,8 @@ suspend fun main(args: Array<String>) {
                                         scope.launch {
                                             taskbar?.showProgress(0.0)
                                             val downloadingInfo =UpdateInfo.Downloading(
-                                                downloaded = "0.00 MiB",
                                                 total = DecimalFormat("0.00 MiB")
                                                     .format(result.info.currentFile.size / 1024.0 / 1024.0),
-                                                progress = 0F,
                                                 onCancel = {
                                                     this.cancel()
                                                     updateInfo = null
@@ -195,15 +193,18 @@ suspend fun main(args: Array<String>) {
                                             updater.downloadUpdate(result.info).collect { progress ->
                                                 taskbar?.setProgress(progress.percent)
                                                 downloadingInfo.downloaded = DecimalFormat("0.00 MiB")
-                                                    .format(progress.bytesDownloaded / 1024.0 / 1024.0) + " MiB"
-                                                downloadingInfo.progress = progress.percent.toFloat()
+                                                    .format(progress.bytesDownloaded / 1024.0 / 1024.0)
+                                                downloadingInfo.percent = progress.percent.toFloat()
                                                 progress.file?.let { installer = it }
                                             }
                                             taskbar?.hideProgress()
                                             installer?.let(updater::installAndRestart)
                                         }
                                     },
-                                    onCancel = { updateInfo = null },
+                                    onCancel = {
+                                        taskbar?.hideProgress()
+                                        updateInfo = null
+                                    },
                                 )
 
                             }
