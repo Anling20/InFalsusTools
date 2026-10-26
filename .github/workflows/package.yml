@@ -129,9 +129,8 @@ jobs:
         set -euo pipefail
         TAG="${GITHUB_REF_NAME}"
         VERSION="${TAG#v}"
-        RELEASE_VERSION="${VERSION%%-*}"
         echo "TAG=$TAG" >> "$GITHUB_ENV"
-        echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_ENV"
+        echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
         if [[ "$VERSION" == *"-alpha"* ]]; then
           echo "CHANNEL=alpha" >> "$GITHUB_ENV"
@@ -155,7 +154,7 @@ jobs:
       uses: 'NucleusFramework/Nucleus/.github/actions/generate-update-yml@main'
       with:
         artifacts-path: 'artifacts'
-        version: '${{ env.RELEASE_VERSION }}'
+        version: '${{ env.VERSION }}'
         channel: '${{ env.CHANNEL }}'
     - id: 'step-5'
       name: 'Show generated YML files'

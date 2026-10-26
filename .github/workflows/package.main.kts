@@ -201,9 +201,8 @@ workflow(
                 set -euo pipefail
                 TAG="${GITHUB_REF_NAME}"
                 VERSION="${TAG#v}"
-                RELEASE_VERSION="${VERSION%%-*}"
                 echo "TAG=$TAG" >> "$GITHUB_ENV"
-                echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_ENV"
+                echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
                 if [[ "$VERSION" == *"-alpha"* ]]; then
                   echo "CHANNEL=alpha" >> "$GITHUB_ENV"
@@ -230,7 +229,7 @@ workflow(
         uses(
             action = NucleusGithubActionsGenerateUpdateYml_Untyped(
                 artifactsPath_Untyped = "artifacts",
-                version_Untyped = expr { env["RELEASE_VERSION"]!! },
+                version_Untyped = expr { env["VERSION"]!! },
                 channel_Untyped = expr { env["CHANNEL"]!! },
             ),
             name = "Generate update YML files",
