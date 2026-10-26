@@ -113,3 +113,22 @@ data class RenderRequest(
 ) {
     val finished: CompletableDeferred<Unit> = CompletableDeferred()
 }
+
+sealed class UpdateInfo {
+    abstract val onCancel: () -> Unit
+
+    data class Update(
+        val version: String,
+        val time: String,
+        val size: String,
+        val onUpdate: () -> Unit,
+        override val onCancel: () -> Unit,
+    ) : UpdateInfo()
+
+    data class Downloading(
+        var downloaded: String,
+        val total: String,
+        var progress: Float,
+        override val onCancel: () -> Unit,
+    ) : UpdateInfo()
+}

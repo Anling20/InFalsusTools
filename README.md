@@ -99,7 +99,7 @@
 Kotlin Multiplatform 声明式 UI 框架
 
 [Nucleus](https://github.com/NucleusFramework/Nucleus)<br>
-Compose Desktop 框架, 提供基于 Rust Tao 的窗口层, 使用 Electron Builder 的丰富打包格式, 全局快捷键及自动更新
+Compose Desktop 框架, 提供基于 Rust Tao 的窗口层, 使用 Electron Builder 的丰富打包格式, 自动更新及操作系统集成
 
 [kotlinx-serialization](https://github.com/kotlin/kotlinx.serialization)<br>
 Kotlin Multiplatform 序列化, 用于 JSON 文件解析

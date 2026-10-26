@@ -56,15 +56,13 @@ kotlin {
             implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
             implementation("org.jetbrains.compose.components:components-resources:1.12.1")
 
-            implementation("dev.nucleusframework:nucleus.global-hotkey:2.5.18")
-
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0-RC")
-
             implementation("dev.chrisbanes.haze:haze-blur:2.0.1")
             implementation("dev.chrisbanes.haze:haze-blur-material3:2.0.1")
             implementation("com.russhwolf:multiplatform-settings:1.3.0")
             implementation("io.github.vinceglb:filekit-core:0.16.0")
             implementation("io.github.vinceglb:filekit-dialogs-compose:0.16.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
         }
 
         jvmMain.dependencies {
@@ -74,7 +72,9 @@ kotlin {
 
             implementation("dev.nucleusframework:nucleus.nucleus-application:2.5.18")
             implementation("dev.nucleusframework:nucleus.decorated-window-tao:2.5.18")
+            implementation("dev.nucleusframework:nucleus.taskbar-progress-tao:2.5.18")
             implementation("dev.nucleusframework:nucleus.updater-runtime:2.5.18")
+            implementation("dev.nucleusframework:nucleus.global-hotkey:2.5.18")
         }
     }
 }
@@ -107,13 +107,14 @@ nucleus.application {
         )
 
         packageName = "In Falsus Tools"
-        packageVersion = "0.0.1"
+        packageVersion = System.getenv("RELEASE_VERSION") ?: "0.0.0"
 
         jvmArgs("-Dfile.encoding=UTF-8")
         cleanupNativeLibs = true
         compressionLevel = CompressionLevel.Ultra
 
         windows {
+            this.packageVersion
             dirChooser = true
 
             nsis {

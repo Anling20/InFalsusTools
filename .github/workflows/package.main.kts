@@ -107,6 +107,17 @@ workflow(
             ),
             name = "Checkout",
         )
+        run(
+            command = $$"""
+                set -euo pipefail
+                TAG="${GITHUB_REF_NAME}"
+                VERSION="${TAG#v}"
+                VERSION="${VERSION%%-*}"
+                echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+			""".trimIndent(),
+            name = "Determine version and channel",
+            shell = Shell.Bash,
+        )
         uses(
             action = NucleusGithubActionsSetupNucleus_Untyped(
                 javaVersion_Untyped = "25",
@@ -190,6 +201,7 @@ workflow(
                 set -euo pipefail
                 TAG="${GITHUB_REF_NAME}"
                 VERSION="${TAG#v}"
+                VERSION="${VERSION%%-*}"
                 echo "TAG=$TAG" >> "$GITHUB_ENV"
                 echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 

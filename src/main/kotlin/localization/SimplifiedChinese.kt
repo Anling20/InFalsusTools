@@ -4,6 +4,12 @@ val LocalizationContainer.Companion.simplifiedChinese
     get() = Language.SimplifiedChinese to container
 
 private val container = LocalizationContainer(
+    "update.update_available" to "发现新更新",
+    "update.update" to "更新",
+    "update.later" to "稍后",
+    "update.downloading" to "下载中",
+    "update.cancel" to "取消",
+
     "sidebar.module.back" to "返回",
     "sidebar.module.potential_window" to "潜力值悬浮窗",
     "sidebar.module.potential_image" to "潜力值图片",

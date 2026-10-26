@@ -4,10 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -27,6 +24,7 @@ import cn.anling.inftool.setting.createPlatformSettings
 import cn.anling.inftool.theme.AppTheme
 import dev.nucleusframework.application.DecoratedWindow
 import dev.nucleusframework.application.nucleusApplication
+import dev.nucleusframework.taskbarprogress.tao.rememberTaoTaskbarProgress
 import dev.nucleusframework.updater.NucleusUpdater
 import dev.nucleusframework.updater.UpdateResult
 import dev.nucleusframework.updater.provider.GitHubProvider
@@ -36,13 +34,22 @@ import dev.nucleusframework.window.TitleBar
 import dev.nucleusframework.window.WindowBackground
 import io.github.vinceglb.filekit.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
+import kotlinx.datetime.toLocalDateTime
 import java.io.File
 import java.io.PrintStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.text.DecimalFormat
 import kotlin.io.path.absolutePathString
+import kotlin.time.Instant
 
 val updater = NucleusUpdater {
     provider = GitHubProvider("Anling20", "InFalsusTools")
@@ -50,10 +57,24 @@ val updater = NucleusUpdater {
     allowPrerelease = true
 }
 
-private fun redirectOutput() {
+private suspend fun redirectOutput() {
     val logFile = getConfigDirectory() / "logs/latest.txt"
     if (!logFile.parent()!!.exists()) {
         logFile.parent()!!.createDirectories()
+    }
+    if (logFile.exists()) {
+        val createdTime = logFile.createdAt()!!.toLocalDateTime(TimeZone.currentSystemDefault()).format(
+            LocalDateTime.Format {
+                year()
+                monthNumber()
+                day()
+                char('_')
+                hour()
+                minute()
+                second()
+            }
+        )
+        logFile.atomicMove(getConfigDirectory() / "logs/$createdTime.txt")
     }
     val stream = PrintStream(logFile.file.outputStream(), true)
     System.setOut(stream)
@@ -63,24 +84,6 @@ private fun redirectOutput() {
 suspend fun main(args: Array<String>) {
     redirectOutput()
     FileKit.init("cn.anling.inftool")
-
-    if (updater.isUpdateSupported()) {
-        when (val result = updater.checkForUpdates()) {
-            is UpdateResult.Available -> {
-                println("Update available: ${result.info.version}")
-                var installer: File? = null
-                updater.downloadUpdate(result.info).collect { progress ->
-                    println("${progress.percent.toInt()}%")
-                    progress.file?.let { installer = it }
-                }
-                // installAndRestart launches the installer, exits, and relaunches
-                installer?.let(updater::installAndRestart)
-            }
-
-            UpdateResult.NotAvailable -> println("Up to date")
-            is UpdateResult.Error -> println("Error: ${result.exception.message}")
-        }
-    }
 
     nucleusApplication(args) {
         val settings = createPlatformSettings()
@@ -137,11 +140,79 @@ suspend fun main(args: Array<String>) {
                 state = windowState,
                 title = "In Falsus Tools",
             ) {
+                val scope = rememberCoroutineScope()
+                var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+                val taskbar = rememberTaoTaskbarProgress()
                 WindowBackground(MaterialTheme.colorScheme.background)
                 Home(
                     onMinimum = { windowState.isMinimized = true },
                     onQuit = ::exitApplication,
+                    updateInfo = updateInfo,
                 )
+
+                LaunchedEffect(Unit) {
+                    if (updater.isUpdateSupported()) {
+                        when (val result = updater.checkForUpdates()) {
+                            is UpdateResult.Available -> {
+                                println("Update available: ${result.info.version}")
+                                updateInfo = UpdateInfo.Update(
+                                    version = "v" + result.info.version,
+                                    size = DecimalFormat("0.00 MiB")
+                                        .format(result.info.currentFile.size / 1024.0 / 1024.0),
+                                    time = Instant
+                                        .parse(result.info.releaseDate)
+                                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                                        .format(
+                                            LocalDateTime.Format {
+                                                year()
+                                                char('-')
+                                                monthNumber()
+                                                char('-')
+                                                day()
+                                                char(' ')
+                                                hour()
+                                                char(':')
+                                                minute()
+                                                char(':')
+                                                second()
+                                            }
+                                        ),
+                                    onUpdate = {
+                                        scope.launch {
+                                            taskbar?.showProgress(0.0)
+                                            val downloadingInfo =UpdateInfo.Downloading(
+                                                downloaded = "0.00 MiB",
+                                                total = DecimalFormat("0.00 MiB")
+                                                    .format(result.info.currentFile.size / 1024.0 / 1024.0),
+                                                progress = 0F,
+                                                onCancel = {
+                                                    this.cancel()
+                                                    updateInfo = null
+                                                },
+                                            )
+                                            updateInfo = downloadingInfo
+                                            var installer: File? = null
+                                            updater.downloadUpdate(result.info).collect { progress ->
+                                                taskbar?.setProgress(progress.percent)
+                                                downloadingInfo.downloaded = DecimalFormat("0.00 MiB")
+                                                    .format(progress.bytesDownloaded / 1024.0 / 1024.0) + " MiB"
+                                                downloadingInfo.progress = progress.percent.toFloat()
+                                                progress.file?.let { installer = it }
+                                            }
+                                            taskbar?.hideProgress()
+                                            installer?.let(updater::installAndRestart)
+                                        }
+                                    },
+                                    onCancel = { updateInfo = null },
+                                )
+
+                            }
+
+                            UpdateResult.NotAvailable -> println("Up to date")
+                            is UpdateResult.Error -> println("Error: ${result.exception.message}")
+                        }
+                    }
+                }
             }
 
             if (model.startedPotentialWindow) {

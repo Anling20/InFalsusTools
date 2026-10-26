@@ -6,6 +6,12 @@ val LocalizationContainer.Companion.english
 private val container = LocalizationContainer(
     "title" to "In Falsus Tools",
 
+    "update.update_available" to "Update available",
+    "update.update" to "Update",
+    "update.later" to "Later",
+    "update.downloading" to "Downloading",
+    "update.cancel" to "Cancel",
+
     "sidebar.module.back" to "Back",
     "sidebar.module.potential_window" to "Potential Window",
     "sidebar.module.potential_image" to "Potential Image",
