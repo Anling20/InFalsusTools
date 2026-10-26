@@ -114,7 +114,6 @@ nucleus.application {
         compressionLevel = CompressionLevel.Ultra
 
         windows {
-            this.packageVersion
             dirChooser = true
 
             nsis {
