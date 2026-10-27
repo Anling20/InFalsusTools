@@ -609,7 +609,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 2.0,
             evolved = 6.0,
             ultimate = 9.7,
-            forbidden = 11.1,
+            forbidden = 11.0,
         ),
         23 to SongConstant(
             minimal = 3.0,
@@ -735,7 +735,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 2.0,
             evolved = 5.0,
             ultimate = 9.2,
-            forbidden = 11.0,
+            forbidden = 11.1,
         ),
         44 to SongConstant(
             minimal = 4.0,
