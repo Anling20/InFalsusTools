@@ -74,6 +74,7 @@ kotlin {
             implementation("dev.nucleusframework:nucleus.decorated-window-tao:2.5.18")
             implementation("dev.nucleusframework:nucleus.taskbar-progress-tao:2.5.18")
             implementation("dev.nucleusframework:nucleus.updater-runtime:2.5.18")
+            implementation("dev.nucleusframework:nucleus.native-http:2.5.18")
             implementation("dev.nucleusframework:nucleus.global-hotkey:2.5.18")
         }
     }

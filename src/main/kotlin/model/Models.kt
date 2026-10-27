@@ -1,20 +1,17 @@
 package cn.anling.inftool.model
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import cn.anling.inftool.*
 import cn.anling.inftool.address.AddressContainer
 import cn.anling.inftool.address.BuiltinAddressContainer
-import cn.anling.inftool.localization.Language
+import cn.anling.inftool.page.SettingPage
 import cn.anling.inftool.parser.HistoryParser
-import cn.anling.inftool.potential_algorithm.InFalsusToolsPotentialAlgorithm
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.setting.toComposeStated
-import cn.anling.inftool.song.BuiltinConstantTable
 import cn.anling.inftool.song.ConstantTable
-import cn.anling.inftool.song.ExternalConstantTable
 import com.russhwolf.settings.*
 import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.exists
 import io.github.vinceglb.filekit.isRegularFile
 import kotlinx.coroutines.channels.Channel
@@ -24,7 +21,7 @@ class GameRecordsModel {
     val historyRecords = mutableStateListOf<ProcessedDiveRecord>()
     var potential by mutableDoubleStateOf(0.0)
 
-    suspend fun update(saveFile: PlatformFile, algorithm: PotentialAlgorithm, levelMap: ConstantTable) {
+    suspend fun update(saveFile: PlatformFile, algorithm: PotentialAlgorithm, constantTable: ConstantTable) {
         val histories = HistoryParser.parse(saveFile.readBytesWhenAvailable())
         historyRecords.clear()
         historyRecords.addAll(
@@ -33,19 +30,28 @@ class GameRecordsModel {
                 .map { record ->
                     record.process(
                         histories = histories.map { it.toDiveRecord() },
-                        levelMap = levelMap,
+                        levelMap = constantTable,
                         algorithm = algorithm,
                     )
                 }
         )
-        potential = algorithm.calcPotential(historyRecords, levelMap)
+        potential = algorithm.calcPotential(historyRecords, constantTable)
     }
+
+    context(model: SettingPage.ViewModel)
+    suspend fun update() = update(
+        saveFile = model.saveFile,
+        algorithm = model.potentialAlgorithm,
+        constantTable = model.constantTable,
+    )
 }
 
 class HomeModel(
     settings: Settings,
     initialSaveFile: String,
 ) {
+    val snackbarHostState = SnackbarHostState()
+
     var destination by mutableStateOf<HomeDestination>(HomeDestination.Home)
     var startedPotentialWindow by mutableStateOf(false)
     var waiting by mutableStateOf(false)
@@ -58,7 +64,7 @@ class HomeModel(
     val moduleAchievementsImageModel = ModuleAchievementsImageModel(settings)
     val modulePlayHistoriesModel = ModulePlayHistoriesModel()
 
-    val settingModel = SettingModel(settings, initialSaveFile)
+    val settingModel = SettingPage.ViewModel(settings, initialSaveFile)
 }
 
 class ModulePotentialWindowModel(settings: Settings) {
@@ -118,76 +124,3 @@ class ModuleAchievementsImageModel(settings: Settings) {
 }
 
 class ModulePlayHistoriesModel
-
-class SettingModel(
-    settings: Settings,
-    initialSaveFile: String,
-) {
-    var username by settings.string("Setting.username", "Player").toComposeStated()
-
-    private var _saveFile by settings.string("Setting.saveFile", initialSaveFile).toComposeStated()
-    var saveFile: PlatformFile
-        get() = PlatformFile(_saveFile)
-        set(value) {
-            _saveFile = value.absolutePath()
-        }
-
-    var constantTableString by settings.string("Setting.constantTable", "builtin:vanilla").toComposeStated()
-    val constantTable: ConstantTable
-        get() {
-            val (type, content) = constantTableString.split(":", limit = 2)
-            return runCatching {
-                when (type) {
-                    "builtin" -> when (content) {
-                        "vanilla" -> BuiltinConstantTable.Vanilla
-                        "experimental" -> BuiltinConstantTable.Experimental
-                        else -> error("Unknown builtin constant table: $content")
-                    }
-
-                    "file" -> {
-                        val file = PlatformFile(content)
-                        when (file.exists() && file.isRegularFile()) {
-                            true -> ExternalConstantTable.File(Json.decodeFromString(file.readStringSync()))
-                            else -> error("File not found or is directory: $content")
-                        }
-                    }
-
-                    else -> error("Unknown constant table type: $constantTableString")
-                }
-            }.getOrElse { throwable ->
-                println(throwable.message)
-                throwable.printStackTrace()
-                constantTableString = "builtin:vanilla"
-                BuiltinConstantTable.Vanilla
-            }
-        }
-
-    var potentialAlgorithmString by settings.string(
-        key = "Setting.potentialAlgorithm",
-        defaultValue = "builtin:" + InFalsusToolsPotentialAlgorithm.id,
-    ).toComposeStated()
-    val potentialAlgorithm: PotentialAlgorithm
-        get() {
-            val (type, content) = potentialAlgorithmString.split(":", limit = 2)
-            return runCatching {
-                when (type) {
-                    "builtin" -> PotentialAlgorithm.builtin.find { it.id == content }
-                        ?: error("Unknown builtin potential algorithm: $content")
-
-                    else -> error("Unknown potential algorithm type: $potentialAlgorithmString")
-                }
-            }.getOrElse { throwable ->
-                println(throwable.message)
-                throwable.printStackTrace()
-                potentialAlgorithmString = "builtin:" + InFalsusToolsPotentialAlgorithm.id
-                InFalsusToolsPotentialAlgorithm
-            }
-        }
-
-    private var languageIndex by settings.int("Setting.language", 1).toComposeStated()
-    var language: Language
-        get() = Language.entries[languageIndex]
-        set(value) {
-            languageIndex = value.ordinal
-        }
-}

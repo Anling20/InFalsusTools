@@ -12,6 +12,9 @@ private val container = LocalizationContainer(
     "update.downloading" to "Downloading",
     "update.cancel" to "Cancel",
 
+    "update.snackbar.update_not_available" to "Update not available",
+    "update.snackbar.update_error" to "Update error",
+
     "sidebar.module.back" to "Back",
     "sidebar.module.potential_window" to "Potential Window",
     "sidebar.module.potential_image" to "Potential Image",
@@ -49,6 +52,14 @@ private val container = LocalizationContainer(
     "setting.constant_table.file" to "File",
     "setting.potential_algorithm" to "Potential algorithm",
     "setting.language" to "Language",
+
+    "more.check_update" to "Check update",
+    "more.history_versions" to "History versions",
+    "more.open_data_folder" to "Open data folder",
+    "more.open_github" to "Open GitHub",
+    "more.about" to "About",
+    "more.version" to "Version",
+    "more.update_channel" to "Update channel",
 
     "submodule.potential_window.play_potential" to "Play potential",
 

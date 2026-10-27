@@ -54,310 +54,333 @@ fun Home(
     onMinimum: () -> Unit,
     onQuit: () -> Unit,
     updateInfo: UpdateInfo?,
+    version: String,
+    onCheckUpdate: () -> Unit,
+    onHistoryVersions: () -> Unit,
+    onOpenDataFolder: () -> Unit,
+    onOpenGitHub: () -> Unit,
 ) = AppTheme(false) {
     Surface(
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize(),
     ) {
-        Box {
-            val hazeState = rememberHazeState()
-            val waitingHazeState = rememberHazeState()
-            Image(
-                painter = painterResource(Res.drawable.home_background),
-                contentDescription = null,
-                alignment = Alignment.BottomCenter,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .hazeSource(hazeState)
-                    .hazeSource(waitingHazeState),
-            )
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .hazeSource(waitingHazeState),
-            ) {
-                TopBar(
-                    hazeState = hazeState,
-                    onMinimum = onMinimum,
-                    onQuit = onQuit,
-                )
-                Box {
-                    ContentContainer(
-                        hazeState = hazeState,
-                        destination = model.destination,
-                        onChangeDestination = { model.destination = it },
+        Scaffold(
+            snackbarHost = {
+                SnackbarHost(model.snackbarHostState) {
+                    Snackbar(
+                        snackbarData = it,
+                        shape = RoundedCornerShape(16.dp),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
                     )
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = model.waiting,
-                        enter = fadeIn() + slideInVertically { it },
-                        exit = fadeOut() + slideOutVertically { it },
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .hazeBlur(
-                                    input = HazeInput.Sources(waitingHazeState),
-                                    style = HazeBlurStyle.Material3 {
-                                        blurRadius(8.dp)
-                                    }
-                                )
-                                .background(Color.Black.copy(alpha = 0.32F))
-                                .clickable(
-                                    interactionSource = null,
-                                    indication = null,
-                                    onClick = {},
-                                ),
+                }
+            },
+        ) {
+            Box {
+                val hazeState = rememberHazeState()
+                val waitingHazeState = rememberHazeState()
+                Image(
+                    painter = painterResource(Res.drawable.home_background),
+                    contentDescription = null,
+                    alignment = Alignment.BottomCenter,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeSource(hazeState)
+                        .hazeSource(waitingHazeState),
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeSource(waitingHazeState),
+                ) {
+                    TopBar(
+                        hazeState = hazeState,
+                        onMinimum = onMinimum,
+                        onQuit = onQuit,
+                    )
+                    Box {
+                        ContentContainer(
+                            hazeState = hazeState,
+                            destination = model.destination,
+                            onChangeDestination = { model.destination = it },
+                            version = version,
+                            onCheckUpdate = onCheckUpdate,
+                            onHistoryVersions = onHistoryVersions,
+                            onOpenDataFolder = onOpenDataFolder,
+                            onOpenGitHub = onOpenGitHub,
+                        )
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = model.waiting,
+                            enter = fadeIn() + slideInVertically { it },
+                            exit = fadeOut() + slideOutVertically { it },
                         ) {
-                            Icon(
-                                painter = painterResource(Res.drawable.loading),
-                                contentDescription = "Loading",
-                                tint = Color.White,
+                            Box(
+                                contentAlignment = Alignment.Center,
                                 modifier = Modifier
-                                    .size(64.dp)
-                                    .rotate(
-                                        degrees = rememberInfiniteTransition().animateFloat(
-                                            initialValue = 0F,
-                                            targetValue = 360F,
-                                            animationSpec = infiniteRepeatable(
-                                                animation = tween(
-                                                    durationMillis = 1000,
-                                                    easing = LinearEasing,
-                                                ),
-                                            ),
-                                        ).value,
+                                    .fillMaxSize()
+                                    .hazeBlur(
+                                        input = HazeInput.Sources(waitingHazeState),
+                                        style = HazeBlurStyle.Material3 {
+                                            blurRadius(8.dp)
+                                        }
+                                    )
+                                    .background(Color.Black.copy(alpha = 0.32F))
+                                    .clickable(
+                                        interactionSource = null,
+                                        indication = null,
+                                        onClick = {},
                                     ),
-                            )
-                        }
-                    }
-                    androidx.compose.animation.AnimatedVisibility(
-                        visible = updateInfo != null,
-                        enter = fadeIn() + slideInVertically { it },
-                        exit = fadeOut() + slideOutVertically { it },
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .hazeBlur(
-                                    input = HazeInput.Sources(waitingHazeState),
-                                    style = HazeBlurStyle.Material3 {
-                                        blurRadius(8.dp)
-                                    }
-                                )
-                                .background(Color.Black.copy(alpha = 0.32F))
-                                .clickable(
-                                    interactionSource = null,
-                                    indication = null,
-                                ) { updateInfo?.onCancel() },
-                        ) {
-                            AnimatedContent(
-                                targetState = updateInfo,
-                                modifier = Modifier
-                            ) { updateInfo ->
-                                when (updateInfo) {
-                                    is UpdateInfo.Update -> Column(
-                                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                                        modifier = Modifier
-                                            .width(600.dp)
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .clickable(null, null) {}
-                                            .background(MaterialTheme.colorScheme.surface)
-                                            .padding(16.dp),
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(192.dp)
-                                                .clip(RoundedCornerShape(16.dp)),
-                                        ) {
-                                            Image(
-                                                painter = painterResource(Res.drawable.home_background),
-                                                contentDescription = null,
-                                                alignment = Alignment.BottomCenter,
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .align(Alignment.CenterEnd)
-                                                    .size(384.dp, 192.dp),
-                                            )
-                                            Spacer(
-                                                modifier = Modifier
-                                                    .align(Alignment.CenterStart)
-                                                    .size(384.dp, 192.dp)
-                                                    .background(
-                                                        brush = Brush.horizontalGradient(
-                                                            0.5F to MaterialTheme.colorScheme.primaryContainer,
-                                                            1.0F to MaterialTheme.colorScheme.primaryContainer.copy(
-                                                                alpha = 0.0F
-                                                            ),
-                                                        )
+                            ) {
+                                Icon(
+                                    painter = painterResource(Res.drawable.loading),
+                                    contentDescription = "Loading",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .rotate(
+                                            degrees = rememberInfiniteTransition().animateFloat(
+                                                initialValue = 0F,
+                                                targetValue = 360F,
+                                                animationSpec = infiniteRepeatable(
+                                                    animation = tween(
+                                                        durationMillis = 1000,
+                                                        easing = LinearEasing,
                                                     ),
-                                            )
-                                            Column(
-                                                verticalArrangement = Arrangement.spacedBy(
-                                                    space = 12.dp,
-                                                    alignment = Alignment.CenterVertically,
                                                 ),
-                                                modifier = Modifier
-                                                    .fillMaxHeight()
-                                                    .padding(start = 16.dp),
-                                            ) {
-                                                Text(
-                                                    text = i18n("update.update_available"),
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                    fontSize = 24.sp,
-                                                    lineHeight = 28.sp,
-                                                    maxLines = 1,
-                                                )
-                                                Text(
-                                                    text = updateInfo.version,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                    fontSize = 24.sp,
-                                                    lineHeight = 28.sp,
-                                                    maxLines = 1,
-                                                )
-                                                Text(
-                                                    text = updateInfo.time,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5F),
-                                                    fontSize = 18.sp,
-                                                    lineHeight = 20.sp,
-                                                    maxLines = 1,
-                                                )
-                                                Text(
-                                                    text = updateInfo.size,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5F),
-                                                    fontSize = 18.sp,
-                                                    lineHeight = 20.sp,
-                                                    maxLines = 1,
-                                                )
-                                            }
+                                            ).value,
+                                        ),
+                                )
+                            }
+                        }
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = updateInfo != null,
+                            enter = fadeIn() + slideInVertically { it },
+                            exit = fadeOut() + slideOutVertically { it },
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .hazeBlur(
+                                        input = HazeInput.Sources(waitingHazeState),
+                                        style = HazeBlurStyle.Material3 {
+                                            blurRadius(8.dp)
                                         }
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(
-                                                12.dp,
-                                                alignment = Alignment.End
-                                            ),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.fillMaxWidth(),
+                                    )
+                                    .background(Color.Black.copy(alpha = 0.32F))
+                                    .clickable(
+                                        interactionSource = null,
+                                        indication = null,
+                                    ) { updateInfo?.onCancel() },
+                            ) {
+                                AnimatedContent(
+                                    targetState = updateInfo,
+                                    modifier = Modifier
+                                ) { updateInfo ->
+                                    when (updateInfo) {
+                                        is UpdateInfo.Update -> Column(
+                                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                                            modifier = Modifier
+                                                .width(600.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .clickable(null, null) {}
+                                                .background(MaterialTheme.colorScheme.surface)
+                                                .padding(16.dp),
                                         ) {
                                             Box(
-                                                contentAlignment = Alignment.Center,
                                                 modifier = Modifier
-                                                    .size(100.dp, 40.dp)
-                                                    .clip(RoundedCornerShape(16.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                                                    .clickable(onClick = updateInfo.onCancel),
+                                                    .fillMaxWidth()
+                                                    .height(192.dp)
+                                                    .clip(RoundedCornerShape(16.dp)),
                                             ) {
-                                                Text(
-                                                    text = i18n("update.later"),
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75F),
-                                                    fontSize = 16.sp,
-                                                    lineHeight = 20.sp,
-                                                    maxLines = 1,
+                                                Image(
+                                                    painter = painterResource(Res.drawable.home_background),
+                                                    contentDescription = null,
+                                                    alignment = Alignment.BottomCenter,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .align(Alignment.CenterEnd)
+                                                        .size(384.dp, 192.dp),
                                                 )
-                                            }
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier
-                                                    .size(100.dp, 40.dp)
-                                                    .clip(RoundedCornerShape(16.dp))
-                                                    .background(MaterialTheme.colorScheme.primaryContainer)
-                                                    .clickable(onClick = updateInfo.onUpdate),
-                                            ) {
-                                                Text(
-                                                    text = i18n("update.update"),
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                    fontSize = 16.sp,
-                                                    lineHeight = 20.sp,
-                                                    maxLines = 1,
+                                                Spacer(
+                                                    modifier = Modifier
+                                                        .align(Alignment.CenterStart)
+                                                        .size(384.dp, 192.dp)
+                                                        .background(
+                                                            brush = Brush.horizontalGradient(
+                                                                0.5F to MaterialTheme.colorScheme.primaryContainer,
+                                                                1.0F to MaterialTheme.colorScheme.primaryContainer.copy(
+                                                                    alpha = 0.0F
+                                                                ),
+                                                            )
+                                                        ),
                                                 )
+                                                Column(
+                                                    verticalArrangement = Arrangement.spacedBy(
+                                                        space = 12.dp,
+                                                        alignment = Alignment.CenterVertically,
+                                                    ),
+                                                    modifier = Modifier
+                                                        .fillMaxHeight()
+                                                        .padding(start = 16.dp),
+                                                ) {
+                                                    Text(
+                                                        text = i18n("update.update_available"),
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                        fontSize = 24.sp,
+                                                        lineHeight = 28.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                    Text(
+                                                        text = updateInfo.version,
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                        fontSize = 24.sp,
+                                                        lineHeight = 28.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                    Text(
+                                                        text = updateInfo.time,
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5F),
+                                                        fontSize = 18.sp,
+                                                        lineHeight = 20.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                    Text(
+                                                        text = updateInfo.size,
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5F),
+                                                        fontSize = 18.sp,
+                                                        lineHeight = 20.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                }
                                             }
-                                        }
-                                    }
-
-                                    is UpdateInfo.Downloading -> Column(
-                                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                                        modifier = Modifier
-                                            .width(600.dp)
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .clickable(null, null) {}
-                                            .background(MaterialTheme.colorScheme.surface)
-                                            .padding(16.dp),
-                                    ) {
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(Res.drawable.download),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(48.dp),
-                                            )
-                                            Text(
-                                                text = i18n("update.downloading"),
-                                                color = MaterialTheme.colorScheme.onBackground,
-                                                fontSize = 24.sp,
-                                                lineHeight = 28.sp,
-                                                maxLines = 1,
-                                            )
-                                        }
-                                        Column(
-                                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                                        ) {
-                                            LinearProgressIndicator(
-                                                progress = { updateInfo.percent / 100 },
-                                                modifier = Modifier.fillMaxWidth(),
-                                            )
                                             Row(
-                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                horizontalArrangement = Arrangement.spacedBy(
+                                                    12.dp,
+                                                    alignment = Alignment.End
+                                                ),
+                                                verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier.fillMaxWidth(),
                                             ) {
-                                                Text(
-                                                    text = updateInfo.downloaded + " / " + updateInfo.total,
-                                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5F),
-                                                    fontSize = 16.sp,
-                                                    lineHeight = 20.sp,
-                                                    maxLines = 1,
-                                                )
-                                                Text(
-                                                    text = "${updateInfo.percent.toInt()}%",
-                                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5F),
-                                                    fontSize = 16.sp,
-                                                    lineHeight = 20.sp,
-                                                    maxLines = 1,
-                                                )
+                                                Box(
+                                                    contentAlignment = Alignment.Center,
+                                                    modifier = Modifier
+                                                        .size(100.dp, 40.dp)
+                                                        .clip(RoundedCornerShape(16.dp))
+                                                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                                                        .clickable(onClick = updateInfo.onCancel),
+                                                ) {
+                                                    Text(
+                                                        text = i18n("update.later"),
+                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75F),
+                                                        fontSize = 16.sp,
+                                                        lineHeight = 20.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                }
+                                                Box(
+                                                    contentAlignment = Alignment.Center,
+                                                    modifier = Modifier
+                                                        .size(100.dp, 40.dp)
+                                                        .clip(RoundedCornerShape(16.dp))
+                                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                                        .clickable(onClick = updateInfo.onUpdate),
+                                                ) {
+                                                    Text(
+                                                        text = i18n("update.update"),
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                        fontSize = 16.sp,
+                                                        lineHeight = 20.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                }
                                             }
                                         }
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(
-                                                12.dp,
-                                                alignment = Alignment.End
-                                            ),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.fillMaxWidth(),
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier
-                                                    .size(100.dp, 40.dp)
-                                                    .clip(RoundedCornerShape(16.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                                                    .clickable(onClick = updateInfo.onCancel),
-                                            ) {
-                                                Text(
-                                                    text = i18n("update.cancel"),
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75F),
-                                                    fontSize = 16.sp,
-                                                    lineHeight = 20.sp,
-                                                    maxLines = 1,
-                                                )
-                                            }
-                                        }
-                                    }
 
-                                    null -> Unit
+                                        is UpdateInfo.Downloading -> Column(
+                                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                                            modifier = Modifier
+                                                .width(600.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .clickable(null, null) {}
+                                                .background(MaterialTheme.colorScheme.surface)
+                                                .padding(16.dp),
+                                        ) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(Res.drawable.download),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(48.dp),
+                                                )
+                                                Text(
+                                                    text = i18n("update.downloading"),
+                                                    color = MaterialTheme.colorScheme.onBackground,
+                                                    fontSize = 24.sp,
+                                                    lineHeight = 28.sp,
+                                                    maxLines = 1,
+                                                )
+                                            }
+                                            Column(
+                                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                            ) {
+                                                LinearProgressIndicator(
+                                                    progress = { updateInfo.percent / 100 },
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                )
+                                                Row(
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                ) {
+                                                    Text(
+                                                        text = updateInfo.downloaded + " / " + updateInfo.total,
+                                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5F),
+                                                        fontSize = 16.sp,
+                                                        lineHeight = 20.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                    Text(
+                                                        text = "${updateInfo.percent.toInt()}%",
+                                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5F),
+                                                        fontSize = 16.sp,
+                                                        lineHeight = 20.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                }
+                                            }
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(
+                                                    12.dp,
+                                                    alignment = Alignment.End
+                                                ),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.fillMaxWidth(),
+                                            ) {
+                                                Box(
+                                                    contentAlignment = Alignment.Center,
+                                                    modifier = Modifier
+                                                        .size(100.dp, 40.dp)
+                                                        .clip(RoundedCornerShape(16.dp))
+                                                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                                                        .clickable(onClick = updateInfo.onCancel),
+                                                ) {
+                                                    Text(
+                                                        text = i18n("update.cancel"),
+                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75F),
+                                                        fontSize = 16.sp,
+                                                        lineHeight = 20.sp,
+                                                        maxLines = 1,
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        null -> Unit
+                                    }
                                 }
                             }
                         }
@@ -439,6 +462,11 @@ fun ContentContainer(
     hazeState: HazeState,
     destination: HomeDestination,
     onChangeDestination: (HomeDestination) -> Unit,
+    version: String,
+    onCheckUpdate: () -> Unit,
+    onHistoryVersions: () -> Unit,
+    onOpenDataFolder: () -> Unit,
+    onOpenGitHub: () -> Unit,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(24.dp),
@@ -454,6 +482,11 @@ fun ContentContainer(
         )
         Content(
             hazeState = hazeState,
+            version = version,
+            onCheckUpdate = onCheckUpdate,
+            onHistoryVersions = onHistoryVersions,
+            onOpenDataFolder = onOpenDataFolder,
+            onOpenGitHub = onOpenGitHub,
         )
     }
 }
@@ -496,7 +529,14 @@ private fun SideBarSelect(
 
 @Composable
 context(model: HomeModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
-private fun Content(hazeState: HazeState) {
+private fun Content(
+    hazeState: HazeState,
+    version: String,
+    onCheckUpdate: () -> Unit,
+    onHistoryVersions: () -> Unit,
+    onOpenDataFolder: () -> Unit,
+    onOpenGitHub: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     AnimatedVisibility(
         visible = model.destination != HomeDestination.Home,
@@ -680,10 +720,23 @@ private fun Content(hazeState: HazeState) {
                         HomeDestination.Terminal -> Unit
 
                         HomeDestination.Setting -> context(model.settingModel) {
-                            SettingContent()
+                            SettingPage.Screen(
+                                onUpdateGameRecords = {
+                                    gameRecordsModel.update()
+                                },
+                            )
                         }
 
-                        HomeDestination.More -> Unit
+                        HomeDestination.More -> MorePage.Screen(
+                            viewModel = MorePage.ViewModel(
+                                version = version,
+                                updateChannel = "alpha",
+                            ),
+                            onCheckUpdate = onCheckUpdate,
+                            onHistoryVersions = onHistoryVersions,
+                            onOpenDataFolder = onOpenDataFolder,
+                            onOpenGitHub = onOpenGitHub,
+                        )
                     }
                 }
             }

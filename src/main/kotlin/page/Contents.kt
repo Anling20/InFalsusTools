@@ -19,30 +19,22 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.anling.infalsustools.generated.resources.Res
-import cn.anling.infalsustools.generated.resources.folder_open
 import cn.anling.inftool.DiveCardFlat
 import cn.anling.inftool.ProcessedDiveRecord
-import cn.anling.inftool.component.ClickableTextField
 import cn.anling.inftool.component.DropdownMenu
-import cn.anling.inftool.localization.Language
 import cn.anling.inftool.localization.LocalizationContext
-import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
-import cn.anling.inftool.model.*
+import cn.anling.inftool.model.ModuleAchievementsImageModel
+import cn.anling.inftool.model.ModulePotentialImageModel
+import cn.anling.inftool.model.ModulePotentialWindowModel
 import cn.anling.inftool.parser.ImageGenerationType
-import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import cn.anling.inftool.song.BuiltinConstantTable
-import cn.anling.inftool.song.ExternalConstantTable
 import cn.anling.inftool.unfocusOnPressEnter
-import io.github.vinceglb.filekit.*
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.absolutePath
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 context(model: ModulePotentialWindowModel, _: LocalizationContext)
@@ -68,6 +60,7 @@ fun ColumnScope.ModulePotentialWindowContent(
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
             modifier = Modifier
+                .fillMaxWidth()
                 .unfocusOnPressEnter(focusManager)
                 .onFocusChanged { focusState ->
                     if (!focusState.isFocused) {
@@ -85,7 +78,9 @@ fun ColumnScope.ModulePotentialWindowContent(
                 },
         )
         Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
                 text = i18n("module.potential_window.only_display_in_results_scene"),
@@ -191,6 +186,7 @@ fun ColumnScope.ModulePotentialImageContent(
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
             modifier = Modifier
+                .fillMaxWidth()
                 .unfocusOnPressEnter(focusManager)
                 .onFocusChanged { focusState ->
                     if (!focusState.isFocused) {
@@ -208,7 +204,9 @@ fun ColumnScope.ModulePotentialImageContent(
                 },
         )
         Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
                 text = i18n("module.potential_image.use_neo_card"),
@@ -298,6 +296,7 @@ fun ColumnScope.ModuleAchievementsImageContent(
                 unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
             ),
             modifier = Modifier
+                .fillMaxWidth()
                 .unfocusOnPressEnter(focusManager)
                 .onFocusChanged { focusState ->
                     if (!focusState.isFocused) {
@@ -314,59 +313,67 @@ fun ColumnScope.ModuleAchievementsImageContent(
                     }
                 },
         )
-        TextField(
-            state = minState,
-            label = { Text(i18n("module.achievements_image.minimal_level_limit")) },
-            lineLimits = TextFieldLineLimits.SingleLine,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            modifier = Modifier
-                .unfocusOnPressEnter(focusManager)
-                .onFocusChanged { focusState ->
-                    if (!focusState.isFocused) {
-                        val value = minState.text.toString().toDoubleOrNull()?.let {
-                            when (it !in 0.0..model.maxLevelLimit) {
-                                true -> null
-                                else -> it
-                            }
-                        }
-                        when (value) {
-                            null -> minState.edit { replace(0, length, model.minLevelLimit.toString()) }
-                            else -> model.minLevelLimit = value
-                        }
-                    }
-                },
-        )
-        TextField(
-            state = maxState,
-            label = { Text(i18n("module.achievements_image.maximum_level_limit")) },
-            lineLimits = TextFieldLineLimits.SingleLine,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            modifier = Modifier
-                .unfocusOnPressEnter(focusManager)
-                .onFocusChanged { focusState ->
-                    if (!focusState.isFocused) {
-                        val value = maxState.text.toString().toDoubleOrNull()?.let {
-                            when (it < model.minLevelLimit) {
-                                true -> null
-                                else -> it
-                            }
-                        }
-                        when (value) {
-                            null -> maxState.edit { replace(0, length, model.maxLevelLimit.toString()) }
-                            else -> model.maxLevelLimit = value
-                        }
-                    }
-                },
-        )
         Row(
-            horizontalArrangement = Arrangement.spacedBy(64.dp),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            TextField(
+                state = minState,
+                label = { Text(i18n("module.achievements_image.minimal_level_limit")) },
+                lineLimits = TextFieldLineLimits.SingleLine,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
+                    unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
+                ),
+                modifier = Modifier
+                    .weight(1.0F)
+                    .unfocusOnPressEnter(focusManager)
+                    .onFocusChanged { focusState ->
+                        if (!focusState.isFocused) {
+                            val value = minState.text.toString().toDoubleOrNull()?.let {
+                                when (it !in 0.0..model.maxLevelLimit) {
+                                    true -> null
+                                    else -> it
+                                }
+                            }
+                            when (value) {
+                                null -> minState.edit { replace(0, length, model.minLevelLimit.toString()) }
+                                else -> model.minLevelLimit = value
+                            }
+                        }
+                    },
+            )
+            TextField(
+                state = maxState,
+                label = { Text(i18n("module.achievements_image.maximum_level_limit")) },
+                lineLimits = TextFieldLineLimits.SingleLine,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
+                    unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
+                ),
+                modifier = Modifier
+                    .weight(1.0F)
+                    .unfocusOnPressEnter(focusManager)
+                    .onFocusChanged { focusState ->
+                        if (!focusState.isFocused) {
+                            val value = maxState.text.toString().toDoubleOrNull()?.let {
+                                when (it < model.minLevelLimit) {
+                                    true -> null
+                                    else -> it
+                                }
+                            }
+                            when (value) {
+                                null -> maxState.edit { replace(0, length, model.maxLevelLimit.toString()) }
+                                else -> model.maxLevelLimit = value
+                            }
+                        }
+                    },
+            )
+        }
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
                 text = i18n("module.achievements_image.difficulties_limit"),
@@ -427,7 +434,9 @@ fun ColumnScope.ModuleAchievementsImageContent(
         }
 
         Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
                 text = i18n("module.achievements_image.use_neo_card"),
@@ -511,159 +520,6 @@ fun ModulePlayHistoriesContent(records: List<ProcessedDiveRecord>) {
                 grading = record.grading,
                 judgement = record.judgement,
             )
-        }
-    }
-}
-
-@Composable
-context(model: SettingModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
-fun SettingContent() {
-    val scope = rememberCoroutineScope()
-    val focusManager = LocalFocusManager.current
-    Column(
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        val state = rememberTextFieldState(model.username)
-        TextField(
-            state = state,
-            label = { Text(i18n("setting.username")) },
-            lineLimits = TextFieldLineLimits.SingleLine,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            modifier = Modifier
-                .unfocusOnPressEnter(focusManager)
-                .onFocusChanged { focusState ->
-                    if (!focusState.isFocused) {
-                        model.username = state.text.toString()
-                    }
-                },
-        )
-        ClickableTextField(
-            value = model.saveFile.absolutePath(),
-            label = { Text(i18n("setting.save_file")) },
-            trailingIcon = {
-                Icon(
-                    painter = painterResource(Res.drawable.folder_open),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            },
-            singleLine = true,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-            ),
-            onClick = {
-                val file = FileKit.openFilePicker(
-                    type = FileKitType.File("sav"),
-                    mode = FileKitMode.Single,
-                    directory = model.saveFile.parent()?.let {
-                        when (it.exists() && it.isDirectory()) {
-                            true -> it
-                            else -> null
-                        }
-                    },
-                )
-                if (file != null) {
-                    model.saveFile = file
-                    scope.launch(Dispatchers.IO) {
-                        gameRecordsModel.update(
-                            saveFile = model.saveFile,
-                            algorithm = model.potentialAlgorithm,
-                            levelMap = model.constantTable,
-                        )
-                    }
-                }
-            },
-        )
-        DropdownMenu(
-            text = when (model.constantTable) {
-                BuiltinConstantTable.Vanilla -> i18n("setting.constant_table.vanilla")
-                BuiltinConstantTable.Experimental -> i18n("setting.constant_table.experimental")
-                is ExternalConstantTable -> buildString {
-                    val (type, content) = model.constantTableString.split(":", limit = 2)
-                    append(i18n("setting.constant_table.$type"))
-                    append(": ")
-                    append(content)
-                }
-            },
-            label = i18n("setting.constant_table"),
-        ) { onExpandedChange ->
-            DropdownMenuItem(
-                text = { Text(i18n("setting.constant_table.vanilla")) },
-                onClick = {
-                    onExpandedChange(false)
-                    model.constantTableString = "builtin:vanilla"
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(i18n("setting.constant_table.experimental")) },
-                onClick = {
-                    onExpandedChange(false)
-                    model.constantTableString = "builtin:experimental"
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(i18n("setting.constant_table.file")) },
-                onClick = {
-                    onExpandedChange(false)
-                    scope.launch {
-                        val file = FileKit.openFilePicker(
-                            type = FileKitType.File("json"),
-                            mode = FileKitMode.Single,
-                        )
-                        if (file != null) {
-                            model.constantTableString = "file:${file.absolutePath()}"
-                            withContext(Dispatchers.IO) {
-                                gameRecordsModel.update(
-                                    saveFile = model.saveFile,
-                                    algorithm = model.potentialAlgorithm,
-                                    levelMap = model.constantTable,
-                                )
-                            }
-                        }
-                    }
-                },
-            )
-        }
-        DropdownMenu(
-            text = model.potentialAlgorithm.name,
-            label = i18n("setting.potential_algorithm"),
-        ) { onExpandedChange ->
-            PotentialAlgorithm.builtin.forEach { algorithm ->
-                DropdownMenuItem(
-                    text = { Text(algorithm.name) },
-                    onClick = {
-                        onExpandedChange(false)
-                        model.potentialAlgorithmString = "builtin:" + algorithm.id
-                        scope.launch(Dispatchers.IO) {
-                            gameRecordsModel.update(
-                                saveFile = model.saveFile,
-                                algorithm = model.potentialAlgorithm,
-                                levelMap = model.constantTable,
-                            )
-                        }
-                    },
-                )
-            }
-        }
-        DropdownMenu(
-            text = model.language.displayText,
-            label = i18n("setting.language"),
-        ) { onExpandedChange ->
-            Language.entries.forEach { item ->
-                DropdownMenuItem(
-                    text = { Text(item.displayText) },
-                    onClick = {
-                        onExpandedChange(false)
-                        model.language = item
-                        currentLanguage = item
-                    },
-                )
-            }
         }
     }
 }

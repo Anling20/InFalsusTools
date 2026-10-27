@@ -12,7 +12,7 @@ import androidx.compose.ui.window.rememberWindowState
 import cn.anling.inftool.address.AddressContainer
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.model.GameRecordsModel
-import cn.anling.inftool.model.SettingModel
+import cn.anling.inftool.page.SettingPage
 import dev.nucleusframework.application.DecoratedWindow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,7 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 private const val animationTime = 50
 
 @Composable
-context(model: SettingModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
+context(model: SettingPage.ViewModel, gameRecordsModel: GameRecordsModel, _: LocalizationContext)
 fun potentialWindow(
     onCloseRequest: () -> Unit,
     scale: Float,
@@ -145,7 +145,7 @@ fun potentialWindow(
                     gameRecordsModel.update(
                         saveFile = model.saveFile,
                         algorithm = model.potentialAlgorithm,
-                        levelMap = model.constantTable,
+                        constantTable = model.constantTable,
                     )
 
                     val oldPtt = model.potentialAlgorithm.calcPotential(

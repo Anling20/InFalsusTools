@@ -10,6 +10,9 @@ private val container = LocalizationContainer(
     "update.downloading" to "下载中",
     "update.cancel" to "取消",
 
+    "update.snackbar.update_not_available" to "更新不可用",
+    "update.snackbar.update_error" to "更新错误",
+
     "sidebar.module.back" to "返回",
     "sidebar.module.potential_window" to "潜力值悬浮窗",
     "sidebar.module.potential_image" to "潜力值图片",
@@ -47,6 +50,14 @@ private val container = LocalizationContainer(
     "setting.constant_table.file" to "文件",
     "setting.potential_algorithm" to "潜力值算法",
     "setting.language" to "语言",
+
+    "more.check_update" to "检查更新",
+    "more.history_versions" to "历史版本",
+    "more.open_data_folder" to "打开数据文件夹",
+    "more.open_github" to "打开 GitHub",
+    "more.about" to "关于",
+    "more.version" to "版本",
+    "more.update_channel" to "更新频道",
 
     "submodule.potential_window.play_potential" to "游玩潜力值",
 
