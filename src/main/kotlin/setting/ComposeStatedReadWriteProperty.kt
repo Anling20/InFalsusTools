@@ -18,7 +18,7 @@ class ComposeStatedReadWriteProperty<in T, V>(
         if (state != value) {
             state = value
         }
-        return state!!
+        return state as V
     }
 
     override fun setValue(thisRef: T, property: KProperty<*>, value: V) {

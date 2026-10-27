@@ -9,7 +9,7 @@ object App {
 
     @Composable
     context(viewModel: ViewModel)
-    fun Screen(
+    fun Page(
 
     ) {
         Content(

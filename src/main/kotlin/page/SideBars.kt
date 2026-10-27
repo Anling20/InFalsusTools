@@ -5,11 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,13 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.anling.infalsustools.generated.resources.Res
-import cn.anling.infalsustools.generated.resources.back
-import cn.anling.infalsustools.generated.resources.home
-import cn.anling.infalsustools.generated.resources.module
-import cn.anling.infalsustools.generated.resources.more
-import cn.anling.infalsustools.generated.resources.setting
-import cn.anling.infalsustools.generated.resources.terminal
+import cn.anling.infalsustools.generated.resources.*
 import cn.anling.inftool.HomeDestination
 import cn.anling.inftool.ModuleDestination
 import cn.anling.inftool.localization.LocalizationContext
@@ -177,9 +167,6 @@ fun ModuleSideBarContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             val potentialWindowSource = remember { MutableInteractionSource() }
-            val potentialImageSource = remember { MutableInteractionSource() }
-            val achievementsImageSource = remember { MutableInteractionSource() }
-            val playHistoriesSource = remember { MutableInteractionSource() }
             Text(
                 text = i18n("sidebar.module.potential_window"),
                 color = animateColorAsState(
@@ -196,6 +183,7 @@ fun ModuleSideBarContent(
                     onClick = { onChangeDestination(ModuleDestination.PotentialWindow) },
                 ),
             )
+            val potentialImageSource = remember { MutableInteractionSource() }
             Text(
                 text = i18n("sidebar.module.potential_image"),
                 color = animateColorAsState(
@@ -212,6 +200,7 @@ fun ModuleSideBarContent(
                     onClick = { onChangeDestination(ModuleDestination.PotentialImage) },
                 ),
             )
+            val achievementsImageSource = remember { MutableInteractionSource() }
             Text(
                 text = i18n("sidebar.module.achievements_image"),
                 color = animateColorAsState(
@@ -228,6 +217,7 @@ fun ModuleSideBarContent(
                     onClick = { onChangeDestination(ModuleDestination.AchievementsImage) },
                 ),
             )
+            val playHistoriesSource = remember { MutableInteractionSource() }
             Text(
                 text = i18n("sidebar.module.play_histories"),
                 color = animateColorAsState(
@@ -242,6 +232,23 @@ fun ModuleSideBarContent(
                     interactionSource = playHistoriesSource,
                     indication = null,
                     onClick = { onChangeDestination(ModuleDestination.PlayHistories) },
+                ),
+            )
+            val rankingSource = remember { MutableInteractionSource() }
+            Text(
+                text = i18n("sidebar.module.ranking"),
+                color = animateColorAsState(
+                    when (destination == ModuleDestination.Ranking || rankingSource.collectIsHoveredAsState().value) {
+                        true -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.onSurface
+                    }
+                ).value,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                modifier = Modifier.clickable(
+                    interactionSource = rankingSource,
+                    indication = null,
+                    onClick = { onChangeDestination(ModuleDestination.Ranking) },
                 ),
             )
         }

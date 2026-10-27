@@ -32,6 +32,7 @@ import cn.anling.inftool.song.ExternalConstantTable
 import cn.anling.inftool.unfocusOnPressEnter
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.int
+import com.russhwolf.settings.nullableString
 import com.russhwolf.settings.string
 import io.github.vinceglb.filekit.*
 import io.github.vinceglb.filekit.dialogs.FileKitMode
@@ -110,6 +111,13 @@ object SettingPage {
                 }
             }
 
+        private var _rankingFile by settings.nullableString("Settings.rankingFile").toComposeStated()
+        var rankingFile: PlatformFile?
+            get() = _rankingFile?.let { PlatformFile(it) }
+            set(value) {
+                _rankingFile = value?.absolutePath()
+            }
+
         private var languageIndex by settings.int("Setting.language", 1).toComposeStated()
         var language: Language
             get() = Language.entries[languageIndex]
@@ -120,7 +128,7 @@ object SettingPage {
 
     @Composable
     context(viewModel: ViewModel, _: LocalizationContext)
-    fun Screen(
+    fun Page(
         onUpdateGameRecords: suspend () -> Unit,
     ) = Content(
         viewModel = viewModel,
@@ -255,6 +263,38 @@ object SettingPage {
                     )
                 }
             }
+            ClickableTextField(
+                value = viewModel.rankingFile?.absolutePath() ?: "",
+                label = { Text(i18n("setting.ranking_file")) },
+                trailingIcon = {
+                    Icon(
+                        painter = painterResource(Res.drawable.folder_open),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                },
+                singleLine = true,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
+                    unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
+                ),
+                onClick = {
+                    val file = FileKit.openFilePicker(
+                        type = FileKitType.File("json"),
+                        mode = FileKitMode.Single,
+                        directory = viewModel.rankingFile?.parent()?.let {
+                            when (it.exists() && it.isDirectory()) {
+                                true -> it
+                                else -> null
+                            }
+                        },
+                    )
+                    if (file != null) {
+                        viewModel.rankingFile = file
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
             DropdownMenu(
                 text = viewModel.language.displayText,
                 label = i18n("setting.language"),

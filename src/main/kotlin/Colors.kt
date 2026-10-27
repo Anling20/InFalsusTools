@@ -1,5 +1,7 @@
 package cn.anling.inftool
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -141,33 +143,10 @@ object Colors {
         }
 
         object Difficult {
-            val minimal = Brush.verticalGradient(
-                listOf(
-                    Color(0, 111, 160),
-                    Color(8, 174, 255),
-                )
-            )
-
-            val evolved = Brush.verticalGradient(
-                listOf(
-                    Color(3, 182, 204),
-                    Color(8, 230, 255),
-                )
-            )
-
-            val ultimate = Brush.verticalGradient(
-                listOf(
-                    Color(90, 12, 131),
-                    Color(206, 162, 255),
-                )
-            )
-
-            val forbidden = Brush.verticalGradient(
-                listOf(
-                    Color(181, 20, 57),
-                    Color(222, 48, 107),
-                )
-            )
+            val minimal = Color(24, 211, 255)
+            val evolved = Color(24, 199, 222)
+            val ultimate = Color(206, 142, 255)
+            val forbidden = Color(255, 44, 74)
         }
 
         object Judgement {
@@ -217,6 +196,40 @@ object Colors {
                 )
 
                 val outline = Color(200, 50, 60).copy(alpha = 0.75F)
+            }
+        }
+    }
+
+    object Ranking {
+        object SongCard {
+            object Background {
+                val minimal
+                    @Composable
+                    get() = Brush.horizontalGradient(
+                        0.0F to MaterialTheme.colorScheme.surface.copy(alpha = 0.5F),
+                        1.0F to Color(24, 211, 255),
+                    )
+
+                val evolved
+                    @Composable
+                    get() = Brush.horizontalGradient(
+                        0.0F to MaterialTheme.colorScheme.surface.copy(alpha = 0.5F),
+                        1.0F to Color(24, 199, 222),
+                    )
+
+                val ultimate
+                    @Composable
+                    get() = Brush.horizontalGradient(
+                        0.0F to MaterialTheme.colorScheme.surface.copy(alpha = 0.5F),
+                        1.0F to Color(206, 142, 255),
+                    )
+
+                val forbidden
+                    @Composable
+                    get() = Brush.horizontalGradient(
+                        0.0F to MaterialTheme.colorScheme.surface.copy(alpha = 0.5F),
+                        1.0F to Color(255, 44, 74),
+                    )
             }
         }
     }

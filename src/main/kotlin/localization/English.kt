@@ -20,6 +20,7 @@ private val container = LocalizationContainer(
     "sidebar.module.potential_image" to "Potential Image",
     "sidebar.module.achievements_image" to "Achievements Image",
     "sidebar.module.play_histories" to "Play Histories",
+    "sidebar.module.ranking" to "Ranking",
 
     "module.potential_window.scale" to "Scale",
     "module.potential_window.only_display_in_results_scene" to "Only display in results scene",
@@ -44,6 +45,9 @@ private val container = LocalizationContainer(
     "module.achievements_image.generate_to_file" to "Generate to file",
     "module.achievements_image.generate_to_clipboard" to "Generate to clipboard",
 
+    "module.ranking.search" to "Search",
+    "module.ranking.upload_your_data" to "Upload your data",
+
     "setting.username" to "Username",
     "setting.save_file" to "Save file",
     "setting.constant_table" to "Constant table",
@@ -51,6 +55,7 @@ private val container = LocalizationContainer(
     "setting.constant_table.experimental" to "Experimental",
     "setting.constant_table.file" to "File",
     "setting.potential_algorithm" to "Potential algorithm",
+    "setting.ranking_file" to "Ranking file",
     "setting.language" to "Language",
 
     "more.check_update" to "Check update",

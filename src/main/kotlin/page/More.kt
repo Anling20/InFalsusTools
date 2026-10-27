@@ -28,7 +28,7 @@ object MorePage {
 
     @Composable
     context(_: LocalizationContext)
-    fun Screen(
+    fun Page(
         viewModel: ViewModel,
         onCheckUpdate: () -> Unit,
         onHistoryVersions: () -> Unit,

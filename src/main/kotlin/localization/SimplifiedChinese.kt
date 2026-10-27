@@ -18,6 +18,7 @@ private val container = LocalizationContainer(
     "sidebar.module.potential_image" to "潜力值图片",
     "sidebar.module.achievements_image" to "谱面达成图片",
     "sidebar.module.play_histories" to "游玩记录",
+    "sidebar.module.ranking" to "排行榜",
 
     "module.potential_window.scale" to "缩放",
     "module.potential_window.only_display_in_results_scene" to "仅在结算场景显示",
@@ -42,6 +43,9 @@ private val container = LocalizationContainer(
     "module.achievements_image.generate_to_file" to "生成到文件",
     "module.achievements_image.generate_to_clipboard" to "生成到剪切板",
 
+    "module.ranking.search" to "搜索",
+    "module.ranking.upload_your_data" to "上传你的数据",
+
     "setting.username" to "用户名",
     "setting.save_file" to "存档文件",
     "setting.constant_table" to "定数表",
@@ -49,6 +53,7 @@ private val container = LocalizationContainer(
     "setting.constant_table.experimental" to "实验性",
     "setting.constant_table.file" to "文件",
     "setting.potential_algorithm" to "潜力值算法",
+    "setting.ranking_file" to "排行榜文件",
     "setting.language" to "语言",
 
     "more.check_update" to "检查更新",

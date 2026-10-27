@@ -25,6 +25,7 @@ import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.HomeModel
+import cn.anling.inftool.page.module.RankingPage
 import cn.anling.inftool.parser.ImageGenerationType.Clipboard
 import cn.anling.inftool.parser.ImageGenerationType.File
 import cn.anling.inftool.theme.AppTheme
@@ -55,6 +56,7 @@ fun Home(
     onQuit: () -> Unit,
     updateInfo: UpdateInfo?,
     version: String,
+    onUploadData: () -> Unit,
     onCheckUpdate: () -> Unit,
     onHistoryVersions: () -> Unit,
     onOpenDataFolder: () -> Unit,
@@ -105,6 +107,7 @@ fun Home(
                             destination = model.destination,
                             onChangeDestination = { model.destination = it },
                             version = version,
+                            onUploadData = onUploadData,
                             onCheckUpdate = onCheckUpdate,
                             onHistoryVersions = onHistoryVersions,
                             onOpenDataFolder = onOpenDataFolder,
@@ -463,6 +466,7 @@ fun ContentContainer(
     destination: HomeDestination,
     onChangeDestination: (HomeDestination) -> Unit,
     version: String,
+    onUploadData: () -> Unit,
     onCheckUpdate: () -> Unit,
     onHistoryVersions: () -> Unit,
     onOpenDataFolder: () -> Unit,
@@ -483,6 +487,7 @@ fun ContentContainer(
         Content(
             hazeState = hazeState,
             version = version,
+            onUploadData = onUploadData,
             onCheckUpdate = onCheckUpdate,
             onHistoryVersions = onHistoryVersions,
             onOpenDataFolder = onOpenDataFolder,
@@ -532,6 +537,7 @@ context(model: HomeModel, gameRecordsModel: GameRecordsModel, _: LocalizationCon
 private fun Content(
     hazeState: HazeState,
     version: String,
+    onUploadData: () -> Unit,
     onCheckUpdate: () -> Unit,
     onHistoryVersions: () -> Unit,
     onOpenDataFolder: () -> Unit,
@@ -715,19 +721,27 @@ private fun Content(
                                     records = gameRecordsModel.historyRecords,
                                 )
                             }
+
+                            ModuleDestination.Ranking -> RankingPage.Page(
+                                viewModel = RankingPage.ViewModel(
+                                    rankingFile = model.settingModel.rankingFile,
+                                ),
+                                onUploadData = onUploadData,
+                                selfName = model.settingModel.username,
+                            )
                         }
 
                         HomeDestination.Terminal -> Unit
 
                         HomeDestination.Setting -> context(model.settingModel) {
-                            SettingPage.Screen(
+                            SettingPage.Page(
                                 onUpdateGameRecords = {
                                     gameRecordsModel.update()
                                 },
                             )
                         }
 
-                        HomeDestination.More -> MorePage.Screen(
+                        HomeDestination.More -> MorePage.Page(
                             viewModel = MorePage.ViewModel(
                                 version = version,
                                 updateChannel = "alpha",

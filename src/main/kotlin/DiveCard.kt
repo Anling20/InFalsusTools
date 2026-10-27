@@ -116,17 +116,15 @@ private fun Title(
                 append(']')
                 append(i18n(titleKey))
             },
-            style = LocalTextStyle.current.copy(
-                brush = when (difficult) {
-                    MIN -> Colors.SongCard.Difficult.minimal
-                    EVO -> Colors.SongCard.Difficult.evolved
-                    ULT -> Colors.SongCard.Difficult.ultimate
-                    FBD -> Colors.SongCard.Difficult.forbidden
-                }
-            ),
+            color = when (difficult) {
+                MIN -> Colors.SongCard.Difficult.minimal
+                EVO -> Colors.SongCard.Difficult.evolved
+                ULT -> Colors.SongCard.Difficult.ultimate
+                FBD -> Colors.SongCard.Difficult.forbidden
+            },
             fontSize = 24.sp,
-            maxLines = 1,
             lineHeight = 26.sp,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1F),
         )

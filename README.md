@@ -34,6 +34,12 @@
 若有需要查看, 请前往 [在线定数表](https://www.kdocs.cn/l/cheDPToKxD5B)<br>
 若需要提供数据, 请前往 [收集表](https://f.wps.cn/g/WFFMWvS5)
 
+# 排行榜
+
+如需下载最新排行榜文件, 请前往 [ranking.json](./ranking.json)<br>
+如需贡献你的游玩数据, 请在 In Falsus Tools 内前往 `排行榜` 点击右上角 `上传你的数据` 后将保存的文件上传到收集表内<br>
+如果你已经上传过一次并想要修改, 请点击上方 `查看我的填写记录` 并点击 `修改答卷` 后重新上传文件
+
 # 潜力值算法
 
 ## In Falsus Tools

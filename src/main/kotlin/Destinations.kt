@@ -13,4 +13,5 @@ sealed class ModuleDestination {
     data object PotentialImage : ModuleDestination()
     data object AchievementsImage : ModuleDestination()
     data object PlayHistories : ModuleDestination()
+    data object Ranking : ModuleDestination()
 }

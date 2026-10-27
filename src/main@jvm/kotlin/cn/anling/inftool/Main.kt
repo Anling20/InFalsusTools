@@ -22,6 +22,7 @@ import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.page.Home
+import cn.anling.inftool.ranking.generatePlayJson
 import cn.anling.inftool.setting.createPlatformSettings
 import cn.anling.inftool.theme.AppTheme
 import dev.nucleusframework.application.DecoratedWindow
@@ -37,6 +38,7 @@ import dev.nucleusframework.window.NucleusDecoratedWindowTheme
 import dev.nucleusframework.window.TitleBar
 import dev.nucleusframework.window.WindowBackground
 import io.github.vinceglb.filekit.*
+import io.github.vinceglb.filekit.dialogs.openFileSaver
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
@@ -147,6 +149,22 @@ suspend fun main(args: Array<String>) {
                     onQuit = ::exitApplication,
                     updateInfo = updateInfo,
                     version = updater.currentVersion,
+                    onUploadData = {
+                        scope.launch {
+                            FileKit.openFileSaver(
+                                suggestedName = "play",
+                                defaultExtension = ".json",
+                            )?.let { file ->
+                                file.writeString(
+                                    generatePlayJson(
+                                        userName = model.settingModel.username,
+                                        highScores = gameRecordsModel.historyRecords.findHighScores(),
+                                    )
+                                )
+                                Desktop.getDesktop().browse(URI("https://f.kdocs.cn/g/y4CL2PIS"))
+                            }
+                        }
+                    },
                     onCheckUpdate = {
                         scope.launch {
                             model.waiting = true

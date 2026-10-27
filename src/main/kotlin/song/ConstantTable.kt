@@ -542,7 +542,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         11 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.1,
+            ultimate = 9.2,
             forbidden = 12.4,
         ),
         12 to SongConstant(
@@ -554,7 +554,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         13 to SongConstant(
             minimal = 3.0,
             evolved = 6.0,
-            ultimate = 9.3,
+            ultimate = 9.4,
             forbidden = 12.2,
         ),
         14 to SongConstant(
@@ -662,7 +662,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
         31 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 9.1,
+            ultimate = 9.2,
             forbidden = 11.7,
         ),
         32 to SongConstant(
@@ -915,7 +915,7 @@ sealed class BuiltinConstantTable : ConstantTable() {
             minimal = 3.0,
             evolved = 6.0,
             ultimate = 10.7,
-            forbidden = 13.2,
+            forbidden = 13.1,
         ),
         79 to SongConstant(
             minimal = 4.0,
@@ -926,8 +926,8 @@ sealed class BuiltinConstantTable : ConstantTable() {
         80 to SongConstant(
             minimal = 2.0,
             evolved = 5.0,
-            ultimate = 8.9,
-            forbidden = 13.1,
+            ultimate = 9.0,
+            forbidden = 13.2,
         ),
         81 to SongConstant(
             minimal = 2.0,
