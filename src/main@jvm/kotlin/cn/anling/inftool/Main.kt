@@ -169,6 +169,7 @@ suspend fun main(args: Array<String>) {
                         scope.launch {
                             model.waiting = true
                             checkForUpdates(
+                                scope = scope,
                                 onChangeUpdateInfo = { updateInfo = it },
                                 snackbarHostState = model.snackbarHostState,
                                 taskbar = taskbar,
@@ -189,6 +190,7 @@ suspend fun main(args: Array<String>) {
 
                 LaunchedEffect(Unit) {
                     checkForUpdates(
+                        scope = scope,
                         onChangeUpdateInfo = { updateInfo = it },
                         snackbarHostState = model.snackbarHostState,
                         taskbar = taskbar,
@@ -234,13 +236,14 @@ val updater = NucleusUpdater {
 }
 
 context(_: LocalizationContext)
-private suspend fun CoroutineScope.checkForUpdates(
+private suspend fun checkForUpdates(
+    scope: CoroutineScope,
     onChangeUpdateInfo: (UpdateInfo?) -> Unit,
     snackbarHostState: SnackbarHostState,
     taskbar: TaoTaskbarProgressScope?,
 ) = when (val result = updater.checkForUpdates()) {
     is UpdateResult.Available -> {
-        println("Update available: $result")
+        println("Update available: ${result.info.version}, currentFile: ${result.info.currentFile}")
         onChangeUpdateInfo(
             UpdateInfo.Update(
                 version = "v" + result.info.version,
@@ -265,7 +268,8 @@ private suspend fun CoroutineScope.checkForUpdates(
                         }
                     ),
                 onUpdate = {
-                    launch {
+                    scope.launch {
+                        println("Update started")
                         taskbar?.showProgress(0.0)
                         val downloadingInfo = UpdateInfo.Downloading(
                             total = DecimalFormat("0.00 MiB")
@@ -290,22 +294,20 @@ private suspend fun CoroutineScope.checkForUpdates(
                     }
                 },
                 onCancel = {
-                    launch {
-                        println("Update canceled")
-                        taskbar?.hideProgress()
-                        onChangeUpdateInfo(null)
-                    }
+                    println("Update canceled")
+                    taskbar?.hideProgress()
+                    onChangeUpdateInfo(null)
                 },
             )
         )
     }
 
-    UpdateResult.NotAvailable -> launch {
+    UpdateResult.NotAvailable -> scope.launch {
         println("Update not available")
         snackbarHostState.showSnackbar(i18n("update.snackbar.update_not_available"))
     }
 
-    is UpdateResult.Error -> launch {
+    is UpdateResult.Error -> scope.launch {
         println("Update error: ${result.exception.message}")
         result.exception.printStackTrace()
         snackbarHostState.showSnackbar("${i18n("update.snackbar.update_error")}: ${result.exception.message}")
