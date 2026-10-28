@@ -272,17 +272,20 @@ private suspend fun checkForUpdates(
                     scope.launch {
                         println("Update started")
                         taskbar?.showProgress(0.0)
-                        val downloadingInfo = UpdateInfo.Downloading(
-                            total = DecimalFormat("0.00 MiB")
-                                .format(result.info.currentFile.size / 1024.0 / 1024.0),
-                            onCancel = {
-                                this.cancel()
-                                onChangeUpdateInfo(null)
-                            },
-                        )
-                        onChangeUpdateInfo(downloadingInfo)
+                        var downloadingInfo: UpdateInfo.Downloading? = null
                         var installer: File? = null
                         updater.downloadUpdate(result.info).collect { progress ->
+                            if (downloadingInfo == null) {
+                                downloadingInfo = UpdateInfo.Downloading(
+                                    total = DecimalFormat("0.00 MiB")
+                                        .format(progress.totalBytes / 1024.0 / 1024.0),
+                                    onCancel = {
+                                        this.cancel()
+                                        onChangeUpdateInfo(null)
+                                    },
+                                )
+                                onChangeUpdateInfo(downloadingInfo)
+                            }
                             println("Update downloading: $progress")
                             taskbar?.setProgress(progress.percent)
                             downloadingInfo.downloaded = DecimalFormat("0.00 MiB")
