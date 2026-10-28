@@ -33,6 +33,8 @@ private val container = LocalizationContainer(
     "module.potential_image.preview" to "预览",
     "module.potential_image.generate_to_file" to "生成到文件",
     "module.potential_image.generate_to_clipboard" to "生成到剪切板",
+    "module.potential_image.snackbar.generated_to_file" to "已生成到文件",
+    "module.potential_image.snackbar.generated_to_clipboard" to "已生成到剪切板",
 
     "module.achievements_image.quality" to "质量",
     "module.achievements_image.minimal_level_limit" to "限制最低定数",
@@ -42,6 +44,8 @@ private val container = LocalizationContainer(
     "module.achievements_image.preview" to "预览",
     "module.achievements_image.generate_to_file" to "生成到文件",
     "module.achievements_image.generate_to_clipboard" to "生成到剪切板",
+    "module.achievements_image.snackbar.generated_to_file" to "已生成到文件",
+    "module.achievements_image.snackbar.generated_to_clipboard" to "已生成到剪切板",
 
     "module.ranking.search" to "搜索",
     "module.ranking.upload_your_data" to "上传你的数据",

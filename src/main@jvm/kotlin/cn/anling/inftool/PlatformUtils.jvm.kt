@@ -1,11 +1,11 @@
 package cn.anling.inftool
 
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.platform.ClipEntry
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.div
-import java.awt.EventQueue
-import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.image.BufferedImage
@@ -22,11 +22,9 @@ actual fun getCursorPosition(): Pair<Int, Int>? =
 actual fun getFocusingGameTranslation(): WindowTranslation? =
     WindowTranslationUtil.getTranslation()
 
-actual fun copyImageToClipboard(bitmap: ImageBitmap) {
-    EventQueue.invokeLater {
-        Toolkit.getDefaultToolkit().systemClipboard.setContents(ImageTransferable(bitmap.toAwtImage()), null)
-    }
-}
+@OptIn(ExperimentalComposeUiApi::class)
+actual fun makeImageClipEntry(bitmap: ImageBitmap) =
+    ClipEntry(ImageTransferable(bitmap.toAwtImage()))
 
 actual fun getConfigDirectory(): PlatformFile = when {
     System.getenv("APPDATA") != null ->

@@ -94,63 +94,71 @@ fun Double.floor(decimalPlaces: Int): Double {
     return floor(this * n) / n
 }
 
-private enum class PushType {
-    Direct, Conditional, None
-}
-
 fun calcR30(histories: List<ProcessedDiveRecord>): List<ProcessedDiveRecord> {
     val personalBest = mutableMapOf<Pair<Song, Difficult>, ProcessedDiveRecord>()
     val r30 = mutableListOf<ProcessedDiveRecord>()
+
+    fun ProcessedDiveRecord.key() = song to difficult
+
     histories.forEach { record ->
-        val pb = personalBest[record.song to record.difficult]
-        val conditionalPush = run {
-            val cond1 = record.score >= min(98000000, pb?.score ?: -1)
-            val pushed = r30.toMutableList().also { list ->
-                list.add(record)
-                if (list.size > 30) {
-                    list.removeFirst()
-                }
-            }
-            val cond2 =
-                pushed.distinctBy { it.song to it.difficult }.size < r30.distinctBy { it.song to it.difficult }.size
+        val key = record.key()
+        val pb = personalBest[key]
 
-            when {
-                r30.distinctBy { it.song to it.difficult }.size >= 10
-                        && pushed.distinctBy { it.song to it.difficult }.size < 10 -> PushType.None
-
-                cond1 || cond2 -> PushType.Conditional
-                else -> PushType.Direct
+        // 直接写入是否会降低不同铺面数量
+        val directWouldReduceSongCount = when (r30.size == 30) {
+            true -> {
+                val firstKey = r30.first().key()
+                firstKey != key && r30.count { it.key() == firstKey } == 1
             }
+
+            false -> false
         }
+
+        val conditionalPush = or(
+            // 分数达到 98M / 分数达到 PB / 首次游玩
+            record.score >= min(98_000_000, pb?.score ?: -1),
+            // 直接写入会降低不同谱面数量
+            directWouldReduceSongCount,
+        )
+
+        // 更新 PB
         if (record.score > (pb?.score ?: -1)) {
-            personalBest[record.song to record.difficult] = record
+            personalBest[key] = record
         }
 
-        when (conditionalPush) {
-            PushType.Direct -> {
-                r30.add(record)
-                if (r30.size > 30) {
-                    r30.removeFirst()
-                }
-            }
+        when {
+            // R30 未满, 直接写入
+            r30.size < 30 -> r30.add(record)
 
-            PushType.Conditional -> {
-                when (r30.size) {
-                    in 0..29 -> r30.add(record)
-                    else if r30.any { it.potential < record.potential } -> {
-                        val minIndex = r30.mapIndexed { index, record ->
-                            index to record
-                        }.minBy {
-                            it.second.potential
-                        }.first
-                        if (minIndex != -1) {
-                            r30[minIndex] = record
+            // 条件写入
+            conditionalPush -> {
+                val minIndex = r30.indices.minBy { r30[it].potential }
+
+                if (record.potential > r30[minIndex].potential) {
+                    // 模拟替换, 检查不同谱面数量是否下降
+                    val replaced = r30.toMutableList()
+                        .apply { this[minIndex] = record }
+                    when (replaced.distinctBy { it.key() }.size >= r30.distinctBy { it.key() }.size) {
+                        // 替换后不同铺面数量未减少
+                        true -> r30[minIndex] = record
+                        // 替换后不同铺面数量减少, 替换已有铺面
+                        else -> {
+                            val minSame = r30.indices
+                                .filter { r30[it].key() == key }
+                                .minBy { r30[it].potential }
+                            if (r30[minSame].potential < record.potential) {
+                                r30[minSame] = record
+                            }
                         }
                     }
                 }
             }
 
-            PushType.None -> Unit
+            // 直接写入
+            else -> {
+                r30.add(record)
+                r30.removeFirst()
+            }
         }
     }
 

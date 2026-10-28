@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -544,6 +545,7 @@ private fun Content(
     onOpenGitHub: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val clipboard = LocalClipboard.current
     AnimatedVisibility(
         visible = model.destination != HomeDestination.Home,
         enter = fadeIn() + slideInVertically { it },
@@ -594,12 +596,15 @@ private fun Content(
                                                     RenderRequest(
                                                         onRendered = { imageBitmap ->
                                                             scope.launch(Dispatchers.IO) {
-                                                                runCatching {
+                                                                try {
                                                                     when (type) {
                                                                         File -> FileKit.openFileSaver(
                                                                             suggestedName = "Potential",
                                                                             defaultExtension = ".jpg",
-                                                                            allowedExtensions = setOf(".jpg", ".jpeg"),
+                                                                            allowedExtensions = setOf(
+                                                                                ".jpg",
+                                                                                ".jpeg"
+                                                                            ),
                                                                         )?.let { file ->
                                                                             val byteArray =
                                                                                 imageBitmap.encodeToByteArray(
@@ -608,18 +613,30 @@ private fun Content(
                                                                                 )
                                                                             file.write(byteArray)
                                                                             println("Potential generated to ${file.absolutePath()}")
+                                                                            scope.launch(Dispatchers.IO) {
+                                                                                model.snackbarHostState.showSnackbar(
+                                                                                    i18n("module.potential_image.snackbar.generated_to_file")
+                                                                                )
+                                                                            }
                                                                         }
 
                                                                         Clipboard -> {
-                                                                            copyImageToClipboard(imageBitmap)
+                                                                            val entry = makeImageClipEntry(imageBitmap)
+                                                                            clipboard.setClipEntry(entry)
                                                                             println("Potential generated to clipboard")
+                                                                            scope.launch(Dispatchers.IO) {
+                                                                                model.snackbarHostState.showSnackbar(
+                                                                                    i18n("module.potential_image.snackbar.generated_to_clipboard")
+                                                                                )
+                                                                            }
                                                                         }
                                                                     }
-                                                                }.onFailure {
-                                                                    println("Error: ${it.message}")
-                                                                    it.printStackTrace()
+                                                                } catch (e: Throwable) {
+                                                                    println("Error: ${e.message}")
+                                                                    e.printStackTrace()
+                                                                } finally {
+                                                                    model.waiting = false
                                                                 }
-                                                                model.waiting = false
                                                             }
                                                         },
                                                     ) {
@@ -665,7 +682,7 @@ private fun Content(
                                                     RenderRequest(
                                                         onRendered = { imageBitmap ->
                                                             scope.launch(Dispatchers.IO) {
-                                                                runCatching {
+                                                                try {
                                                                     when (type) {
                                                                         File -> FileKit.openFileSaver(
                                                                             suggestedName = "Achievements",
@@ -682,18 +699,30 @@ private fun Content(
                                                                                 )
                                                                             file.write(byteArray)
                                                                             println("Achievements generated to ${file.absolutePath()}")
+                                                                            scope.launch(Dispatchers.IO) {
+                                                                                model.snackbarHostState.showSnackbar(
+                                                                                    i18n("module.achievements_image.snackbar.generated_to_file")
+                                                                                )
+                                                                            }
                                                                         }
 
                                                                         Clipboard -> {
-                                                                            copyImageToClipboard(imageBitmap)
+                                                                            val entry = makeImageClipEntry(imageBitmap)
+                                                                            clipboard.setClipEntry(entry)
                                                                             println("Achievements generated to clipboard")
+                                                                            scope.launch(Dispatchers.IO) {
+                                                                                model.snackbarHostState.showSnackbar(
+                                                                                    i18n("module.achievements_image.snackbar.generated_to_clipboard")
+                                                                                )
+                                                                            }
                                                                         }
                                                                     }
-                                                                }.onFailure {
-                                                                    println("Error: ${it.message}")
-                                                                    it.printStackTrace()
+                                                                } catch (e: Throwable) {
+                                                                    println("Error: ${e.message}")
+                                                                    e.printStackTrace()
+                                                                } finally {
+                                                                    model.waiting = false
                                                                 }
-                                                                model.waiting = false
                                                             }
                                                         },
                                                     ) {

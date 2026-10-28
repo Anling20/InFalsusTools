@@ -57,17 +57,7 @@ object InFalsusToolsR10PotentialAlgorithm : PotentialAlgorithm("in_falsus_tools_
         histories: List<DiveRecord>,
         constantTable: ConstantTable,
         playRecord: DiveRecord,
-    ): Double {
-        val level = constantTable.selectLevel(playRecord)
-        val potential = when (playRecord.score) {
-            in 0..<95000000 -> level * (playRecord.score / 95000000.0).pow(10)
-            in 95000000..<98000000 -> level + ((playRecord.score - 95000000) / 3000000.0)
-            in 98000000..<100000000 -> level + 1 + ((playRecord.score - 98000000) / 2000000.0)
-            else -> level + 2.1
-        }
-
-        return potential
-    }
+    ): Double = InFalsusToolsPotentialAlgorithm.calcPlayPotential(histories, constantTable, playRecord)
 
     override fun calcPotential(
         histories: List<ProcessedDiveRecord>,

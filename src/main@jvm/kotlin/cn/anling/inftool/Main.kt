@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -381,47 +382,56 @@ private fun AchievementsImagePreviewWindow() {
 
 @Composable
 private fun Render(renderRequestChannel: Channel<RenderRequest>) {
-    val renderRequestList = remember { mutableStateListOf<RenderRequest>() }
-
-    LaunchedEffect(Unit) {
-        renderRequestChannel.consumeEach { next ->
-            renderRequestList += next
-            next.finished.await()
-            renderRequestList -= next
-        }
-    }
-
-    renderRequestList.forEach { renderRequest ->
-        DecoratedWindow(
-            onCloseRequest = {},
-            visible = false,
-        ) {
-            val graphicsLayer = rememberGraphicsLayer()
-            val rendered = remember(renderRequest) { CompletableDeferred<Unit>() }
-            Box(
-                modifier = Modifier
-                    .wrapContentSize(unbounded = true)
-                    .drawWithContent {
-                        graphicsLayer.record {
-                            this@drawWithContent.drawContent()
-                        }
-                        drawLayer(graphicsLayer)
-                        rendered.complete(Unit)
-                    },
-            ) {
-                CompositionLocalProvider(LocalDensity provides Density(1F, 1F)) {
-                    AppTheme(false) {
-                        renderRequest.content()
-                    }
+    DecoratedWindow(
+        onCloseRequest = {},
+        state = rememberWindowState(size = DpSize(1.dp, 1.dp)),
+        resizable = false,
+        alwaysOnTop = true,
+        undecorated = true,
+        hiddenFromDock = true,
+        transparent = true,
+        clickThrough = true,
+    ) {
+        var currentRenderRequest by remember { mutableStateOf<RenderRequest?>(null) }
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                renderRequestChannel.consumeEach { next ->
+                    currentRenderRequest?.finished?.await()
+                    currentRenderRequest = next
                 }
             }
+        }
+        Box(modifier = Modifier.alpha(0F)) {
+            currentRenderRequest?.let { renderRequest ->
+                val graphicsLayer = rememberGraphicsLayer()
+                val rendered = remember(renderRequest) { CompletableDeferred<Unit>() }
+                Box(
+                    modifier = Modifier
+                        .wrapContentSize(unbounded = true)
+                        .drawWithContent {
+                            graphicsLayer.record {
+                                this@drawWithContent.drawContent()
+                            }
+                            drawLayer(graphicsLayer)
+                            rendered.complete(Unit)
+                        },
+                ) {
+                    CompositionLocalProvider(LocalDensity provides Density(1F, 1F)) {
+                        AppTheme(false) {
+                            renderRequest.content()
+                        }
+                    }
+                }
 
-            LaunchedEffect(renderRequest) {
-                try {
+                LaunchedEffect(renderRequest) {
                     rendered.await()
-                    renderRequest.onRendered(graphicsLayer.toImageBitmap())
-                } finally {
-                    renderRequest.finished.complete(Unit)
+                    withFrameNanos { }
+                    val job = renderRequest.onRendered(graphicsLayer.toImageBitmap())
+                    job.invokeOnCompletion {
+                        renderRequest.finished.complete(Unit)
+                        currentRenderRequest = null
+                        System.gc()
+                    }
                 }
             }
         }

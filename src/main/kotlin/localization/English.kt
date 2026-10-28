@@ -35,6 +35,8 @@ private val container = LocalizationContainer(
     "module.potential_image.preview" to "Preview",
     "module.potential_image.generate_to_file" to "Generate to file",
     "module.potential_image.generate_to_clipboard" to "Generate to clipboard",
+    "module.potential_image.snackbar.generated_to_file" to "Generated to file",
+    "module.potential_image.snackbar.generated_to_clipboard" to "Generated to clipboard",
 
     "module.achievements_image.quality" to "Quality",
     "module.achievements_image.minimal_level_limit" to "Minimal level limit",
@@ -44,6 +46,8 @@ private val container = LocalizationContainer(
     "module.achievements_image.preview" to "Preview",
     "module.achievements_image.generate_to_file" to "Generate to file",
     "module.achievements_image.generate_to_clipboard" to "Generate to clipboard",
+    "module.achievements_image.snackbar.generated_to_file" to "Generated to file",
+    "module.achievements_image.snackbar.generated_to_clipboard" to "Generated to clipboard",
 
     "module.ranking.search" to "Search",
     "module.ranking.upload_your_data" to "Upload your data",

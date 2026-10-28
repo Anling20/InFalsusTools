@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import cn.anling.inftool.song.Song
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
 
 enum class Difficult {
     MIN, EVO, ULT, FBD
@@ -111,7 +112,7 @@ data class WindowTranslation(
 )
 
 data class RenderRequest(
-    val onRendered: suspend (ImageBitmap) -> Unit,
+    val onRendered: suspend (ImageBitmap) -> Job,
     val content: @Composable () -> Unit,
 ) {
     val finished: CompletableDeferred<Unit> = CompletableDeferred()
