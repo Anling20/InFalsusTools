@@ -68,7 +68,7 @@
 
 # 本地数据
 
-如果你的网络环境难以访问 GitHub 或现有的 GitHub 代理网站, 你可以下载 [数据仓库](https://github.com/Anling20/InFalsusTools_Data) 的源码并解压到 `{数据文件夹}/.cache`<br>
+如果你的网络环境难以访问 GitHub 或现有的 GitHub 代理网站, 你可以下载 [数据仓库](https://github.com/Anling20/InFalsusTools_Data) 的源码并解压到 `{数据文件夹}/.cache/github`<br>
 如果你不知道 `{数据文件夹}` 在哪, 请打开 In Falsus Tools 的 `更多` 页面, 并点击 `打开数据文件夹`
 
 # 疑难解答

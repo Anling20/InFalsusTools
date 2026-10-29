@@ -159,8 +159,9 @@ object SettingPage {
                 Json.decodeFromString<AddressContainer>(file)
             }
 
-            if (address == "init") {
-                address = addressManifest.default
+            when (address == "init") {
+                true -> address = addressManifest.default
+                else -> addressContainer = addressMap[address]!!
             }
 
             if (github !is GitHub.Cache) {
