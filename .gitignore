@@ -45,3 +45,5 @@ bin/
 .DS_Store
 
 plays
+src/jvmTest/kotlin/ConstantDiff.kt
+src/jvmTest/kotlin/GenerateRakingsJson.kt

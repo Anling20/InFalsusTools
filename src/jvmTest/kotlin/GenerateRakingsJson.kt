@@ -5,7 +5,7 @@ import io.github.vinceglb.filekit.*
 import kotlinx.serialization.json.Json
 
 suspend fun main() {
-    val folder = PlatformFile("plays")
+    val folder = PlatformFile("C:/Users/Anling/IdeaProjects/InFalsusTools/plays")
     val map = folder
         .list()
         .filter { it.name.endsWith(".json") }
@@ -37,5 +37,5 @@ suspend fun main() {
                 }
         }
 
-    PlatformFile("ranking.json").writeString(Json.encodeToString(ranking))
+    PlatformFile("C:/Users/Anling/IdeaProjects/InFalsusTools_Data/ranking.json").writeString(Json.encodeToString(ranking))
 }
