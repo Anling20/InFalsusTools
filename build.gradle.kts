@@ -63,12 +63,12 @@ kotlin {
             implementation("io.github.vinceglb:filekit-core:0.16.0")
             implementation("io.github.vinceglb:filekit-dialogs-compose:0.16.0")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
+            implementation("io.ktor:ktor-client-core:3.6.0")
+            implementation("io.ktor:ktor-client-cio:3.6.0")
         }
 
         jvmMain.dependencies {
-            implementation(compose.desktop.currentOs) {
-                exclude("org.jetbrains.compose.material", "material")
-            }
+            implementation(compose.desktop.currentOs)
 
             implementation("dev.nucleusframework:nucleus.nucleus-application:2.5.18")
             implementation("dev.nucleusframework:nucleus.decorated-window-tao:2.5.18")
@@ -76,6 +76,8 @@ kotlin {
             implementation("dev.nucleusframework:nucleus.updater-runtime:2.5.18")
             implementation("dev.nucleusframework:nucleus.native-http:2.5.18")
             implementation("dev.nucleusframework:nucleus.global-hotkey:2.5.18")
+
+            runtimeOnly("ch.qos.logback:logback-classic:1.6.6")
         }
     }
 }

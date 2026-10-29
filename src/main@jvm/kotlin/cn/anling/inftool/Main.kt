@@ -118,7 +118,7 @@ suspend fun main(args: Array<String>) {
             GameRecordsModel().apply {
                 runBlocking {
                     context(model.settingModel) {
-                        update()
+                        update(model.settingModel)
                     }
                 }
             }
@@ -128,6 +128,20 @@ suspend fun main(args: Array<String>) {
                 language = model.settingModel.language,
                 containers = defaultLocalizationContainers,
             )
+        }
+        LaunchedEffect(Unit) {
+            launch {
+                model.snackbarHostState.showSnackbar("数据更新中...")
+            }
+            model.settingModel.updateData()
+                .onSuccess {
+                    gameRecordsModel.update(model.settingModel)
+                    model.snackbarHostState.showSnackbar("数据更新完成")
+                }
+                .onFailure {
+                    it.printStackTrace()
+                    model.snackbarHostState.showSnackbar("数据更新失败: ${it.message}")
+                }
         }
         context(model, gameRecordsModel, localizationContext) {
             val windowState = rememberWindowState(
@@ -204,7 +218,7 @@ suspend fun main(args: Array<String>) {
                     potentialWindow(
                         onCloseRequest = { model.startedPotentialWindow = false },
                         scale = model.modulePotentialWindowModel.scale,
-                        addressContainer = model.modulePotentialWindowModel.addressContainer,
+                        addressContainer = model.settingModel.addressContainer,
                         onlyDisplayInResultsScene = model.modulePotentialWindowModel.onlyDisplayInResultsScene,
                     )
                 }
@@ -306,11 +320,7 @@ private suspend fun checkForUpdates(
         )
     }
 
-    UpdateResult.NotAvailable -> scope.launch {
-        println("Update not available")
-        snackbarHostState.showSnackbar(i18n("update.snackbar.update_not_available"))
-    }
-
+    UpdateResult.NotAvailable -> println("Update not available")
     is UpdateResult.Error -> scope.launch {
         println("Update error: ${result.exception.message}")
         result.exception.printStackTrace()

@@ -14,3 +14,5 @@ data class SongConstant(
     val ultimate: Double,
     val forbidden: Double,
 )
+
+typealias ConstantTable = Map<Int, SongConstant>

@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.anling.inftool.DiveCardFlat
 import cn.anling.inftool.ProcessedDiveRecord
-import cn.anling.inftool.component.DropdownMenu
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.i18n
 import cn.anling.inftool.model.ModuleAchievementsImageModel
@@ -29,12 +27,6 @@ import cn.anling.inftool.model.ModulePotentialImageModel
 import cn.anling.inftool.model.ModulePotentialWindowModel
 import cn.anling.inftool.parser.ImageGenerationType
 import cn.anling.inftool.unfocusOnPressEnter
-import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.absolutePath
-import io.github.vinceglb.filekit.dialogs.FileKitMode
-import io.github.vinceglb.filekit.dialogs.FileKitType
-import io.github.vinceglb.filekit.dialogs.openFilePicker
-import kotlinx.coroutines.launch
 
 @Composable
 context(model: ModulePotentialWindowModel, _: LocalizationContext)
@@ -43,7 +35,6 @@ fun ColumnScope.ModulePotentialWindowContent(
     onSwitchStarted: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
-    val scope = rememberCoroutineScope()
     Column(
         verticalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
@@ -89,49 +80,6 @@ fun ColumnScope.ModulePotentialWindowContent(
             Checkbox(
                 checked = model.onlyDisplayInResultsScene,
                 onCheckedChange = { model.onlyDisplayInResultsScene = it },
-            )
-        }
-        DropdownMenu(
-            text = run {
-                val (type, content) = model.addressContainerString.split(":", limit = 2)
-                when (type) {
-                    "builtin" -> when (content) {
-                        "default" -> i18n("module.potential_window.address_container.default")
-                        else -> error("Unknown builtin constant table: $content")
-                    }
-
-                    "file" -> buildString {
-                        append(i18n("module.potential_window.address_container.$type"))
-                        append(": ")
-                        append(content)
-                    }
-
-                    else -> error("Unknown constant table type: ${model.addressContainerString}")
-                }
-            },
-            label = i18n("module.potential_window.address_container"),
-        ) { onExpandedChange ->
-            DropdownMenuItem(
-                text = { Text(i18n("module.potential_window.address_container.default")) },
-                onClick = {
-                    onExpandedChange(false)
-                    model.addressContainerString = "builtin:default"
-                },
-            )
-            DropdownMenuItem(
-                text = { Text(i18n("module.potential_window.address_container.file")) },
-                onClick = {
-                    onExpandedChange(false)
-                    scope.launch {
-                        val file = FileKit.openFilePicker(
-                            type = FileKitType.File("json"),
-                            mode = FileKitMode.Single,
-                        )
-                        if (file != null) {
-                            model.addressContainerString = "file:" + file.absolutePath()
-                        }
-                    }
-                },
             )
         }
     }

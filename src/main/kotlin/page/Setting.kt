@@ -7,8 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
@@ -16,32 +15,33 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.folder_open
+import cn.anling.inftool.GitHub
+import cn.anling.inftool.Manifest
+import cn.anling.inftool.address.AddressContainer
 import cn.anling.inftool.component.ClickableTextField
 import cn.anling.inftool.component.DropdownMenu
 import cn.anling.inftool.localization.Language
 import cn.anling.inftool.localization.LocalizationContext
 import cn.anling.inftool.localization.currentLanguage
 import cn.anling.inftool.localization.i18n
+import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.potential_algorithm.InFalsusToolsPotentialAlgorithm
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
-import cn.anling.inftool.readStringSync
+import cn.anling.inftool.ranking.Ranking
 import cn.anling.inftool.setting.toComposeStated
-import cn.anling.inftool.song.BuiltinConstantTable
 import cn.anling.inftool.song.ConstantTable
-import cn.anling.inftool.song.ExternalConstantTable
 import cn.anling.inftool.unfocusOnPressEnter
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.int
-import com.russhwolf.settings.nullableString
 import com.russhwolf.settings.string
 import io.github.vinceglb.filekit.*
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
+import io.ktor.client.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 
@@ -49,6 +49,7 @@ object SettingPage {
     class ViewModel(
         settings: Settings,
         initialSaveFile: String,
+        client: HttpClient,
     ) {
         var username by settings.string("Setting.username", "Player").toComposeStated()
 
@@ -57,36 +58,6 @@ object SettingPage {
             get() = PlatformFile(_saveFile)
             set(value) {
                 _saveFile = value.absolutePath()
-            }
-
-        var constantTableString by settings.string("Setting.constantTable", "builtin:vanilla").toComposeStated()
-        val constantTable: ConstantTable
-            get() {
-                val (type, content) = constantTableString.split(":", limit = 2)
-                return runCatching {
-                    when (type) {
-                        "builtin" -> when (content) {
-                            "vanilla" -> BuiltinConstantTable.Vanilla
-                            "experimental" -> BuiltinConstantTable.Experimental
-                            else -> error("Unknown builtin constant table: $content")
-                        }
-
-                        "file" -> {
-                            val file = PlatformFile(content)
-                            when (file.exists() && file.isRegularFile()) {
-                                true -> ExternalConstantTable.File(Json.decodeFromString(file.readStringSync()))
-                                else -> error("File not found or is directory: $content")
-                            }
-                        }
-
-                        else -> error("Unknown constant table type: $constantTableString")
-                    }
-                }.getOrElse { throwable ->
-                    println(throwable.message)
-                    throwable.printStackTrace()
-                    constantTableString = "builtin:vanilla"
-                    BuiltinConstantTable.Vanilla
-                }
             }
 
         var potentialAlgorithmString by settings.string(
@@ -111,11 +82,57 @@ object SettingPage {
                 }
             }
 
-        private var _rankingFile by settings.nullableString("Settings.rankingFile").toComposeStated()
-        var rankingFile: PlatformFile?
-            get() = _rankingFile?.let { PlatformFile(it) }
+        val githubCandidates = listOf(
+            GitHub.GitHubProxy(client),
+            GitHub.Direct(client),
+            GitHub.Cache,
+        )
+
+        private var _github by settings.string("Settings.github", "builtin:github_proxy").toComposeStated()
+        var github: GitHub
+            get() {
+                val (type, content) = _github.split(":", limit = 2)
+                return runCatching {
+                    when (type) {
+                        "builtin" -> when (content) {
+                            "github_proxy" -> githubCandidates.first { it is GitHub.GitHubProxy }
+                            "direct" -> githubCandidates.first { it is GitHub.Direct }
+                            "cache" -> githubCandidates.first { it is GitHub.Cache }
+                            else -> error("Unknown builtin github content: $content")
+                        }
+
+                        else -> error("Unknown github type: $potentialAlgorithmString")
+                    }
+                }.getOrElse { throwable ->
+                    println(throwable.message)
+                    throwable.printStackTrace()
+                    _github = "builtin:github_proxy"
+                    githubCandidates.first { it is GitHub.Cache }
+                }
+            }
             set(value) {
-                _rankingFile = value?.absolutePath()
+                _github = when (value) {
+                    is GitHub.GitHubProxy -> "builtin:github_proxy"
+                    is GitHub.Direct -> "builtin:direct"
+                    GitHub.Cache -> "builtin:cache"
+                }
+            }
+
+        var constantTable by mutableStateOf<ConstantTable>(emptyMap())
+            private set
+
+        var ranking by mutableStateOf<Ranking>(emptyMap())
+            private set
+
+        private var _addressString by settings.string("Setting.address", "init").toComposeStated()
+        var addressMap by mutableStateOf<Map<String, AddressContainer>>(emptyMap())
+        var addressContainer by mutableStateOf(AddressContainer.empty)
+            private set
+        var address: String
+            get() = _addressString
+            set(value) {
+                _addressString = value
+                addressContainer = addressMap[address]!!
             }
 
         private var languageIndex by settings.int("Setting.language", 1).toComposeStated()
@@ -124,11 +141,44 @@ object SettingPage {
             set(value) {
                 languageIndex = value.ordinal
             }
+
+        suspend fun updateData() = runCatching {
+            val constantTableJson = github.open("constants.json").getOrThrow()
+            constantTable = Json.decodeFromString(constantTableJson)
+
+            val rankingJson = github.open("ranking.json").getOrThrow()
+            ranking = Json.decodeFromString(rankingJson)
+
+            val addressManifestJson = github.open("address/manifest.json").getOrThrow()
+            val addressManifest = Json.decodeFromString<Manifest>(addressManifestJson)
+
+            val addressMapJson = addressManifest.files.associateWith { file ->
+                github.open("address/$file").getOrThrow()
+            }
+            addressMap = addressMapJson.mapValues { (_, file) ->
+                Json.decodeFromString<AddressContainer>(file)
+            }
+
+            if (address == "init") {
+                address = addressManifest.default
+            }
+
+            if (github !is GitHub.Cache) {
+                val cache = githubCandidates.first { it is GitHub.Cache } as GitHub.Cache
+                cache.save("constants.json", constantTableJson)
+                cache.save("ranking.json", rankingJson)
+                cache.save("address/manifest.json", addressManifestJson)
+                addressMapJson.forEach { (file, json) ->
+                    cache.save("address/$file", json)
+                }
+            }
+        }
     }
 
     @Composable
-    context(viewModel: ViewModel, _: LocalizationContext)
+    context(_: HomeModel, _: LocalizationContext)
     fun Page(
+        viewModel: ViewModel,
         onUpdateGameRecords: suspend () -> Unit,
     ) = Content(
         viewModel = viewModel,
@@ -136,7 +186,7 @@ object SettingPage {
     )
 
     @Composable
-    context(_: LocalizationContext)
+    context(homeModel: HomeModel, _: LocalizationContext)
     private fun Content(
         scope: CoroutineScope = rememberCoroutineScope(),
         focusManager: FocusManager = LocalFocusManager.current,
@@ -200,52 +250,7 @@ object SettingPage {
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
-            DropdownMenu(
-                text = when (viewModel.constantTable) {
-                    BuiltinConstantTable.Vanilla -> i18n("setting.constant_table.vanilla")
-                    BuiltinConstantTable.Experimental -> i18n("setting.constant_table.experimental")
-                    is ExternalConstantTable -> buildString {
-                        val (type, content) = viewModel.constantTableString.split(":", limit = 2)
-                        append(i18n("setting.constant_table.$type"))
-                        append(": ")
-                        append(content)
-                    }
-                },
-                label = i18n("setting.constant_table"),
-            ) { onExpandedChange ->
-                DropdownMenuItem(
-                    text = { Text(i18n("setting.constant_table.vanilla")) },
-                    onClick = {
-                        onExpandedChange(false)
-                        viewModel.constantTableString = "builtin:vanilla"
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(i18n("setting.constant_table.experimental")) },
-                    onClick = {
-                        onExpandedChange(false)
-                        viewModel.constantTableString = "builtin:experimental"
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(i18n("setting.constant_table.file")) },
-                    onClick = {
-                        onExpandedChange(false)
-                        scope.launch {
-                            val file = FileKit.openFilePicker(
-                                type = FileKitType.File("json"),
-                                mode = FileKitMode.Single,
-                            )
-                            if (file != null) {
-                                viewModel.constantTableString = "file:${file.absolutePath()}"
-                                withContext(Dispatchers.IO) {
-                                    onUpdateGameRecords()
-                                }
-                            }
-                        }
-                    },
-                )
-            }
+
             DropdownMenu(
                 text = viewModel.potentialAlgorithm.name,
                 label = i18n("setting.potential_algorithm"),
@@ -263,38 +268,54 @@ object SettingPage {
                     )
                 }
             }
-            ClickableTextField(
-                value = viewModel.rankingFile?.absolutePath() ?: "",
-                label = { Text(i18n("setting.ranking_file")) },
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(Res.drawable.folder_open),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
+            DropdownMenu(
+                text = viewModel.address.dropLast(".json".length),
+                label = i18n("setting.memory_address_version"),
+            ) { onExpandedChange ->
+                viewModel.addressMap.forEach { (file, _) ->
+                    DropdownMenuItem(
+                        text = { Text(file.dropLast(".json".length)) },
+                        onClick = {
+                            onExpandedChange(false)
+                            viewModel.address = file
+                        },
                     )
-                },
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = TextFieldDefaults.colors().focusedContainerColor.copy(alpha = 0.6F),
-                    unfocusedContainerColor = TextFieldDefaults.colors().unfocusedContainerColor.copy(alpha = 0.6F),
-                ),
-                onClick = {
-                    val file = FileKit.openFilePicker(
-                        type = FileKitType.File("json"),
-                        mode = FileKitMode.Single,
-                        directory = viewModel.rankingFile?.parent()?.let {
-                            when (it.exists() && it.isDirectory()) {
-                                true -> it
-                                else -> null
+                }
+            }
+            DropdownMenu(
+                text = i18n(viewModel.github.i18nKey),
+                label = i18n("setting.github"),
+            ) { onExpandedChange ->
+                viewModel.githubCandidates.forEach { github ->
+                    DropdownMenuItem(
+                        text = { Text(i18n(github.i18nKey)) },
+                        onClick = {
+                            onExpandedChange(false)
+                            viewModel.github = github
+                            scope.launch {
+                                homeModel.waiting = true
+                                launch {
+                                    homeModel.snackbarHostState.showSnackbar("数据更新中...")
+                                }
+                                viewModel.updateData()
+                                    .onSuccess {
+                                        onUpdateGameRecords()
+                                        launch {
+                                            homeModel.snackbarHostState.showSnackbar("数据更新完成")
+                                        }
+                                    }
+                                    .onFailure {
+                                        it.printStackTrace()
+                                        launch {
+                                            homeModel.snackbarHostState.showSnackbar("数据更新失败: ${it.message}")
+                                        }
+                                    }
+                                homeModel.waiting = false
                             }
                         },
                     )
-                    if (file != null) {
-                        viewModel.rankingFile = file
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
+                }
+            }
             DropdownMenu(
                 text = viewModel.language.displayText,
                 label = i18n("setting.language"),

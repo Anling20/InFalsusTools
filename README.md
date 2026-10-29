@@ -29,14 +29,11 @@
 # 社区定数
 
 由于游戏内不提供官方细分定数, 通过采集社区数据取平均值(7舍8入)的方式设定一套定数<br>
-若要在 `In Falsus Tools` 内使用社区定数, 请前往设置页面修改 `定数表`<br>
-
 若有需要查看, 请前往 [在线定数表](https://www.kdocs.cn/l/cheDPToKxD5B)<br>
 若需要提供数据, 请前往 [收集表](https://f.wps.cn/g/WFFMWvS5)
 
 # 排行榜
 
-如需下载最新排行榜文件, 请前往 [ranking.json](./ranking.json)<br>
 如需贡献你的游玩数据, 请在 In Falsus Tools 内前往 `排行榜` 点击右上角 `上传你的数据` 后将保存的文件上传到收集表内<br>
 如果你已经上传过一次并想要修改, 请点击上方 `查看我的填写记录` 并点击 `修改答卷` 后重新上传文件
 
@@ -68,8 +65,10 @@
 该算法为游戏 [Arcaea](https://arcaea.lowiro.com) 版本 7.0.0 前所使用的潜力值计算法<br>
 请参考 [计算方法](https://wiki.arcaea.cn/index.php?title=%E6%BD%9C%E5%8A%9B%E5%80%BC&oldid=88386#%E8%AE%A1%E7%AE%97%E6%96%B9%E6%B3%95)
 
-- 当使用 `Arcaea Classic(Max)` 算法时, r10 视为 b10
-- 当使用 `Arcaea Classic(Min)` 算法时, r10 视为空集合
+# 本地数据
+
+如果你的网络环境难以访问 GitHub 或现有的 GitHub 代理网站, 你可以下载 [数据仓库](https://github.com/Anling20/InFalsusTools_Data) 的源码并解压到 `{数据文件夹}/.cache`<br>
+如果你不知道 `{数据文件夹}` 在哪, 请打开 In Falsus Tools 的 `更多` 页面, 并点击 `打开数据文件夹`
 
 # 疑难解答
 
@@ -77,11 +76,6 @@
 - 如果启动游戏后潜力值悬浮窗后聚焦游戏窗口时未看到潜力值悬浮窗, 请尝试使用管理员权限运行
 - 如果游戏更新后潜力值悬浮窗在进行游戏时不会自动隐藏且结算页面不显示游玩数据, 请检查 `地址文件` 是否与游戏版本匹配
 - 如果使用微星小飞机 RTSS 时遇到页面卡死, 请关闭 RTSS 后重新启动软件
-
-# 地址文件
-
-潜力值悬浮窗的自动隐藏及结算状态通过读取游戏内存实现, 软件包内会默认携带 `已兼容的` 最新版本地址文件<br>
-如需历史版本, 请前往 [此处](./address)
 
 # 反馈与建议
 
@@ -118,6 +112,9 @@ Kotlin Multiplatform 配置保存读取
 
 [FileKit](https://github.com/vinceglb/FileKit)<br>
 Kotlin/Compose Multiplatform 文件操作(读写, 选取/保存)
+
+[ktor](https://ktor.io/)
+Kotlin Multiplatform HTTP 客户端, 用于访问 GitHub 资源
 
 [github-workflows-kt](https://github.com/typesafegithub/github-workflows-kt)<br>
 Kotlin Scripting GitHub Actions 工作流文件生成

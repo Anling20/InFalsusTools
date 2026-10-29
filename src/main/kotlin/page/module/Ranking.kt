@@ -33,11 +33,8 @@ import cn.anling.inftool.ranking.Difficult
 import cn.anling.inftool.ranking.Difficult.*
 import cn.anling.inftool.ranking.Ranking
 import cn.anling.inftool.ranking.SongPlay
-import cn.anling.inftool.readStringSync
 import cn.anling.inftool.song.Song
 import cn.anling.inftool.song.Songs
-import io.github.vinceglb.filekit.PlatformFile
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
 import java.text.DecimalFormat
 import java.util.Locale.getDefault
@@ -45,11 +42,8 @@ import java.util.Locale.getDefault
 object RankingPage {
     private val scoreFormater = DecimalFormat("000,000,000")
 
-    class ViewModel(
-        rankingFile: PlatformFile?,
-    ) {
+    class ViewModel {
         val searchBarState = TextFieldState("")
-        val ranking = Json.decodeFromString<Ranking>(rankingFile?.readStringSync() ?: "{}")
 
         val songs = Songs.entries
             .flatMap {
@@ -69,11 +63,13 @@ object RankingPage {
         viewModel: ViewModel,
         onUploadData: () -> Unit,
         selfName: String,
+        ranking: Ranking,
     ) {
         Content(
             viewModel = viewModel,
             onUploadData = onUploadData,
             selfName = selfName,
+            ranking = ranking,
         )
     }
 
@@ -83,6 +79,7 @@ object RankingPage {
         viewModel: ViewModel,
         onUploadData: () -> Unit,
         selfName: String,
+        ranking: Ranking,
     ) {
         var selection by remember { mutableStateOf<Pair<Song, Difficult>?>(null) }
         AnimatedContent(selection) { innerSelection ->
@@ -105,7 +102,7 @@ object RankingPage {
                             difficult = difficult,
                             onBack = { selection = null },
                             selfName = selfName,
-                            records = viewModel.ranking[song.id]?.get(difficult) ?: emptyList(),
+                            records = ranking[song.id]?.get(difficult) ?: emptyList(),
                         )
                     }
                 }

@@ -3,8 +3,6 @@ package cn.anling.inftool.model
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import cn.anling.inftool.*
-import cn.anling.inftool.address.AddressContainer
-import cn.anling.inftool.address.BuiltinAddressContainer
 import cn.anling.inftool.page.SettingPage
 import cn.anling.inftool.parser.HistoryParser
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
@@ -12,10 +10,9 @@ import cn.anling.inftool.setting.toComposeStated
 import cn.anling.inftool.song.ConstantTable
 import com.russhwolf.settings.*
 import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.exists
-import io.github.vinceglb.filekit.isRegularFile
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.serialization.json.Json
 
 class GameRecordsModel {
     val historyRecords = mutableStateListOf<ProcessedDiveRecord>()
@@ -38,8 +35,7 @@ class GameRecordsModel {
         potential = algorithm.calcPotential(historyRecords, constantTable)
     }
 
-    context(model: SettingPage.ViewModel)
-    suspend fun update() = update(
+    suspend fun update(model: SettingPage.ViewModel) = update(
         saveFile = model.saveFile,
         algorithm = model.potentialAlgorithm,
         constantTable = model.constantTable,
@@ -50,6 +46,7 @@ class HomeModel(
     settings: Settings,
     initialSaveFile: String,
 ) {
+    val httpClient = HttpClient(CIO)
     val snackbarHostState = SnackbarHostState()
 
     var destination by mutableStateOf<HomeDestination>(HomeDestination.Home)
@@ -64,7 +61,7 @@ class HomeModel(
     val moduleAchievementsImageModel = ModuleAchievementsImageModel(settings)
     val modulePlayHistoriesModel = ModulePlayHistoriesModel()
 
-    val settingModel = SettingPage.ViewModel(settings, initialSaveFile)
+    val settingModel = SettingPage.ViewModel(settings, initialSaveFile, httpClient)
 }
 
 class ModulePotentialWindowModel(settings: Settings) {
@@ -73,38 +70,6 @@ class ModulePotentialWindowModel(settings: Settings) {
         key = "PotentialWindow.onlyDisplayInResultsScene",
         defaultValue = false,
     ).toComposeStated()
-
-    var addressContainerString by settings.string(
-        key = "PotentialWindow.addressContainer",
-        defaultValue = "builtin:default",
-    ).toComposeStated()
-    val addressContainer: AddressContainer
-        get() {
-            val (type, content) = addressContainerString.split(":", limit = 2)
-            return runCatching {
-                when (type) {
-                    "builtin" -> when (content) {
-                        "default" -> BuiltinAddressContainer.default
-                        else -> error("Unknown builtin constant table: $content")
-                    }
-
-                    "file" -> {
-                        val file = PlatformFile(content)
-                        when (file.exists() && file.isRegularFile()) {
-                            true -> Json.decodeFromString(file.readStringSync())
-                            else -> error("File not found or is directory: $content")
-                        }
-                    }
-
-                    else -> error("Unknown constant table type: $addressContainerString")
-                }
-            }.getOrElse { throwable ->
-                println(throwable.message)
-                throwable.printStackTrace()
-                addressContainerString = "builtin:default"
-                BuiltinAddressContainer.default
-            }
-        }
 }
 
 class ModulePotentialImageModel(settings: Settings) {

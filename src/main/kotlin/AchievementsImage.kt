@@ -78,6 +78,7 @@ fun AchievementsImage(
                                     val positionChange = change.positionChange()
                                     if (
                                         and(
+                                            change.type == PointerType.Touch,
                                             event.keyboardModifiers.isCtrlPressed,
                                             positionChange.x != 0F,
                                             positionChange.y == 0F,

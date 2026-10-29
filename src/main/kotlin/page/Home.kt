@@ -752,23 +752,21 @@ private fun Content(
                             }
 
                             ModuleDestination.Ranking -> RankingPage.Page(
-                                viewModel = RankingPage.ViewModel(
-                                    rankingFile = model.settingModel.rankingFile,
-                                ),
+                                viewModel = RankingPage.ViewModel(),
                                 onUploadData = onUploadData,
                                 selfName = model.settingModel.username,
+                                ranking = model.settingModel.ranking,
                             )
                         }
 
                         HomeDestination.Terminal -> Unit
 
-                        HomeDestination.Setting -> context(model.settingModel) {
-                            SettingPage.Page(
-                                onUpdateGameRecords = {
-                                    gameRecordsModel.update()
-                                },
-                            )
-                        }
+                        HomeDestination.Setting -> SettingPage.Page(
+                            viewModel = model.settingModel,
+                            onUpdateGameRecords = {
+                                gameRecordsModel.update(model.settingModel)
+                            },
+                        )
 
                         HomeDestination.More -> MorePage.Page(
                             viewModel = MorePage.ViewModel(

@@ -24,9 +24,6 @@ private val container = LocalizationContainer(
 
     "module.potential_window.scale" to "Scale",
     "module.potential_window.only_display_in_results_scene" to "Only display in results scene",
-    "module.potential_window.address_container" to "Address container",
-    "module.potential_window.address_container.default" to "Default",
-    "module.potential_window.address_container.file" to "File",
     "module.potential_window.stop" to "Stop",
     "module.potential_window.start" to "Start",
 
@@ -54,12 +51,9 @@ private val container = LocalizationContainer(
 
     "setting.username" to "Username",
     "setting.save_file" to "Save file",
-    "setting.constant_table" to "Constant table",
-    "setting.constant_table.vanilla" to "Vanilla",
-    "setting.constant_table.experimental" to "Experimental",
-    "setting.constant_table.file" to "File",
     "setting.potential_algorithm" to "Potential algorithm",
-    "setting.ranking_file" to "Ranking file",
+    "setting.memory_address_version" to "Memory address version",
+    "setting.github" to "GitHub",
     "setting.language" to "Language",
 
     "more.check_update" to "Check update",
@@ -73,6 +67,10 @@ private val container = LocalizationContainer(
     "submodule.potential_window.play_potential" to "Play potential",
 
     "submodule.achievements_image.potential_algorithm" to "Potential algorithm",
+
+    "github.github_proxy" to "GitHub Proxy",
+    "github.direct" to "Direct",
+    "github.cache" to "Local cache",
 
     "component.dive_card.potential" to "Potential",
     "component.dive_card.max_link" to "MaxLink",

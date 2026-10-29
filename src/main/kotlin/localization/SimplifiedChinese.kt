@@ -22,9 +22,6 @@ private val container = LocalizationContainer(
 
     "module.potential_window.scale" to "缩放",
     "module.potential_window.only_display_in_results_scene" to "仅在结算场景显示",
-    "module.potential_window.address_container" to "地址容器",
-    "module.potential_window.address_container.default" to "默认",
-    "module.potential_window.address_container.file" to "文件",
     "module.potential_window.stop" to "停止",
     "module.potential_window.start" to "启动",
 
@@ -52,12 +49,8 @@ private val container = LocalizationContainer(
 
     "setting.username" to "用户名",
     "setting.save_file" to "存档文件",
-    "setting.constant_table" to "定数表",
-    "setting.constant_table.vanilla" to "原版",
-    "setting.constant_table.experimental" to "实验性",
-    "setting.constant_table.file" to "文件",
     "setting.potential_algorithm" to "潜力值算法",
-    "setting.ranking_file" to "排行榜文件",
+    "setting.memory_address_version" to "内存地址版本",
     "setting.language" to "语言",
 
     "more.check_update" to "检查更新",
@@ -71,6 +64,9 @@ private val container = LocalizationContainer(
     "submodule.potential_window.play_potential" to "游玩潜力值",
 
     "submodule.achievements_image.potential_algorithm" to "潜力值算法",
+
+    "github.direct" to "直连",
+    "github.cache" to "本地缓存",
 
     "component.dive_card.potential" to "潜力值",
     "component.dive_card.max_link" to "连击数",

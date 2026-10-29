@@ -50,6 +50,29 @@ data class AddressContainer(
         val arrayNodeInstanceOffset: Long,
     )
 
+    companion object {
+        val empty = AddressContainer(
+            gameScene = GameScene(
+                classRVA = 0L,
+                staticFieldsOffset = 0L,
+                instanceReferenceOffset = 0L,
+            ),
+            resultsScene = ResultsScene(
+                classRVA = 0L,
+            ),
+            resultsSceneManager = ResultsSceneManager(
+                classRVA = 0L,
+                staticFieldsOffset = 0L,
+                instanceReferenceOffset = 0L,
+                array1Offset = 0L,
+                array2Offset = 0L,
+                arrayCountOffset = 0L,
+                arrayDataOffset = 0L,
+                arrayNodeInstanceOffset = 0L,
+            )
+        )
+    }
+
     object HexToLongSerializer : KSerializer<Long> {
         override val descriptor: SerialDescriptor =
             PrimitiveSerialDescriptor(HexToLongSerializer::class.qualifiedName!!, PrimitiveKind.STRING)
