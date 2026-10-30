@@ -178,7 +178,7 @@ workflow(
         )
     }
 
-    val publish = job(
+    job(
         id = "publish",
         runsOn = RunnerType.Ubuntu2204,
         needs = listOf(build),
@@ -259,15 +259,6 @@ workflow(
             name = "Publish release",
         )
     }
-
-    syncReleaseToGitee(
-        needs = listOf(publish),
-    )
-
-    syncReleaseToGitCode(
-        needs = listOf(publish),
-        releaseTag = expr { github.ref_name },
-    )
 }
 
 workflow(
@@ -295,22 +286,17 @@ workflow(
         Permission.Contents to Mode.Read,
     ),
 ) {
-    syncReleaseToGitee(
-        needs = listOf(),
-    )
-
+    syncReleaseToGitee()
     syncReleaseToGitCode(
-        needs = listOf(),
         releaseTag = expr("inputs.tag_name"),
     )
 }
 
-fun WorkflowBuilder.syncReleaseToGitee(needs: List<Job<*>>) {
+fun WorkflowBuilder.syncReleaseToGitee() {
     job(
         id = "sync_release_gitee",
         name = "Sync release(Gitee)",
         runsOn = RunnerType.Ubuntu2204,
-        needs = needs,
     ) {
         uses(
             action = CustomAction(
@@ -330,12 +316,11 @@ fun WorkflowBuilder.syncReleaseToGitee(needs: List<Job<*>>) {
     }
 }
 
-fun WorkflowBuilder.syncReleaseToGitCode(needs: List<Job<*>>, releaseTag: String) {
+fun WorkflowBuilder.syncReleaseToGitCode(releaseTag: String) {
     job(
         id = "sync_release_gitcode",
         name = "Sync release(GitCode)",
         runsOn = RunnerType.Ubuntu2204,
-        needs = needs,
         env = mapOf(
             "GH_TOKEN" to expr { secrets.GITHUB_TOKEN },
             "GITCODE_REPOSITORY" to "Anling20/InFalsusTools",
@@ -548,7 +533,7 @@ fun WorkflowBuilder.syncReleaseToGitCode(needs: List<Job<*>>, releaseTag: String
                   http_code="$(
                     curl -sS \
                       -X PUT \
-                      -w "%{http_code}" \
+                      -w "%{http_code} %{speed_upload}\n" \
                       -o "$temp_response" \
                       --retry 3 \
                       -T "release-assets/$file" \

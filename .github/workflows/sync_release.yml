@@ -240,7 +240,7 @@ jobs:
           http_code="$(
             curl -sS \
               -X PUT \
-              -w "%{http_code}" \
+              -w "%{http_code} %{speed_upload}\n" \
               -o "$temp_response" \
               --retry 3 \
               -T "release-assets/$file" \
