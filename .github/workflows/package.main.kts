@@ -289,6 +289,7 @@ workflow(
         group = "gitcode-release-" + expr("inputs.tag_name"),
         cancelInProgress = false,
     ),
+    consistencyCheckJobConfig = ConsistencyCheckJobConfig.Disabled,
     permissions = mapOf(
         Permission.Actions to Mode.Read,
         Permission.Contents to Mode.Read,

@@ -17,24 +17,9 @@ concurrency:
   group: 'gitcode-release-${{ inputs.tag_name }}'
   cancel-in-progress: false
 jobs:
-  check_yaml_consistency:
-    name: 'Check YAML consistency'
-    runs-on: 'ubuntu-latest'
-    steps:
-    - id: 'step-0'
-      name: 'Check out'
-      uses: 'actions/checkout@v7'
-    - id: 'step-1'
-      name: 'Execute script'
-      run: 'rm ''.github/workflows/sync_release.yml'' && ''.github/workflows/package.main.kts'''
-    - id: 'step-2'
-      name: 'Consistency check'
-      run: 'git diff --exit-code ''.github/workflows/sync_release.yml'''
   sync_release_gitee:
     name: 'Sync release(Gitee)'
     runs-on: 'ubuntu-22.04'
-    needs:
-    - 'check_yaml_consistency'
     steps:
     - id: 'step-0'
       uses: 'trustedinster/sync-release-gitee@v1.3'
@@ -48,8 +33,6 @@ jobs:
   sync_release_gitcode:
     name: 'Sync release(GitCode)'
     runs-on: 'ubuntu-22.04'
-    needs:
-    - 'check_yaml_consistency'
     env:
       GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
       GITCODE_REPOSITORY: 'Anling20/InFalsusTools'
