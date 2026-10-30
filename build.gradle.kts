@@ -1,4 +1,3 @@
-
 import dev.nucleusframework.desktop.application.dsl.CompressionLevel
 import dev.nucleusframework.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -65,6 +64,8 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
             implementation("io.ktor:ktor-client-core:3.6.0")
             implementation("io.ktor:ktor-client-cio:3.6.0")
+            implementation("io.ktor:ktor-client-content-negotiation:3.6.0")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:3.6.0")
         }
 
         jvmMain.dependencies {

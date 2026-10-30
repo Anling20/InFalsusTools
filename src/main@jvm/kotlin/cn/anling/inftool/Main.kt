@@ -24,6 +24,8 @@ import cn.anling.inftool.model.GameRecordsModel
 import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.page.Home
 import cn.anling.inftool.ranking.generatePlayJson
+import cn.anling.inftool.remote_source.DataSource
+import cn.anling.inftool.remote_source.VersionUpdateSource
 import cn.anling.inftool.setting.createPlatformSettings
 import cn.anling.inftool.theme.AppTheme
 import dev.nucleusframework.application.DecoratedWindow
@@ -144,6 +146,21 @@ suspend fun main(args: Array<String>) {
                 }
         }
         context(model, gameRecordsModel, localizationContext) {
+            val updater = remember(model.settingModel.versionUpdateSource) {
+                NucleusUpdater {
+                    provider = when (model.settingModel.versionUpdateSource) {
+                        is VersionUpdateSource.GitHub -> GitHubProvider("Anling20", "InFalsusTools")
+                        is VersionUpdateSource.GitCode -> GitCodeProvider("Anling20", "InFalsusTools")
+                    }
+                    channel = "alpha"
+                    allowPrerelease = true
+                    httpClient = HttpClient.newBuilder()
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .withNativeSsl()
+                        .proxy(ProxySelector.getDefault())
+                        .build()
+                }
+            }
             val windowState = rememberWindowState(
                 size = DpSize(
                     width = 1280.dp,
@@ -185,6 +202,7 @@ suspend fun main(args: Array<String>) {
                             model.waiting = true
                             checkForUpdates(
                                 scope = scope,
+                                updater = updater,
                                 onChangeUpdateInfo = { updateInfo = it },
                                 snackbarHostState = model.snackbarHostState,
                                 taskbar = taskbar,
@@ -206,6 +224,7 @@ suspend fun main(args: Array<String>) {
                 LaunchedEffect(Unit) {
                     checkForUpdates(
                         scope = scope,
+                        updater = updater,
                         onChangeUpdateInfo = { updateInfo = it },
                         snackbarHostState = model.snackbarHostState,
                         taskbar = taskbar,
@@ -239,20 +258,10 @@ suspend fun main(args: Array<String>) {
     }
 }
 
-val updater = NucleusUpdater {
-    provider = GitHubProvider("Anling20", "InFalsusTools")
-    channel = "alpha"
-    allowPrerelease = true
-    httpClient = HttpClient.newBuilder()
-        .followRedirects(HttpClient.Redirect.NORMAL)
-        .withNativeSsl()
-        .proxy(ProxySelector.getDefault())
-        .build()
-}
-
 context(_: LocalizationContext)
 private suspend fun checkForUpdates(
     scope: CoroutineScope,
+    updater: NucleusUpdater,
     onChangeUpdateInfo: (UpdateInfo?) -> Unit,
     snackbarHostState: SnackbarHostState,
     taskbar: TaoTaskbarProgressScope?,

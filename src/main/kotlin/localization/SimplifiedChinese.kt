@@ -10,7 +10,6 @@ private val container = LocalizationContainer(
     "update.downloading" to "下载中",
     "update.cancel" to "取消",
 
-    "update.snackbar.update_not_available" to "更新不可用",
     "update.snackbar.update_error" to "更新错误",
 
     "sidebar.module.back" to "返回",
@@ -30,6 +29,7 @@ private val container = LocalizationContainer(
     "module.potential_image.preview" to "预览",
     "module.potential_image.generate_to_file" to "生成到文件",
     "module.potential_image.generate_to_clipboard" to "生成到剪切板",
+
     "module.potential_image.snackbar.generated_to_file" to "已生成到文件",
     "module.potential_image.snackbar.generated_to_clipboard" to "已生成到剪切板",
 
@@ -41,6 +41,7 @@ private val container = LocalizationContainer(
     "module.achievements_image.preview" to "预览",
     "module.achievements_image.generate_to_file" to "生成到文件",
     "module.achievements_image.generate_to_clipboard" to "生成到剪切板",
+
     "module.achievements_image.snackbar.generated_to_file" to "已生成到文件",
     "module.achievements_image.snackbar.generated_to_clipboard" to "已生成到剪切板",
 
@@ -51,7 +52,13 @@ private val container = LocalizationContainer(
     "setting.save_file" to "存档文件",
     "setting.potential_algorithm" to "潜力值算法",
     "setting.memory_address_version" to "内存地址版本",
+    "setting.data_source" to "数据源",
+    "setting.version_update_source" to "版本更新源",
     "setting.language" to "语言",
+
+    "setting.snackbar.data_updating" to "数据更新中",
+    "setting.snackbar.data_update_finished" to "数据更新完成",
+    "setting.snackbar.data_update_failed" to "数据更新失败",
 
     "more.check_update" to "检查更新",
     "more.history_versions" to "历史版本",
@@ -64,6 +71,9 @@ private val container = LocalizationContainer(
     "submodule.potential_window.play_potential" to "游玩潜力值",
 
     "submodule.achievements_image.potential_algorithm" to "潜力值算法",
+
+    "data_source.gitee" to "Gitee(码云)",
+    "data_source.cache" to "本地缓存",
 
     "github.direct" to "直连",
     "github.cache" to "本地缓存",

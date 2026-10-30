@@ -12,7 +12,6 @@ private val container = LocalizationContainer(
     "update.downloading" to "Downloading",
     "update.cancel" to "Cancel",
 
-    "update.snackbar.update_not_available" to "Update not available",
     "update.snackbar.update_error" to "Update error",
 
     "sidebar.module.back" to "Back",
@@ -32,6 +31,7 @@ private val container = LocalizationContainer(
     "module.potential_image.preview" to "Preview",
     "module.potential_image.generate_to_file" to "Generate to file",
     "module.potential_image.generate_to_clipboard" to "Generate to clipboard",
+
     "module.potential_image.snackbar.generated_to_file" to "Generated to file",
     "module.potential_image.snackbar.generated_to_clipboard" to "Generated to clipboard",
 
@@ -43,6 +43,7 @@ private val container = LocalizationContainer(
     "module.achievements_image.preview" to "Preview",
     "module.achievements_image.generate_to_file" to "Generate to file",
     "module.achievements_image.generate_to_clipboard" to "Generate to clipboard",
+
     "module.achievements_image.snackbar.generated_to_file" to "Generated to file",
     "module.achievements_image.snackbar.generated_to_clipboard" to "Generated to clipboard",
 
@@ -53,8 +54,13 @@ private val container = LocalizationContainer(
     "setting.save_file" to "Save file",
     "setting.potential_algorithm" to "Potential algorithm",
     "setting.memory_address_version" to "Memory address version",
-    "setting.github" to "GitHub",
+    "setting.data_source" to "Data source",
+    "setting.version_update_source" to "Version update source",
     "setting.language" to "Language",
+
+    "setting.snackbar.data_updating" to "Data updating",
+    "setting.snackbar.data_update_finished" to "Data update finished",
+    "setting.snackbar.data_update_failed" to "Data updated failed",
 
     "more.check_update" to "Check update",
     "more.history_versions" to "History versions",
@@ -68,9 +74,13 @@ private val container = LocalizationContainer(
 
     "submodule.achievements_image.potential_algorithm" to "Potential algorithm",
 
-    "github.github_proxy" to "GitHub Proxy",
-    "github.direct" to "Direct",
-    "github.cache" to "Local cache",
+    "data_source.github" to "GitHub",
+    "data_source.gitcode" to "GitCode(AtomGit)",
+    "data_source.gitee" to "Gitee",
+    "data_source.cache" to "Local cache",
+
+    "version_update_source.github" to "GitHub",
+    "version_update_source.gitcode" to "GitCode(AtomGit)",
 
     "component.dive_card.potential" to "Potential",
     "component.dive_card.max_link" to "MaxLink",

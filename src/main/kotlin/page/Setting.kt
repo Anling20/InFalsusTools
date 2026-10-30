@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import cn.anling.infalsustools.generated.resources.Res
 import cn.anling.infalsustools.generated.resources.folder_open
-import cn.anling.inftool.GitHub
+import cn.anling.inftool.remote_source.DataSource
 import cn.anling.inftool.Manifest
 import cn.anling.inftool.address.AddressContainer
 import cn.anling.inftool.component.ClickableTextField
@@ -28,6 +28,7 @@ import cn.anling.inftool.model.HomeModel
 import cn.anling.inftool.potential_algorithm.InFalsusToolsPotentialAlgorithm
 import cn.anling.inftool.potential_algorithm.PotentialAlgorithm
 import cn.anling.inftool.ranking.Ranking
+import cn.anling.inftool.remote_source.VersionUpdateSource
 import cn.anling.inftool.setting.toComposeStated
 import cn.anling.inftool.song.ConstantTable
 import cn.anling.inftool.unfocusOnPressEnter
@@ -82,39 +83,76 @@ object SettingPage {
                 }
             }
 
-        val githubCandidates = listOf(
-            GitHub.GitHubProxy(client),
-            GitHub.Direct(client),
-            GitHub.Cache,
+        val dataSourceCandidates = listOf(
+            DataSource.GitHub(client),
+            DataSource.Gitee(client),
+            DataSource.GitCode(client),
+            DataSource.Cache,
         )
 
-        private var _github by settings.string("Settings.github", "builtin:github_proxy").toComposeStated()
-        var github: GitHub
+        private var _dataSource by settings.string("Settings.dataSource", "builtin:github").toComposeStated()
+        var dataSource: DataSource
             get() {
-                val (type, content) = _github.split(":", limit = 2)
+                val (type, content) = _dataSource.split(":", limit = 2)
                 return runCatching {
                     when (type) {
                         "builtin" -> when (content) {
-                            "github_proxy" -> githubCandidates.first { it is GitHub.GitHubProxy }
-                            "direct" -> githubCandidates.first { it is GitHub.Direct }
-                            "cache" -> githubCandidates.first { it is GitHub.Cache }
-                            else -> error("Unknown builtin github content: $content")
+                            "github" -> dataSourceCandidates.first { it is DataSource.GitHub }
+                            "gitcode" -> dataSourceCandidates.first { it is DataSource.GitCode }
+                            "gitee" -> dataSourceCandidates.first { it is DataSource.Gitee }
+                            "cache" -> dataSourceCandidates.first { it is DataSource.Cache }
+                            else -> error("Unknown builtin data source content: $content")
                         }
 
-                        else -> error("Unknown github type: $potentialAlgorithmString")
+                        else -> error("Unknown data source type: $_dataSource")
                     }
                 }.getOrElse { throwable ->
-                    println(throwable.message)
                     throwable.printStackTrace()
-                    _github = "builtin:github_proxy"
-                    githubCandidates.first { it is GitHub.Cache }
+                    _dataSource = "builtin:github"
+                    dataSourceCandidates.first { it is DataSource.GitHub }
                 }
             }
             set(value) {
-                _github = when (value) {
-                    is GitHub.GitHubProxy -> "builtin:github_proxy"
-                    is GitHub.Direct -> "builtin:direct"
-                    GitHub.Cache -> "builtin:cache"
+                _dataSource = when (value) {
+                    is DataSource.GitHub -> "builtin:github"
+                    is DataSource.GitCode -> "builtin:gitcode"
+                    is DataSource.Gitee -> "builtin:gitee"
+                    DataSource.Cache -> "builtin:cache"
+                }
+            }
+
+        val versionUpdateSourceCandidates = listOf(
+            VersionUpdateSource.GitHub,
+            VersionUpdateSource.GitCode,
+        )
+
+        private var _versionUpdateSource by settings.string(
+            key = "Setting.versionUpdateSource",
+            defaultValue = "builtin:github",
+        ).toComposeStated()
+        var versionUpdateSource: VersionUpdateSource
+            get() {
+                val (type, content) = _versionUpdateSource.split(":", limit = 2)
+                return runCatching {
+                    when (type) {
+                        "builtin" -> when (content) {
+                            "github" -> versionUpdateSourceCandidates.first { it is VersionUpdateSource.GitHub }
+                            "gitcode" -> versionUpdateSourceCandidates.first { it is VersionUpdateSource.GitCode }
+                            else -> error("Unknown builtin version update source content: $content")
+                        }
+
+                        else -> error("Unknown version update source type: $_versionUpdateSource")
+                    }
+                }.getOrElse { throwable ->
+                    throwable.printStackTrace()
+                    _versionUpdateSource = "builtin:github"
+                    versionUpdateSourceCandidates.first { it is VersionUpdateSource.GitHub }
+                }
+            }
+            set(value) {
+                _versionUpdateSource = when (value) {
+                    is VersionUpdateSource.GitHub -> "builtin:github"
+                    is VersionUpdateSource.GitCode -> "builtin:gitcode"
                 }
             }
 
@@ -143,17 +181,17 @@ object SettingPage {
             }
 
         suspend fun updateData() = runCatching {
-            val constantTableJson = github.open("constants.json").getOrThrow()
+            val constantTableJson = dataSource.open("constants.json").getOrThrow()
             constantTable = Json.decodeFromString(constantTableJson)
 
-            val rankingJson = github.open("ranking.json").getOrThrow()
+            val rankingJson = dataSource.open("ranking.json").getOrThrow()
             ranking = Json.decodeFromString(rankingJson)
 
-            val addressManifestJson = github.open("address/manifest.json").getOrThrow()
+            val addressManifestJson = dataSource.open("address/manifest.json").getOrThrow()
             val addressManifest = Json.decodeFromString<Manifest>(addressManifestJson)
 
             val addressMapJson = addressManifest.files.associateWith { file ->
-                github.open("address/$file").getOrThrow()
+                this.dataSource.open("address/$file").getOrThrow()
             }
             addressMap = addressMapJson.mapValues { (_, file) ->
                 Json.decodeFromString<AddressContainer>(file)
@@ -164,8 +202,8 @@ object SettingPage {
                 else -> addressContainer = addressMap[address]!!
             }
 
-            if (github !is GitHub.Cache) {
-                val cache = githubCandidates.first { it is GitHub.Cache } as GitHub.Cache
+            if (dataSource !is DataSource.Cache) {
+                val cache = dataSourceCandidates.first { it is DataSource.Cache } as DataSource.Cache
                 cache.save("constants.json", constantTableJson)
                 cache.save("ranking.json", rankingJson)
                 cache.save("address/manifest.json", addressManifestJson)
@@ -284,35 +322,49 @@ object SettingPage {
                 }
             }
             DropdownMenu(
-                text = i18n(viewModel.github.i18nKey),
-                label = i18n("setting.github"),
+                text = i18n(viewModel.dataSource.i18nKey),
+                label = i18n("setting.data_source"),
             ) { onExpandedChange ->
-                viewModel.githubCandidates.forEach { github ->
+                viewModel.dataSourceCandidates.forEach { item ->
                     DropdownMenuItem(
-                        text = { Text(i18n(github.i18nKey)) },
+                        text = { Text(i18n(item.i18nKey)) },
                         onClick = {
                             onExpandedChange(false)
-                            viewModel.github = github
+                            viewModel.dataSource = item
                             scope.launch {
                                 homeModel.waiting = true
                                 launch {
-                                    homeModel.snackbarHostState.showSnackbar("数据更新中...")
+                                    homeModel.snackbarHostState.showSnackbar(i18n("setting.snackbar.data_updating"))
                                 }
                                 viewModel.updateData()
                                     .onSuccess {
                                         onUpdateGameRecords()
                                         launch {
-                                            homeModel.snackbarHostState.showSnackbar("数据更新完成")
+                                            homeModel.snackbarHostState.showSnackbar(i18n("setting.snackbar.data_update_finished"))
                                         }
                                     }
                                     .onFailure {
                                         it.printStackTrace()
                                         launch {
-                                            homeModel.snackbarHostState.showSnackbar("数据更新失败: ${it.message}")
+                                            homeModel.snackbarHostState.showSnackbar("${i18n("setting.snackbar.data_update_failed")}: ${it.message}")
                                         }
                                     }
                                 homeModel.waiting = false
                             }
+                        },
+                    )
+                }
+            }
+            DropdownMenu(
+                text = i18n(viewModel.versionUpdateSource.i18nKey),
+                label = i18n("setting.version_update_source"),
+            ) { onExpandedChange ->
+                viewModel.versionUpdateSourceCandidates.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(i18n(item.i18nKey)) },
+                        onClick = {
+                            onExpandedChange(false)
+                            viewModel.versionUpdateSource = item
                         },
                     )
                 }
